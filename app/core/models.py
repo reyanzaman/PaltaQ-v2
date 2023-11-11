@@ -65,7 +65,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     classes = models.ManyToManyField(
         'Classroom',
         related_name='members',
-        verbose_name='Enrolled Classes'
+        verbose_name='Enrolled Classes',
+        blank=True,
+        null=True,
         )
 
     picture = models.ImageField(
