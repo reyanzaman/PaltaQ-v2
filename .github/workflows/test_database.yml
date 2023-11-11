@@ -42,6 +42,4 @@ jobs:
       - name: Run Django tests
         run: |
           cd app
-          docker-compose up -d
-          docker-compose logs db
-          docker-compose exec app sh -c "python manage.py wait_for_db && until python manage.py check_db; do sleep 5; done && python manage.py test"
+          python manage.py test
