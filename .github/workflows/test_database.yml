@@ -39,7 +39,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests
+      - name: Run Django tests
         run: |
-          cd app
-          python manage.py test
+          docker-compose up -d
+          docker-compose logs db
+          docker-compose exec app sh -c "python manage.py wait_for_db && until python manage.py check_db; do sleep 5; done && python manage.py test"
