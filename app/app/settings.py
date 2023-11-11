@@ -76,14 +76,14 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if 'test' in sys.argv or 'test' in os.environ.get('GITHUB_ACTIONS', ''):
+if 'test' in sys.argv:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'devdbtest',
             'USER': 'devuser',
             'PASSWORD': 'changeme',
-            'HOST': 'db',
+            'HOST': 'localhost',
             'PORT': '5432',
         }
     }
