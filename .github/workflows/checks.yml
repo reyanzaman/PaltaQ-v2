@@ -11,7 +11,7 @@ jobs:
           postgres:
             image: postgres:13
             env:
-              POSTGRES_DB: devdbtest
+              POSTGRES_DB: devdb
               POSTGRES_USER: devuser
               POSTGRES_PASSWORD: changeme
             ports:
