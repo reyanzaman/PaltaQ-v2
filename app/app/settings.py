@@ -82,7 +82,7 @@ if 'test' in sys.argv:
             'NAME': 'devdbtest',
             'USER': 'devuser',
             'PASSWORD': 'changeme',
-            'HOST': 'localhost',
+            'HOST': 'db',
             'PORT': '5432',
         }
     }
