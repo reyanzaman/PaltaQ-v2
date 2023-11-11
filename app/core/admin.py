@@ -14,9 +14,14 @@ class UserAdmin(BaseUserAdmin):
     ordering = ['id']
     list_display = ['email', 'name']
     fieldsets = (
-        (None, {'fields':
-            ('email', 'password', 'name', 'disp_name', 'institution', 'classes', 'picture')
-                }
+        (None, {'fields': (
+                    'email',
+                    'password',
+                    'name', 'disp_name',
+                    'institution',
+                    'classes',
+                    'picture'
+                )}
          ),  # first section
         (
             _('Permissions'),
@@ -81,11 +86,20 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
+
 admin.site.register(models.User, UserAdmin)
 
 
 class ClassroomAdmin(admin.ModelAdmin):
-    list_display = ['institution', 'class_id', 'course_id', 'section', 'semester', 'year']
+    list_display = [
+        'institution',
+        'class_id',
+        'course_id',
+        'section',
+        'semester',
+        'year'
+        ]
     search_fields = ['institution', 'class_id', 'course_id']
+
 
 admin.site.register(models.Classroom, ClassroomAdmin)

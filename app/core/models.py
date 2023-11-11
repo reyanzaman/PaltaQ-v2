@@ -3,7 +3,9 @@ Database Models.
 """
 
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import (
+    AbstractBaseUser, BaseUserManager, PermissionsMixin
+)
 from django.core.validators import FileExtensionValidator
 import uuid
 
@@ -34,6 +36,7 @@ class UserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
+
 class User(AbstractBaseUser, PermissionsMixin):
     """Custom user in the system."""
 
@@ -42,15 +45,35 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('DU', 'University of Dhaka (DU)'),
     ]
 
-    email = models.EmailField(max_length=255, unique=True)
-    name = models.CharField(max_length=255, verbose_name='Full Name')
-    disp_name = models.CharField(max_length=255, verbose_name='Display Name')
-    institution = models.CharField(max_length=255, choices=INSTITUTION_CHOICES, verbose_name='Institution')
-    classes = models.ManyToManyField('Classroom', related_name='members', verbose_name='Enrolled Classes')
+    email = models.EmailField(
+        max_length=255,
+        unique=True
+        )
+    name = models.CharField(
+        max_length=255,
+        verbose_name='Full Name'
+        )
+    disp_name = models.CharField(
+        max_length=255,
+        verbose_name='Display Name'
+        )
+    institution = models.CharField(
+        max_length=255,
+        choices=INSTITUTION_CHOICES,
+        verbose_name='Institution'
+        )
+    classes = models.ManyToManyField(
+        'Classroom',
+        related_name='members',
+        verbose_name='Enrolled Classes'
+        )
 
     picture = models.ImageField(
         upload_to='profile_pics',  # Directory name where images will be stored
-        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'gif'])],  # Validates the file extension
+        validators=[
+            FileExtensionValidator
+            (['jpg', 'jpeg', 'png', 'gif'])
+            ],  # Validates the file extension
         blank=True,  # Allows the field to be blank
         null=True,  # Allows the database to store a NULL value
         verbose_name='Profile Picture'
@@ -64,13 +87,34 @@ class User(AbstractBaseUser, PermissionsMixin):
     qCoins = models.IntegerField(default=0)
     rank = models.CharField(max_length=255, default='Novice Questioner')
 
-    questions_asked = models.IntegerField(default=0, verbose_name='Number of Qyeustions Asked')
-    knowledge_q = models.IntegerField(default=0, verbose_name='Knowledge-Based Questions')
-    comprehensive_q = models.IntegerField(default=0, verbose_name='Comprehensive Questions')
-    application_q = models.IntegerField(default=0, verbose_name='Application-Based Questions')
-    analytical_q = models.IntegerField(default=0, verbose_name='Analytical Questions')
-    evaluative_q = models.IntegerField(default=0, verbose_name='Evaluative Questions')
-    synthetic_q = models.IntegerField(default=0, verbose_name='Synthetic Questions')
+    questions_asked = models.IntegerField(
+        default=0,
+        verbose_name='Number of Qyeustions Asked'
+        )
+    knowledge_q = models.IntegerField(
+        default=0,
+        verbose_name='Knowledge-Based Questions'
+        )
+    comprehensive_q = models.IntegerField(
+        default=0,
+        verbose_name='Comprehensive Questions'
+        )
+    application_q = models.IntegerField(
+        default=0,
+        verbose_name='Application-Based Questions'
+        )
+    analytical_q = models.IntegerField(
+        default=0,
+        verbose_name='Analytical Questions'
+        )
+    evaluative_q = models.IntegerField(
+        default=0,
+        verbose_name='Evaluative Questions'
+        )
+    synthetic_q = models.IntegerField(
+        default=0,
+        verbose_name='Synthetic Questions'
+        )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name', 'disp_name', 'institution']
@@ -80,17 +124,32 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.name
 
+
 def camel_case(s):
     words = s.strip().split()
     return ''.join(word.capitalize() for word in words)
 
+
 class Classroom(models.Model):
     """Model for classes."""
-    institution = models.CharField(max_length=255, choices=User.INSTITUTION_CHOICES, verbose_name='Institution')
-    class_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, verbose_name='Class ID', primary_key=True)
+    institution = models.CharField(
+        max_length=255,
+        choices=User.INSTITUTION_CHOICES,
+        verbose_name='Institution'
+        )
+    class_id = models.UUIDField(
+        default=uuid.uuid4,
+        editable=False,
+        unique=True,
+        verbose_name='Class ID',
+        primary_key=True
+        )
     course_id = models.CharField(max_length=255, verbose_name='Course ID')
     section = models.IntegerField(verbose_name='Section')
-    _semester = models.CharField(max_length=255, verbose_name='Semester')  # Using private field to store the original value
+    _semester = models.CharField(
+        max_length=255,
+        verbose_name='Semester'
+    )  # Using private field to store the original value
     year = models.IntegerField(verbose_name='Year')
 
     @property
