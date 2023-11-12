@@ -40,12 +40,13 @@ jobs:
               pip install -r requirements.txt
           - name: Test
             env:
-              DB_HOST: postgres
+              DB_HOST: localhost
               DB_NAME: devdbtest
               DB_USER: devuser
               DB_PASS: changeme
-            run: |
-              cd app
-              python manage.py test
+            run: docker-compose run --rm app sh -c "python manage.py test"
+            # run: |
+            #   cd app
+            #   python manage.py test
           - name: Lint
             run: docker-compose run --rm app sh -c "flake8" || echo "Linting failed, but continuing"
