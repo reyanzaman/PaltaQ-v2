@@ -19,7 +19,7 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.views import debug
 
 urlpatterns = [
@@ -31,4 +31,5 @@ urlpatterns = [
         name='api-docs',
     ),
     path('', debug.default_urlconf),
+    path('api/user/', include('user.urls')),
 ]
