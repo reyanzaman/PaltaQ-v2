@@ -41,6 +41,9 @@ jobs:
           - name: Test
             env:
               DB_HOST: postgres
+              DB_NAME: devdbtest
+              DB_USER: devuser
+              DB_PASS: changeme
             run: |
               cd app
               python manage.py test
