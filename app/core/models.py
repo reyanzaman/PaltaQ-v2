@@ -67,7 +67,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         related_name='members',
         verbose_name='Enrolled Classes',
         blank=True,
-        null=True,
         )
 
     picture = models.ImageField(

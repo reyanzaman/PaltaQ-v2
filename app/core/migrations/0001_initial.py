@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
                 ('analytical_q', models.IntegerField(default=0, verbose_name='Analytical Questions')),
                 ('evaluative_q', models.IntegerField(default=0, verbose_name='Evaluative Questions')),
                 ('synthetic_q', models.IntegerField(default=0, verbose_name='Synthetic Questions')),
-                ('classes', models.ManyToManyField(related_name='members', to='core.classroom', verbose_name='Enrolled Classes', blank=True, null=True)),
+                ('classes', models.ManyToManyField(related_name='members', to='core.classroom', verbose_name='Enrolled Classes', blank=True)),
                 ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups')),
                 ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions')),
             ],
