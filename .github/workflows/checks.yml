@@ -38,12 +38,6 @@ jobs:
             run: |
               python -m pip install --upgrade pip
               pip install -r requirements.txt
-          - name: Waiting for PostgreSQL
-            run: |
-              until pg_isready -h postgres -p 5432; do
-                echo "Waiting for PostgreSQL to start..."
-                sleep 2
-              done
           - name: Test
             env:
               DB_HOST: postgres
