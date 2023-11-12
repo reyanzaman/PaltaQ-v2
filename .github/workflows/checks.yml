@@ -44,9 +44,8 @@ jobs:
               DB_NAME: devdbtest
               DB_USER: devuser
               DB_PASS: changeme
-            run: docker-compose run --rm app sh -c "python manage.py test"
-            # run: |
-            #   cd app
-            #   python manage.py test
+            run: |
+              cd app
+              python manage.py test
           - name: Lint
             run: docker-compose run --rm app sh -c "flake8" || echo "Linting failed, but continuing"
