@@ -163,8 +163,6 @@ class Classroom(models.Model):
         cleaned_value = camel_case(value.strip())
         self._semester = cleaned_value
 
-    year = models.IntegerField(verbose_name='Year')
-
     def __str__(self):
         return f"{self.institution} - {self.class_id}"
 
