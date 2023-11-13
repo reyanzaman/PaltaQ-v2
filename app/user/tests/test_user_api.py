@@ -31,7 +31,7 @@ class PublicUserApiTests(TestCase):
         payload = {
             'email': 'test@example.com',
             'password': 'testpass123',
-            'name': 'Test User',
+            'std_id': 2021065,
             'disp_name': 'Test User',
             'institution': 'IUB',
         }
@@ -47,7 +47,7 @@ class PublicUserApiTests(TestCase):
         payload = {
             'email': 'test@example.com',
             'password': 'testpass123',
-            'name': 'Test User',
+            'std_id': 2021065,
             'disp_name': 'Test User',
             'institution': 'IUB',
         }
@@ -61,7 +61,7 @@ class PublicUserApiTests(TestCase):
         payload = {
             'email': 'test@example.com',
             'password': 'pw',
-            'name': 'Test User',
+            'std_id': 2021065,
             'disp_name': 'Test User',
             'institution': 'IUB',
         }
@@ -76,7 +76,7 @@ class PublicUserApiTests(TestCase):
     def test_create_token_for_user(self):
         """Test that a token is created for the user."""
         user_details = {
-            'name': 'Test Name',
+            'std_id': 2021065,
             'email': 'test@example.com',
             'password': 'test-user-password123',
             'disp_name': 'Test User',
@@ -96,7 +96,7 @@ class PublicUserApiTests(TestCase):
     def test_create_token_bad_credentials(self):
         """Test reuturns error if credentials invalid."""
         user_details = {
-            'name': 'Test Name',
+            'std_id': 2021065,
             'email': 'test@example.com',
             'password': 'test-user-password123',
             'disp_name': 'Test User',
@@ -121,7 +121,7 @@ class PublicUserApiTests(TestCase):
     def test_display_name_required(self):
         """Test that display name is required."""
         payload = {
-            'name': 'Test Name',
+            'std_id': 2021065,
             'email': 'test@example.com',
             'password': 'test-user-password123',
             'disp_name': '',
@@ -140,7 +140,7 @@ class PublicUserApiTests(TestCase):
         payload = {
             'email': 'test@example.com',
             'password': 'test-user-password123',
-            'name': 'Test User',
+            'std_id': 2021065,
             'disp_name': 'dn',
             'institution': 'IUB',
         }
@@ -157,7 +157,7 @@ class PublicUserApiTests(TestCase):
         payload = {
             'email': 'test@example.com',
             'password': 'test-user-password123',
-            'name': 'Test User',
+            'std_id': 2021065,
             'disp_name': 'Test User',
             'institution': '',
         }
@@ -174,7 +174,7 @@ class PublicUserApiTests(TestCase):
         payload = {
             'email': 'test@example.com',
             'password': 'test-user-password123',
-            'name': 'Test User',
+            'std_id': 2021065,
             'disp_name': 'Test User',
             'institution': 'IBA',
         }
@@ -191,7 +191,7 @@ class PublicUserApiTests(TestCase):
         payload = {
             'email': 'test@example.com',
             'password': 'test-user-password123',
-            'name': 'Test User',
+            'std_id': 2021065,
             'disp_name': 'Test User',
             'institution': 'DU',
         }
@@ -200,6 +200,121 @@ class PublicUserApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         user_exists = get_user_model().objects.filter(
             email=payload['email']
+        ).exists()
+        self.assertTrue(user_exists)
+
+    def test_user_creation_fails_with_string_std_id(self):
+        """Test that user creation fails when a string is passed as std_id."""
+        payload = {
+            'email': 'test@example.com',
+            'password': 'testpass123',
+            'std_id': 'stringvalue',
+            'disp_name': 'Test User',
+            'institution': 'Test Institution',
+        }
+        res = self.client.post(CREATE_USER_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('std_id', res.data)  # Check if error related to std_id
+
+        user_exists = get_user_model().objects.filter(
+            email=payload['email']
+        ).exists()
+        self.assertFalse(user_exists)
+
+    def test_student_id_length_too_short(self):
+        """Test if student id validation works on too short id."""
+        payload = {
+            'email': 'test@example.com',
+            'password': 'test-user-password123',
+            'std_id': '223',
+            'disp_name': 'Test User',
+            'institution': 'DU',
+        }
+        res = self.client.post(CREATE_USER_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        user_exists = get_user_model().objects.filter(
+            email=payload['email']
+        ).exists()
+        self.assertFalse(user_exists)
+
+    def test_student_id_length_too_long(self):
+        """Test if student id validation works on too long id."""
+        payload = {
+            'email': 'test@example.com',
+            'password': 'test-user-password123',
+            'std_id': '20210650',
+            'disp_name': 'Test User',
+            'institution': 'IUB',
+        }
+        res = self.client.post(CREATE_USER_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        user_exists = get_user_model().objects.filter(
+            email=payload['email']
+        ).exists()
+        self.assertFalse(user_exists)
+
+    def test_student_id_duplicate_error(self):
+        """Test if error is returned on duplicate id"""
+        payload1 = {
+            'email': 'test@example.com',
+            'password': 'test-user-password123',
+            'std_id': '2021065',
+            'disp_name': 'Test User',
+            'institution': 'IUB',
+        }
+        payload2 = {
+            'email': 'test2@example.com',
+            'password': 'test2-user-password123',
+            'std_id': '2021065',
+            'disp_name': 'Test User 2',
+            'institution': 'IUB',
+        }
+        res = self.client.post(CREATE_USER_URL, payload1)
+        res2 = self.client.post(CREATE_USER_URL, payload2)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        user_exists = get_user_model().objects.filter(
+            email=payload1['email']
+        ).exists()
+        self.assertTrue(user_exists)
+
+        self.assertEqual(res2.status_code, status.HTTP_400_BAD_REQUEST)
+        user_exists = get_user_model().objects.filter(
+            email=payload2['email']
+        ).exists()
+        self.assertFalse(user_exists)
+
+    def test_student_id_duplicate_success(self):
+        """Test if success is returned on different institutions same id"""
+        payload1 = {
+            'email': 'test@example.com',
+            'password': 'test-user-password123',
+            'std_id': '2021065',
+            'disp_name': 'Test User',
+            'institution': 'IUB',
+        }
+        payload2 = {
+            'email': 'test2@example.com',
+            'password': 'test2-user-password123',
+            'std_id': '2021065',
+            'disp_name': 'Test User 2',
+            'institution': 'DU',
+        }
+        res = self.client.post(CREATE_USER_URL, payload1)
+        res2 = self.client.post(CREATE_USER_URL, payload2)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        user_exists = get_user_model().objects.filter(
+            email=payload1['email']
+        ).exists()
+        self.assertTrue(user_exists)
+
+        self.assertEqual(res2.status_code, status.HTTP_201_CREATED)
+        user_exists = get_user_model().objects.filter(
+            email=payload2['email']
         ).exists()
         self.assertTrue(user_exists)
 
@@ -217,7 +332,7 @@ class PrivateUserApiTests(TestCase):
         self.user = create_user(
             email='test@example.com',
             password='test-user-password123',
-            name='Test User',
+            std_id=2021065,
             disp_name='Test User',
             institution='DU',
         )
@@ -230,7 +345,7 @@ class PrivateUserApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, {
-            'name': self.user.name,
+            'std_id': self.user.std_id,
             'email': self.user.email,
             'disp_name': self.user.disp_name,
             'institution': self.user.institution,
@@ -245,19 +360,19 @@ class PrivateUserApiTests(TestCase):
 
     def test_update_user_profile(self):
         """Test updating the user profile for the authenticated user."""
-        payload = {'name': 'Updated name', 'password': 'newpassword123'}
+        payload = {'std_id': 2021066, 'password': 'newpassword123'}
 
         res = self.client.patch(ME_URL, payload)
 
         self.user.refresh_from_db()
-        self.assertEqual(self.user.name, payload['name'])
+        self.assertEqual(self.user.std_id, payload['std_id'])
         self.assertTrue(self.user.check_password(payload['password']))
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_update_user_all(self):
         """Test updating the user profile for the authenticated user."""
         payload = {
-            'name': 'Updated name',
+            'std_id': 2021065,
             'password': 'newpassword123',
             'disp_name': 'Updated Display Name',
             'institution': 'IUB'
@@ -266,7 +381,7 @@ class PrivateUserApiTests(TestCase):
         res = self.client.patch(ME_URL, payload)
 
         self.user.refresh_from_db()
-        self.assertEqual(self.user.name, payload['name'])
+        self.assertEqual(self.user.std_id, payload['std_id'])
         self.assertTrue(self.user.check_password(payload['password']))
         self.assertEqual(self.user.disp_name, payload['disp_name'])
         self.assertEqual(self.user.institution, payload['institution'])
@@ -275,7 +390,7 @@ class PrivateUserApiTests(TestCase):
     def test_update_user_invalid_institution(self):
         """Test updating the user profile for the authenticated user."""
         payload = {
-            'name': 'Updated name',
+            'std_id': '2021065',
             'password': 'newpassword123',
             'disp_name': 'Updated Display Name',
             'institution': 'JU'

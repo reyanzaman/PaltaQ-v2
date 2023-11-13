@@ -3,6 +3,7 @@ Database Models.
 """
 
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin
 )
@@ -49,9 +50,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=255,
         unique=True
         )
-    name = models.CharField(
-        max_length=255,
-        verbose_name='Full Name'
+    std_id = models.IntegerField(
+        verbose_name='Student ID / Faculty ID',
         )
     disp_name = models.CharField(
         max_length=255,
@@ -118,12 +118,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         )
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name', 'disp_name', 'institution']
+    REQUIRED_FIELDS = ['std_id', 'disp_name', 'institution']
 
     objects = UserManager()
 
     def __str__(self):
-        return self.name
+        return self.disp_name + ' - ' + self.std_id
+
+    class Meta:
+        unique_together = ('std_id', 'institution')
 
 
 def camel_case(s):
@@ -133,6 +136,10 @@ def camel_case(s):
 
 class Classroom(models.Model):
     """Model for classes."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+    )
     institution = models.CharField(
         max_length=255,
         choices=User.INSTITUTION_CHOICES,
@@ -164,7 +171,9 @@ class Classroom(models.Model):
         self._semester = cleaned_value
 
     def __str__(self):
-        return f"{self.institution} - {self.class_id}"
+        return (f"{self.course_id}-{self.section}-"
+                f"{self.semester}-{self.year}-"
+                f"{self.institution}")
 
     def save(self, *args, **kwargs):
         # Setting the actual semester field from the private _semester field

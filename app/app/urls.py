@@ -32,4 +32,5 @@ urlpatterns = [
     ),
     path('', debug.default_urlconf),
     path('api/user/', include('user.urls')),
+    path('api/classroom/', include('classroom.urls')),
 ]
