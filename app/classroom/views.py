@@ -12,7 +12,7 @@ from classroom import serializers
 
 class ClassroomViewSet(viewsets.ModelViewSet):
     """View for Managing classroom APIs"""
-    serializer_class = serializers.ClassroomSerializer
+    serializer_class = serializers.ClassroomDetailSerializer
     queryset = Classroom.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -23,6 +23,13 @@ class ClassroomViewSet(viewsets.ModelViewSet):
             user=self.request.user
         ).order_by('-class_id')
 
+    def get_serializer_class(self):
+        """Return the serializer class for request."""
+        if self.action == 'list':
+            return serializers.ClassroomSerializer
+
+        return self.serializer_class
+
     def perform_create(self, serializer):
-        """Create a new classroom"""
+        """Create a new classroom."""
         serializer.save(user=self.request.user)

@@ -10,9 +10,17 @@ from rest_framework.test import APIClient
 
 from core.models import Classroom
 
-from classroom.serializers import ClassroomSerializer
+from classroom.serializers import (
+    ClassroomSerializer,
+    ClassroomDetailSerializer
+)
 
 CLASSROOM_URL = reverse('classroom:classroom-list')
+
+
+def detail_url(classroom_id):
+    """Return classroom detail URL."""
+    return reverse('classroom:classroom-detail', args=[classroom_id])
 
 
 def create_classroom(user, **params):
@@ -92,3 +100,40 @@ class PrivateClassroomAPITests(TestCase):
         serializer = ClassroomSerializer(classroom, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
+
+    def test_get_classroom_detail(self):
+        """Test getting a classroom detail"""
+        classroom = create_classroom(user=self.user)
+
+        url = detail_url(classroom.class_id)
+        res = self.client.get(url)
+
+        serializer = ClassroomDetailSerializer(classroom)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_create_classroom(self):
+        """Test creating classroom."""
+        payload = {
+            'institution': 'IUB',
+            'course_id': 'CSE-101',
+            'section': 11,
+            'semester': 'Summer',
+            'year': 2023,
+        }
+        res = self.client.post(CLASSROOM_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        classroom = Classroom.objects.get(class_id=res.data['class_id'])
+
+        def camel_case(s):
+            words = s.strip().split()
+            return ''.join(word.capitalize() for word in words)
+
+        for k, v in payload.items():
+            if k == 'semester':
+                self.assertEqual(
+                    getattr(classroom, '_semester'), camel_case(v)
+                )
+            else:
+                self.assertEqual(getattr(classroom, k), v)
+        self.assertEqual(classroom.user, self.user)

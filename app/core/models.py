@@ -159,6 +159,7 @@ class Classroom(models.Model):
         verbose_name='Semester'
     )  # Using private field to store the original value
     year = models.IntegerField(verbose_name='Year')
+    description = models.TextField(blank=True)
 
     @property
     def semester(self):
@@ -176,8 +177,6 @@ class Classroom(models.Model):
                 f"{self.institution}")
 
     def save(self, *args, **kwargs):
-        # Setting the actual semester field from the private _semester field
-        self.semester = self._semester
         if not self.class_id:
-            self.class_id = str(uuid.uuid4())[:6]
+            self.class_id = str(uuid.uuid4())
         super().save(*args, **kwargs)
