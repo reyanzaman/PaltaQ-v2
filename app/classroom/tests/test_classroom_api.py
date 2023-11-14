@@ -42,6 +42,11 @@ def create_classroom(user, **params):
     return classroom
 
 
+def create_user(**params):
+    """Create and return a new user"""
+    return get_user_model().objects.create(**params)
+
+
 class PublicClassroomAPITests(TestCase):
     """Test unauthenticated API requests."""
 
@@ -60,7 +65,7 @@ class PrivateClassroomAPITests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.user = get_user_model().objects.create_user(
+        self.user = create_user(
             email='test@example.com',
             password='test-user-password123',
             std_id=2021065,
@@ -84,7 +89,7 @@ class PrivateClassroomAPITests(TestCase):
 
     def test_classroom_list_limited_to_user(self):
         """Test list of classrooms is limited to authenticated user"""
-        other_user = get_user_model().objects.create_user(
+        other_user = create_user(
             email='other@example.com',
             password='test-user-123',
             std_id=2021066,
@@ -137,3 +142,102 @@ class PrivateClassroomAPITests(TestCase):
             else:
                 self.assertEqual(getattr(classroom, k), v)
         self.assertEqual(classroom.user, self.user)
+
+    def test_partial_update(self):
+        """Test partial update of a classroom."""
+        institution = 'IUB'
+        classroom = create_classroom(
+            user=self.user,
+            institution=institution,
+            course_id='CSE-101',
+            section=11,
+            semester='Summer',
+            year=2023,
+        )
+
+        payload = {'course_id': 'CSC-101'}
+        url = detail_url(classroom.class_id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        classroom.refresh_from_db()
+        self.assertEqual(classroom.course_id, payload['course_id'])
+        self.assertEqual(classroom.institution, institution)
+        self.assertEqual(classroom.user, self.user)
+
+    def test_full_update(self):
+        """Test full update of a classroom."""
+        classroom = create_classroom(
+            user=self.user,
+            institution='IUB',
+            course_id='CSE-101',
+            section=11,
+            semester='Summer',
+            year=2023,
+        )
+
+        payload = {
+            'institution': 'DU',
+            'course_id': 'CSC-101',
+            'section': 5,
+            'semester': 'Autumn',
+            'year': 2024,
+        }
+
+        url = detail_url(classroom.class_id)
+        res = self.client.put(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        classroom.refresh_from_db()
+        for k, v in payload.items():
+            self.assertEqual(getattr(classroom, k), v)
+        self.assertEqual(classroom.user, self.user)
+
+    def test_update_user_returns_error(self):
+        """Test changing the recipe user results in an error."""
+        new_user = create_user(
+            email='test2@example.com',
+            password='test2-user-password123',
+            std_id=2021062,
+            disp_name='Test2 User',
+            institution='IUB',
+        )
+        classroom = create_classroom(user=self.user)
+
+        payload = {'user': new_user.id}
+        url = detail_url(classroom.class_id)
+        self.client.patch(url, payload)
+
+        classroom.refresh_from_db()
+        self.assertEqual(classroom.user, self.user)
+
+    def test_delete_recipe(self):
+        """Test deleting a recipe successful."""
+        classroom = create_classroom(user=self.user)
+
+        url = detail_url(classroom.class_id)
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Classroom.objects.filter(
+            class_id=classroom.class_id
+        ).exists())
+
+    def test_delete_other_users_classroom_error(self):
+        """Test trying to delete another user's classroom gives error"""
+        new_user = create_user(
+            email='test2@example.com',
+            password='test2-user-password123',
+            std_id=2021062,
+            disp_name='Test2 User',
+            institution='IUB',
+        )
+        classroom = create_classroom(user=new_user)
+
+        url = detail_url(classroom.class_id)
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(Classroom.objects.filter(
+            class_id=classroom.class_id
+        ).exists())

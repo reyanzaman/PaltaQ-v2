@@ -123,7 +123,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     def __str__(self):
-        return self.disp_name + ' - ' + self.std_id
+        return self.disp_name + ' - ' + str(self.std_id)
 
     class Meta:
         unique_together = ('std_id', 'institution')
