@@ -104,3 +104,4 @@ class ClassroomAdmin(admin.ModelAdmin):
 
 
 admin.site.register(models.Classroom, ClassroomAdmin)
+admin.site.register(models.Question)

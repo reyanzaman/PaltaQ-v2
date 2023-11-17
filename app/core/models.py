@@ -153,6 +153,7 @@ class Classroom(models.Model):
         primary_key=True
         )
     course_id = models.CharField(max_length=255, verbose_name='Course ID')
+    course_name = models.CharField(max_length=255, verbose_name='Course Name')
     section = models.IntegerField(verbose_name='Section')
     _semester = models.CharField(
         max_length=255,
@@ -180,3 +181,54 @@ class Classroom(models.Model):
         if not self.class_id:
             self.class_id = str(uuid.uuid4())
         super().save(*args, **kwargs)
+
+
+class Question(models.Model):
+    """Question model for students"""
+    LEVEL_CHOICES = [
+        ('Basic', 'Basic'),  # Blue
+        ('Fundamental', 'Fundamental'),  # Green
+        ('Practical', 'Practical'),  # Yellow
+        ('Analytical', 'Analytical'),  # Orange
+        ('Inventive', 'Inventive'),  # Purple
+        ('Critical', 'Critical')  # Red
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+    )
+    content = models.CharField(
+        max_length=255,
+        verbose_name='Question'
+    )
+    topic = models.CharField(
+        max_length=255,
+        verbose_name='Question Topic'
+    )
+    classroom = models.ForeignKey(
+        'Classroom',
+        on_delete=models.CASCADE
+    )
+    score = models.IntegerField(
+        default=0,
+        verbose_name='Question Score'
+    )
+    level = models.CharField(
+        max_length=255,
+        choices=LEVEL_CHOICES,
+        verbose_name='Question Level'
+    )
+
+    is_knowledge = models.BooleanField(default=False)
+    is_comprehensive = models.BooleanField(default=False)
+    is_application = models.BooleanField(default=False)
+    is_analytical = models.BooleanField(default=False)
+    is_evaluative = models.BooleanField(default=False)
+    is_synthetic = models.BooleanField(default=False)
+
+    is_answered = models.BooleanField(default=False)
+    is_anonymous = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.content

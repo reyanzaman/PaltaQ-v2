@@ -16,6 +16,7 @@ class ClassroomSerializer(serializers.ModelSerializer):
             'class_id',
             'institution',
             'course_id',
+            'course_name',
             'section',
             'semester',
             'year'

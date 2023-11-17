@@ -29,6 +29,7 @@ def create_classroom(user, **params):
         'user': user,
         'institution': 'IUB',
         'course_id': 'CSE-101',
+        'course_name': 'Introduction to Programming',
         'section': 11,
         'semester': 'Summer',
         'year': 2023,
@@ -121,6 +122,7 @@ class PrivateClassroomAPITests(TestCase):
         payload = {
             'institution': 'IUB',
             'course_id': 'CSE-101',
+            'course_name': 'Introduction to Programming',
             'section': 11,
             'semester': 'Summer',
             'year': 2023,
@@ -136,11 +138,14 @@ class PrivateClassroomAPITests(TestCase):
 
         for k, v in payload.items():
             if k == 'semester':
-                self.assertEqual(
-                    getattr(classroom, '_semester'), camel_case(v)
-                )
+                expected_value = camel_case(v)
+                actual_value = getattr(classroom, '_semester')
+                self.assertEqual(actual_value, expected_value)
             else:
-                self.assertEqual(getattr(classroom, k), v)
+                expected_value = v
+                actual_value = getattr(classroom, k)
+                self.assertEqual(actual_value, expected_value)
+
         self.assertEqual(classroom.user, self.user)
 
     def test_partial_update(self):
@@ -150,6 +155,7 @@ class PrivateClassroomAPITests(TestCase):
             user=self.user,
             institution=institution,
             course_id='CSE-101',
+            course_name='Introduction to Programming',
             section=11,
             semester='Summer',
             year=2023,
@@ -171,6 +177,7 @@ class PrivateClassroomAPITests(TestCase):
             user=self.user,
             institution='IUB',
             course_id='CSE-101',
+            course_name='Introduction to Programming',
             section=11,
             semester='Summer',
             year=2023,
@@ -179,6 +186,7 @@ class PrivateClassroomAPITests(TestCase):
         payload = {
             'institution': 'DU',
             'course_id': 'CSC-101',
+            'course_name': 'Introduction to Programming',
             'section': 5,
             'semester': 'Autumn',
             'year': 2024,
