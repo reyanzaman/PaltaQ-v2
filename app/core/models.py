@@ -194,6 +194,8 @@ class Question(models.Model):
         ('Critical', 'Critical')  # Red
     ]
 
+    timestamp = models.DateTimeField(auto_now_add=True)
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,

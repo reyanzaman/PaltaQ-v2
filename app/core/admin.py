@@ -96,12 +96,25 @@ class ClassroomAdmin(admin.ModelAdmin):
         'institution',
         'class_id',
         'course_id',
+        'course_name',
         'section',
         'semester',
         'year'
         ]
-    search_fields = ['institution', 'class_id', 'course_id']
+    search_fields = ['institution', 'class_id', 'course_id', 'course_name']
+
+
+class QuestionAdmin(admin.ModelAdmin):
+    list_display = ['timestamp',
+                    'content',
+                    'topic',
+                    'user',
+                    'classroom',
+                    'is_anonymous'
+                    ]
+    search_fields = ['timestamp', 'content', 'topic', 'classroom', 'user']
+    fields = ['user', 'classroom', 'content', 'topic', 'is_anonymous']
 
 
 admin.site.register(models.Classroom, ClassroomAdmin)
-admin.site.register(models.Question)
+admin.site.register(models.Question, QuestionAdmin)
