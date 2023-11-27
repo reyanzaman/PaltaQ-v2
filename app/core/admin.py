@@ -49,6 +49,14 @@ class UserAdmin(BaseUserAdmin):
                     'analytical_q',
                     'evaluative_q',
                     'synthetic_q',
+                    'questions_answered',
+                    'knowledge_ans',
+                    'comprehensive_ans',
+                    'application_ans',
+                    'analytical_ans',
+                    'evaluative_ans',
+                    'synthetic_ans',
+                    'date_joined'
                 )
             }
         ),
@@ -65,7 +73,15 @@ class UserAdmin(BaseUserAdmin):
         'analytical_q',
         'evaluative_q',
         'synthetic_q',
-        'rank'
+        'rank',
+        'questions_answered',
+        'knowledge_ans',
+        'comprehensive_ans',
+        'application_ans',
+        'analytical_ans',
+        'evaluative_ans',
+        'synthetic_ans',
+        'date_joined'
         )  # fields that can't be edited
 
     add_fieldsets = (

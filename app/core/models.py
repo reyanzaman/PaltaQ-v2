@@ -8,6 +8,9 @@ from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin
 )
 from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from django.db.models import F
 import uuid
 
 
@@ -84,37 +87,73 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False, verbose_name='Admin User')
     is_faculty = models.BooleanField(default=False, verbose_name='Faculty')
 
+    date_joined = models.DateTimeField(
+        default=timezone.now, verbose_name='Date Joined'
+    )
+
     qScore = models.IntegerField(default=0)
     qCoins = models.IntegerField(default=0)
     rank = models.CharField(max_length=255, default='Novice Questioner')
 
+    # Statistics of questions asked
     questions_asked = models.IntegerField(
         default=0,
-        verbose_name='Number of Qyeustions Asked'
+        verbose_name='Number of Qyeustions Asked Asked'
         )
     knowledge_q = models.IntegerField(
         default=0,
-        verbose_name='Knowledge-Based Questions'
+        verbose_name='Knowledge-Based Questions Asked'
         )
     comprehensive_q = models.IntegerField(
         default=0,
-        verbose_name='Comprehensive Questions'
+        verbose_name='Comprehensive Questions Asked'
         )
     application_q = models.IntegerField(
         default=0,
-        verbose_name='Application-Based Questions'
+        verbose_name='Application-Based Questions Asked'
         )
     analytical_q = models.IntegerField(
         default=0,
-        verbose_name='Analytical Questions'
+        verbose_name='Analytical Questions Asked'
         )
     evaluative_q = models.IntegerField(
         default=0,
-        verbose_name='Evaluative Questions'
+        verbose_name='Evaluative Questions Asked'
         )
     synthetic_q = models.IntegerField(
         default=0,
-        verbose_name='Synthetic Questions'
+        verbose_name='Synthetic Questions Asked'
+        )
+
+    # Statistics of Questions Answered
+
+    questions_answered = models.IntegerField(
+        default=0,
+        verbose_name='Number of Questions Answered'
+        )
+    knowledge_ans = models.IntegerField(
+        default=0,
+        verbose_name='Knowledge-Based Questions Answered'
+        )
+    comprehensive_ans = models.IntegerField(
+        default=0,
+        verbose_name='Comprehensive Questions Answered'
+        )
+    application_ans = models.IntegerField(
+        default=0,
+        verbose_name='Application-Based Questions Answered'
+        )
+    analytical_ans = models.IntegerField(
+        default=0,
+        verbose_name='Analytical Questions Answered'
+        )
+    evaluative_ans = models.IntegerField(
+        default=0,
+        verbose_name='Evaluative Questions Answered'
+        )
+    synthetic_ans = models.IntegerField(
+        default=0,
+        verbose_name='Synthetic Questions Answered'
         )
 
     USERNAME_FIELD = 'email'
@@ -183,8 +222,47 @@ class Classroom(models.Model):
         super().save(*args, **kwargs)
 
 
+# Model for storing classroom specific data for each user
+class UserClassroomStats(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='classroom_stats'
+    )
+    classroom = models.ForeignKey(
+        Classroom, on_delete=models.CASCADE, related_name='user_stats'
+    )
+    score = models.IntegerField(
+        default=0, verbose_name='Classroom Score'
+    )
+    coins = models.IntegerField(
+        default=0, verbose_name='Classroom Coins'
+    )
+    rank = models.CharField(
+        max_length=255, default='Novice Questioner',
+        verbose_name='Classroom Rank'
+    )
+
+    class Meta:
+        # Ensures that each user-classroom combination is unique
+        unique_together = ('user', 'classroom')
+
+    def __str__(self):
+        return (
+            f'{self.user.disp_name} - '
+            f'{self.classroom.course_name} - {self.rank}'
+        )
+
+
 class Question(models.Model):
     """Question model for students"""
+    original_question = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='counter_questions',
+        verbose_name='Original Question'
+    )
+
     LEVEL_CHOICES = [
         ('Basic', 'Basic'),  # Blue
         ('Fundamental', 'Fundamental'),  # Green
@@ -234,3 +312,189 @@ class Question(models.Model):
 
     def __str__(self):
         return self.content
+
+
+class UserQuestionVote(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    vote_type = models.CharField(
+        max_length=10, choices=[('upvote', 'Upvote'), ('downvote', 'Downvote')]
+    )
+
+    class Meta:
+        # Ensures a user can only vote once per question
+        unique_together = ('user', 'question')
+
+    def __str__(self):
+        return (
+            f'{self.user.disp_name} {self.vote_type} '
+            f'on Question {self.question.id}'
+        )
+
+
+class Answer(models.Model):
+    question = models.ForeignKey(
+        Question, on_delete=models.CASCADE, related_name='answers'
+    )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='answers'
+    )
+    content = models.TextField(
+        verbose_name='Answer Content'
+    )
+    timestamp = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return (
+            f'Answer by {self.user.disp_name} '
+            f'for Question {self.question.id}'
+        )
+
+
+class UserAnswerVote(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    answer = models.ForeignKey(Answer, on_delete=models.CASCADE)
+    vote_type = models.CharField(
+        max_length=10, choices=[('upvote', 'Upvote'), ('downvote', 'Downvote')]
+    )
+
+    class Meta:
+        # Ensures a user can only vote once per answer
+        unique_together = ('user', 'answer')
+
+    def __str__(self):
+        return (
+            f'{self.user.disp_name} {self.vote_type} '
+            f'on Answer {self.answer.id}'
+        )
+
+
+class Report(models.Model):
+    REPORT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('resolved', 'Resolved'),
+        ('declined', 'Declined'),
+    ]
+
+    reporting_user = models.ForeignKey(User, on_delete=models.CASCADE)
+    reported_question = models.ForeignKey(
+        Question, on_delete=models.CASCADE, null=True, blank=True
+    )
+    reported_answer = models.ForeignKey(
+        Answer, on_delete=models.CASCADE, null=True, blank=True
+    )
+    timestamp = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=10, choices=REPORT_STATUS_CHOICES, default='pending'
+    )
+    coins_deducted = models.IntegerField(default=10)
+    coins_awarded = models.IntegerField(default=10)
+
+    def __str__(self):
+        report_type = 'Question' if self.reported_question else 'Answer'
+        return (
+            f'Report on {report_type} by {self.reporting_user.disp_name} - '
+            f'Status: {self.get_status_display()}'
+        )
+
+    class Meta:
+        # Unique constraint for reporting_user and reported_question
+        # Unique constraint for reporting_user and reported_answer
+        constraints = [
+            models.UniqueConstraint(
+                fields=['reporting_user', 'reported_question'],
+                condition=models.Q(reported_question__isnull=False),
+                name='unique_report_per_user_per_question'
+            ),
+            models.UniqueConstraint(
+                fields=['reporting_user', 'reported_answer'],
+                condition=models.Q(reported_answer__isnull=False),
+                name='unique_report_per_user_per_answer'
+            ),
+        ]
+
+    def clean(self):
+        # Custom validation to ensure either
+        # reported_question or reported_answer is set, but not both
+        if self.reported_question and self.reported_answer:
+            raise ValidationError(
+                "A report can be for either a question or an answer, not both."
+            )
+        if not self.reported_question and not self.reported_answer:
+            raise ValidationError(
+                "A report must be for either a question or an answer."
+            )
+
+    def save(self, *args, **kwargs):
+        # Check if the report instance already exists in the database
+        if self.pk is not None:
+            original = Report.objects.get(pk=self.pk)
+
+            if original.status != self.status:
+                reported_entity = self.reported_question \
+                  or self.reported_answer
+                classroom = reported_entity.classroom
+
+                if self.status == 'resolved':
+                    # Logic for when the report is approved
+                    award_amount = self.coins_awarded
+                    deduction_amount = self.coins_deducted
+
+                    # Update total coins for reporting user
+                    self.reporting_user.qCoins = F('qCoins') + award_amount
+                    self.reporting_user.save(update_fields=['qCoins'])
+
+                    # Update classroom-specific coins for reporting user
+                    reporting_user_stats = UserClassroomStats.objects.get(
+                        user=self.reporting_user, classroom=classroom
+                    )
+                    reporting_user_stats.coins = F('coins') + award_amount
+                    reporting_user_stats.save(update_fields=['coins'])
+
+                    # Update total and class-specific coins for reported user
+                    reported_user_stats = UserClassroomStats.objects.get(
+                        user=reported_entity.user, classroom=classroom
+                    )
+                    reported_entity.user.qCoins = F('qCoins')-deduction_amount
+                    reported_entity.user.save(update_fields=['qCoins'])
+                    reported_user_stats.coins = F('coins') - deduction_amount
+                    reported_user_stats.save(update_fields=['coins'])
+
+                elif self.status == 'declined':
+                    # Logic for when the report is declined
+                    deduction_amount = self.coins_deducted
+
+                    # Update total and class-specific coins for reporting user
+                    self.reporting_user.qCoins = F('qCoins') - deduction_amount
+                    self.reporting_user.save(update_fields=['qCoins'])
+                    reporting_user_stats = UserClassroomStats.objects.get(
+                        user=self.reporting_user, classroom=classroom
+                    )
+                    reporting_user_stats.coins = F('coins') - deduction_amount
+                    reporting_user_stats.save(update_fields=['coins'])
+
+        super().save(*args, **kwargs)
+
+
+class RewardShopItem(models.Model):
+    item_name = models.CharField(max_length=255)
+    description = models.TextField()
+    coin_cost = models.IntegerField()
+
+    def __str__(self):
+        return self.item_name
+
+
+class Transaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    item = models.ForeignKey(RewardShopItem, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    coins_spent = models.IntegerField()
+
+    def __str__(self):
+        return (
+            f'Transaction by {self.user.disp_name} '
+            f'for {self.item.item_name}'
+        )
