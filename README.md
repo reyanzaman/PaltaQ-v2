@@ -1,3 +1,6 @@
+# PaltaQ-v2
+Version 2 of Palta Question App made using NextJS. Made for South-East University.
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
