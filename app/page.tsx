@@ -10,18 +10,27 @@ import {
   faThumbsDown,
   faComment,
 } from "@fortawesome/free-solid-svg-icons";
-import SideNav from "./components/sidebar";
+import SideNav from "@/app/components/sidebar";
+import type { Metadata } from "next";
+import UserImage from "@/app/components/userimage";
 
+export const metadata: Metadata = {
+  title: "PaltaQ",
+  description: "PaltaQ V2",
+};
 
 export default function Home() {
+  
   return (
     <body className={`${nunito.className} antialiased flex flex-row`}>
 
       {/* Sidebar */}
       <SideNav />
 
+      <UserImage />
+
       <div className="w-full">
-        <div className="my-4">
+        <div className="mb-2 lg:mt-[2.5em] mt-[4.5em]">
           <h1
             className={`${dancing_script.className} antialiased text-6xl text-center m-4`}
           >
@@ -33,9 +42,9 @@ export default function Home() {
             <div className="mb-4">
               <input
                 id="questionMain"
-                className="form-control"
+                className="form-control pr-5"
                 type="text"
-                placeholder="Try asking a question --> Throw a question to your peers!"
+                placeholder="Throw a question to your peers!"
               ></input>
               <button
                 type="submit"
@@ -65,12 +74,12 @@ export default function Home() {
                     icon={faFlag}
                     className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-0.5 -translate-y-1"
                   />
-                  <span className="font-bold lg:block hidden">Mark as Off-Topic</span>
+                  <span className="font-bold lg:block hidden">Flag as Off-Topic</span>
                 </button>
               </div>
 
               <div className="flex flex-row">
-                <h4 className="lg:text-xl text-base mb-2 text-justify">
+                <h4 className="lg:text-lg text-base mb-2 text-justify">
                   What is your question? Can I ask a question? What is the
                   purpose of this application? Does this application really
                   work? Is it wise to debug this application?
@@ -135,12 +144,12 @@ export default function Home() {
                     icon={faFlag}
                     className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-0.5 -translate-y-1"
                   />
-                  <span className="font-bold lg:block hidden">Mark as Off-Topic</span>
+                  <span className="font-bold lg:block hidden">Flag as Off-Topic</span>
                 </button>
               </div>
 
               <div className="flex flex-row">
-                <h4 className="lg:text-xl text-base mb-2 text-justify">
+                <h4 className="lg:text-lg text-base mb-2 text-justify">
                   Can you define the purpose of a loop in programming?
                 </h4>
               </div>
@@ -203,12 +212,12 @@ export default function Home() {
                     icon={faFlag}
                     className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-0.5 -translate-y-1"
                   />
-                  <span className="font-bold lg:block hidden">Mark as Off-Topic</span>
+                  <span className="font-bold lg:block hidden">Flag as Off-Topic</span>
                 </button>
               </div>
 
               <div className="flex flex-row">
-                <h4 className="lg:text-xl text-base mb-2 text-justify">
+                <h4 className="lg:text-lg text-base mb-2 text-justify">
                   What is a loop?
                 </h4>
               </div>
@@ -255,8 +264,8 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="fixed lg:block hidden bottom-0 w-full -translate-x-[110px] translate-y-2">
-            <p className="text-right mr-2 text-sm">PaltaQ Version 2.00</p>
+          <div className="relative mx-auto w-fit bottom-0">
+            <p className="text-sm">PaltaQ Version 2.00</p>
           </div>
 
         </div>

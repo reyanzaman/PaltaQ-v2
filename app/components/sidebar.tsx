@@ -15,10 +15,13 @@ import {
   faBars,
 } from "@fortawesome/free-solid-svg-icons";
 import { Tooltip } from "react-tooltip";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 const SideNav = () => {
-  const { isHomeActive, isDashboardActive, isQuestionsActive, isInfoActive } =
-    useNavigation();
+  const { isHomeActive, isDashboardActive, isQuestionsActive, isInfoActive } = useNavigation();
+
+  const { data: session } = useSession();
+  const isLoggedIn = !!session;
 
   return (
     <div>
@@ -27,6 +30,8 @@ const SideNav = () => {
       <div className="lg:flex hidden z-100">
         <div className="flex-col fixed justify-between items-center pt-8 pb-5 card btn bg-[#e6e7ee] h-screen w-[110px] md:w-[110px]">
           <div className="space-y-6">
+
+            {/* Home */}
             <Link
               href="/"
               className="flex flex-row space-x-1 items-center"
@@ -46,9 +51,11 @@ const SideNav = () => {
                 />
               )}
             </Link>
-
+            
+            {/* Dashboard */}
             <Link
-              href="/dashboard"
+              href= {isLoggedIn ? "/dashboard" : "#"}
+              onClick={() => isLoggedIn ? "" : signIn('google')}
               className="flex flex-row space-x-1 items-center"
               data-tooltip-content="Dashboard"
               data-tooltip-id="btn-dash"
@@ -68,9 +75,11 @@ const SideNav = () => {
                 />
               )}
             </Link>
-
+            
+            {/* Questions */}
             <Link
-              href="/questions"
+              href= {isLoggedIn ? "/questions" : "#"}
+              onClick={() => isLoggedIn ? "" : signIn('google')}
               className="flex flex-row space-x-1 items-center"
               data-tooltip-content="Questions"
               data-tooltip-id="btn-ques"
@@ -90,9 +99,10 @@ const SideNav = () => {
                 />
               )}
             </Link>
-
+            
+            {/* Info */}
             <Link
-              href="/info"
+              href= "/info"
               className="flex flex-row space-x-1 items-center"
               data-tooltip-content="Info"
               data-tooltip-id="btn-info"
@@ -112,29 +122,33 @@ const SideNav = () => {
                 />
               )}
             </Link>
+
           </div>
 
+          {/* Sign-In / Sign-Out */}
           <Link
-            href="/info"
+            href="#"
+            onClick={() => isLoggedIn ? signOut() : signIn('google')}
             className="flex flex-row space-x-1 items-center"
-            data-tooltip-content="Login"
+            data-tooltip-content= {isLoggedIn ? "logout" : "login"}
             data-tooltip-id="btn-login"
             data-tooltip-place="right"
           >
-            {isInfoActive ? (
+            {isLoggedIn ? (
               <FontAwesomeIcon
                 icon={faArrowRightFromBracket}
                 width={30}
-                className="text-3xl bg-white hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                className="text-3xl hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
               />
             ) : (
               <FontAwesomeIcon
                 icon={faArrowRightToBracket}
                 width={30}
-                className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                className="text-3xl hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
               />
             )}
           </Link>
+
         </div>
       </div>
 
@@ -214,19 +228,19 @@ const SideNav = () => {
 
       {/* Mobile */}
       <div className="lg:hidden block fixed ml-2 mt-2">
-        <Link href="/" className="flex flex-row space-x-1 items-center">
-          {isHomeActive ? (
-            <FontAwesomeIcon
-              icon={faBars}
-              className="text-xl bg-white hover:text-black p-[0.65rem] icon shadow-inset border border-light rounded-circle"
-            />
-          ) : (
-            <FontAwesomeIcon
-              icon={faBars}
-              className="text-xl text-zinc-500 p-[0.65rem] icon shadow-inset border border-light rounded-circle"
-            />
-          )}
-        </Link>
+        {isHomeActive ? (
+          <div className="btn btn-pill btn-icon-only btn-primary">
+            <Link href="/" className="flex flex-row space-x-1 items-center">
+              <FontAwesomeIcon
+                icon={faBars}
+                className="text-xl translate-x-[0.55em] translate-y-[0.45em]"
+              />
+            </Link>
+          </div>
+        ): (
+          <div></div>
+        )}
+
       </div>
 
     </div>

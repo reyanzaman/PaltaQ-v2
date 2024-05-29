@@ -1,72 +1,3 @@
-/*!
- * Bootstrap v4.3.1 (https://getbootstrap.com/)
- * Copyright 2011-2019 The Bootstrap Authors
- * Copyright 2011-2019 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- */
-:root {
-    --blue: #0056B3;
-    --indigo: #6610f2;
-    --purple: #6f42c1;
-    --pink: #e83e8c;
-    --red: #A91E2C;
-    --orange: #fd7e14;
-    --yellow: #F0B400;
-    --green: #18634B;
-    --teal: #0056B3;
-    --cyan: #17a2b8;
-    --white: #ECF0F3;
-    --gray: #93a5be;
-    --gray-dark: #525480;
-    --primary: #e6e7ee;
-    --secondary: #2D4CC8;
-    --success: #18634B;
-    --info: #0056B3;
-    --warning: #F0B400;
-    --danger: #A91E2C;
-    --light: #D1D9E6;
-    --dark: #31344b;
-    --default: #262833;
-    --white: #ECF0F3;
-    --gray: #44476A;
-    --neutral: #ECF0F3;
-    --soft: #e6e7ee;
-    --black: #262833;
-    --purple: #6f42c1;
-    --gray-100: #f3f7fa;
-    --gray-200: #fafbfe;
-    --gray-300: #e6e7ee;
-    --gray-400: #D1D9E6;
-    --gray-500: #b1bcce;
-    --gray-600: #93a5be;
-    --gray-700: #66799e;
-    --gray-800: #525480;
-    --facebook: #3b5999;
-    --dribbble: #ea4c89;
-    --github: #222222;
-    --behance: #0057ff;
-    --twitter: #1da1f2;
-    --slack: #3aaf85;
-    --breakpoint-xs: 0;
-    --breakpoint-sm: 576px;
-    --breakpoint-md: 768px;
-    --breakpoint-lg: 992px;
-    --breakpoint-xl: 1200px;
-    --font-family-sans-serif: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
-    --font-family-monospace: SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace
-}
-
-*,::after,::before {
-    box-sizing: border-box
-}
-
-html {
-    font-family: sans-serif;
-    line-height: 1.15;
-    -webkit-text-size-adjust: 100%;
-    -webkit-tap-highlight-color: rgba(38,40,51,0)
-}
-
 article,aside,figcaption,figure,footer,header,hgroup,main,nav,section {
     display: block
 }
@@ -15020,18 +14951,6 @@ a.bg-slack:focus,a.bg-slack:hover,button.bg-slack:focus,button.bg-slack:hover {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap
-}
-
-.text-left {
-    text-align: left!important
-}
-
-.text-right {
-    text-align: right!important
-}
-
-.text-center {
-    text-align: center!important
 }
 
 @media (min-width: 576px) {
