@@ -54,7 +54,7 @@ const SideNav = () => {
             
             {/* Dashboard */}
             <Link
-              href= {isLoggedIn ? "/dashboard" : "#"}
+              href= {isLoggedIn ? "/pages/dashboard" : "#"}
               onClick={() => isLoggedIn ? "" : signIn('google')}
               className="flex flex-row space-x-1 items-center"
               data-tooltip-content="Dashboard"
@@ -78,7 +78,7 @@ const SideNav = () => {
             
             {/* Questions */}
             <Link
-              href= {isLoggedIn ? "/questions" : "#"}
+              href= {isLoggedIn ? "/pages/questions" : "#"}
               onClick={() => isLoggedIn ? "" : signIn('google')}
               className="flex flex-row space-x-1 items-center"
               data-tooltip-content="Questions"
@@ -102,7 +102,7 @@ const SideNav = () => {
             
             {/* Info */}
             <Link
-              href= "/info"
+              href= "/pages/info"
               className="flex flex-row space-x-1 items-center"
               data-tooltip-content="Info"
               data-tooltip-id="btn-info"

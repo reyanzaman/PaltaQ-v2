@@ -13,3 +13,5 @@ async function getUserById(id: any) {
 
 // Don't forget to close the Prisma client when done
 prisma.$disconnect();
+
+export default prisma;
