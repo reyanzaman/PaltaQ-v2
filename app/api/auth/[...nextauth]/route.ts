@@ -1,4 +1,4 @@
-import NextAuth from "next-auth/next";
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "@/app/lib/prisma";
 
@@ -10,9 +10,30 @@ export const authOptions = {
         }),
     ],
     secret: process.env.SECRET,
+    session: {
+        strategy: 'jwt',
+    },
     callbacks: {
-        async signIn(params: any) {
-            const { email, name } = params.user;
+        async jwt({ token, user }: { token: any, user: any }) {
+            // Persist the user ID and other relevant information in the token
+            if (user) {
+                token.id = user.id;
+                token.email = user.email;
+                token.name = user.name;
+                token.image = user.image;
+            }
+            return token;
+        },
+        async session({ session, token }: { session: any, token: any }) {
+            // Include user information in the session object
+            session.user.id = token.id;
+            session.user.email = token.email;
+            session.user.name = token.name;
+            session.user.image = token.image;
+            return session;
+        },
+        async signIn({ user }: { user: any }) {
+            const { email, name, image } = user;
 
             // Check if the user already exists in the database
             const existingUser = await prisma.user.findUnique({
@@ -24,7 +45,8 @@ export const authOptions = {
                 await prisma.user.create({
                     data: {
                         email,
-                        name
+                        name,
+                        image
                     }
                 });
             }
@@ -34,5 +56,10 @@ export const authOptions = {
     },
 }
 
-const handler = NextAuth(authOptions);
+const handler = NextAuth({
+    ...authOptions,
+    session: {
+        strategy: 'jwt' as const,
+    },
+});
 export { handler as GET, handler as POST }

@@ -8,9 +8,65 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String       @id @default(uuid())
+  email         String       @unique
+  name          String?
+  image         String       @default("default_image.png")
+  is_Admin      Boolean      @default(false)
+  is_Faculty    Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  questions     Question[]   @relation("UserQuestions")
+  userDetails   UserDetails? // One-to-one relationship
+  reports       Reports[]    // One-to-many relationship with Reports
+}
+
+model UserDetails {
+  userId           String   @id
+  score            Int      @default(0)
+  rank             String   @default("Novice")
+  questionsAsked   Int      @default(0)
+  paltaQAsked      Int      @default(0)
+  successfulReports Int     @default(0)
+
+  user             User     @relation(fields: [userId], references: [id])
+}
+
+model Question {
+  id        String         @id @default(uuid())
+  userId    String
+  question  String
+  score     Int            @default(0)
+  likes     Int            @default(0)
+  dislikes  Int            @default(0)
+  paltaQ    Int            @default(0)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  questionType QuestionType[] // One-to-many relationship with QuestionType
+
+  user      User           @relation(fields: [userId], references: [id], name: "UserQuestions")
+  reports   Reports[]      // One-to-many relationship with Reports
+}
+
+model QuestionType {
+  id            String   @id @default(uuid())
+  questionId    String
+  remembering   Boolean  @default(false)
+  understanding Boolean  @default(false)
+  applying      Boolean  @default(false)
+  analyzing     Boolean  @default(false)
+  evaluating    Boolean  @default(false)
+  creating      Boolean  @default(false)
+
+  question      Question @relation(fields: [questionId], references: [id])
+}
+
+model Reports {
+  id          String   @id @default(uuid())
+  userId      String
+  questionId  String
+  reportSuccess Boolean @default(false)
+
+  user        User     @relation(fields: [userId], references: [id])
+  question    Question @relation(fields: [questionId], references: [id])
 }

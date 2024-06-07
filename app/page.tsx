@@ -1,16 +1,16 @@
-import { nunito, dancing_script } from "@/app/ui/fonts";
-import "@/app/ui/neomorphism.css";
-import "@/app/ui/style.css";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faPaperPlane,
   faFlag,
   faUser,
   faThumbsUp,
   faThumbsDown,
   faComment,
 } from "@fortawesome/free-solid-svg-icons";
+import { nunito, dancing_script } from "@/app/ui/fonts";
+import "@/app/ui/neomorphism.css";
+import "@/app/ui/style.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import SideNav from "@/app/components/sidebar";
+import QuestionBox from "@/app/components/questionbox";
 import type { Metadata } from "next";
 import UserImage from "@/app/components/userimage";
 
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function Home() {
   
   return (
-    <body className={`${nunito.className} antialiased flex flex-row`}>
+    <div className={`${nunito.className} antialiased flex flex-row`}>
 
       {/* Sidebar */}
       <SideNav />
@@ -37,28 +37,9 @@ export default function Home() {
             Palta Question
           </h1>
 
-          {/* Input Box */}
-          <form className="w-[90%] mx-auto">
-            <div className="mb-4">
-              <input
-                id="questionMain"
-                className="form-control pr-5"
-                type="text"
-                placeholder="Throw a question to your peers!"
-              ></input>
-              <button
-                type="submit"
-                className="float-end -translate-y-8 -translate-x-5"
-              >
-                <FontAwesomeIcon
-                  icon={faPaperPlane}
-                  className="w-[1.3rem] text-[#31344b]"
-                />
-              </button>
-            </div>
-          </form>
+          <QuestionBox />
 
-          {/* Question Box */}
+          {/* Question Card */}
           <div className="card bg-primary shadow-inset border-light w-[90%] mx-auto mb-4">
             <div className="card-body p-4">
               <div className="flex flex-row justify-between mb-3">
@@ -128,7 +109,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Question Box To Be Removed */}
+          {/* Question Card To Be Removed */}
           <div className="card bg-primary shadow-inset border-light w-[90%] mx-auto mb-4">
             <div className="card-body p-4">
               <div className="flex flex-row justify-between mb-3">
@@ -196,7 +177,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Question Box To Be Removed */}
+          {/* Question Card To Be Removed */}
           <div className="card bg-primary shadow-inset border-light w-[90%] mx-auto mb-4">
             <div className="card-body p-4">
               <div className="flex flex-row justify-between mb-3">
@@ -270,6 +251,6 @@ export default function Home() {
 
         </div>
       </div>
-    </body>
+    </div>
   );
 }

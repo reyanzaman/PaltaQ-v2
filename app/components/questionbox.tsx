@@ -1,0 +1,65 @@
+"use client";
+
+import { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import { toast } from 'react-toastify';
+
+export default function QuestionBox() {
+    const [question, setQuestion] = useState('');
+  
+    const handleSubmit = async (e: any) => {
+      e.preventDefault();
+      
+      // Handle validation  
+      if(question.length < 10) {
+        toast.error('Question too short!');
+        return;
+      }
+
+      // Example of sending the question to your API
+      const response = await fetch('api/submitQuestion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ question }),
+      });
+  
+      if (response.ok) {
+        // Handle successful submission
+        setQuestion('');
+        console.log(response);
+        toast.success(response.statusText);
+      } else {
+        // Handle error
+        console.error('Failed to submit question');
+        toast.error('Failed to submit question');
+      }
+    };
+  
+    return (
+      <form className="w-[90%] mx-auto" onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <input
+            id="questionMain"
+            className="form-control pr-5"
+            type="text"
+            placeholder="Throw a question to your peers!"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+          />
+          <button
+            type="submit"
+            className="float-end -translate-y-8 -translate-x-5"
+          >
+            <FontAwesomeIcon
+              icon={faPaperPlane}
+              className="w-[1.3rem] text-[#31344b]"
+            />
+          </button>
+        </div>
+      </form>
+    );
+  }
+  

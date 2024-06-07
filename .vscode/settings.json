@@ -1,4 +1,6 @@
 {
     "html.format.unformatted": "",
-    "htmltagwrap.tag": "div"
+    "htmltagwrap.tag": "div",
+    "WillLuke.nextjs.addTypesOnSave": true,
+    "WillLuke.nextjs.hasPrompted": true
 }
