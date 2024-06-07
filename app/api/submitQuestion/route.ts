@@ -12,17 +12,19 @@ async function postHandler(req: Request, res: NextApiResponse) {
     try {
       // Get the session
       const token = await getToken({ req, secret });
-      console.log(token);
 
       // Extract question data from the request body
       const { question } = await req.json();
       console.log("Question: ", question);
 
       // Validate the question
-      const isValid = validateQuestion(question);
+      const isValid = await validateQuestion(question);
 
       if (!isValid) {
-        return res.status(400).json({ error: 'Invalid question' });
+        return new Response("",{
+          status: 400,
+          statusText: "Invalid Question!"
+        })
       }
 
       // Score the question

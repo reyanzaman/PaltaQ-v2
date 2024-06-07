@@ -1,14 +1,44 @@
 export async function validateQuestion(question: string): Promise<boolean> {
     try {
       if (!question) {
-        throw new Error('Question cannot be empty');
+        return false;
       }
-      console.log('Validated question:', question);
+
+      question = question.toLowerCase().trim();
+
+      if (!question.endsWith('?')) {
+        return false;
+      }
+
+      if (!question.startsWith('what') && !question.startsWith('why') &&
+       !question.startsWith('when') && !question.startsWith('how') && 
+       !question.startsWith('where') && !question.startsWith('who') &&
+       !question.startsWith('which') && !question.startsWith('whom') &&
+       !question.startsWith('whose') && !question.startsWith('is') &&
+       !question.startsWith('are') && !question.startsWith('do') &&
+       !question.startsWith('does') && !question.startsWith('can') &&
+       !question.startsWith('could') && !question.startsWith('will') &&
+       !question.startsWith('would') && !question.startsWith('should') &&
+       !question.startsWith('shall') && !question.startsWith('may') &&
+       !question.startsWith('might') && !question.startsWith('must') &&
+       !question.startsWith('have') && !question.startsWith('has') &&
+       !question.startsWith('had') && !question.startsWith('am') &&
+       !question.startsWith('was') && !question.startsWith('were')) {
+        return false;
+      }
+
+      const englishRegex = /^[a-zA-Z0-9?.,'"\s]+$/;
+
+      if (!englishRegex.test(question)) {
+        return false;
+      }
+
+      console.log('Question validation complete:');
       return true;
     } catch (error) {
       // Handle database error
       console.error('Failed to validate question', error);
-      throw new Error('Failed to validate question');
+      return false;
     }
 }
 

@@ -8,17 +8,21 @@ datasource db {
 }
 
 model User {
-  id            String       @id @default(uuid())
-  email         String       @unique
-  name          String?
-  image         String       @default("default_image.png")
-  is_Admin      Boolean      @default(false)
-  is_Faculty    Boolean      @default(false)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  questions     Question[]   @relation("UserQuestions")
-  userDetails   UserDetails? // One-to-one relationship
-  reports       Reports[]    // One-to-many relationship with Reports
+  id                String       @id @default(uuid())
+  email             String       @unique
+  name              String?
+  image             String       @default("default_image.png")
+  is_Admin          Boolean      @default(false)
+  is_Faculty        Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  questions         Question[]   @relation("UserQuestions")
+  userDetails       UserDetails? // One-to-one relationship
+  reports           Reports[]    // One-to-many relationship with Reports
+
+  likedQuestions    Likes[]      @relation("UserLikes")
+  dislikedQuestions Dislikes[]   @relation("UserDislikes")
+  paltaQuestions    PaltaQ[]     @relation("UserPaltaQ")
 }
 
 model UserDetails {
@@ -33,19 +37,24 @@ model UserDetails {
 }
 
 model Question {
-  id        String         @id @default(uuid())
-  userId    String
-  question  String
-  score     Int            @default(0)
-  likes     Int            @default(0)
-  dislikes  Int            @default(0)
-  paltaQ    Int            @default(0)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  questionType QuestionType[] // One-to-many relationship with QuestionType
+  id            String       @id @default(uuid())
+  userId        String
+  question      String
+  score         Int          @default(0)
+  likes         Int          @default(0)
+  dislikes      Int          @default(0)
+  paltaQ        Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  category      String
+  isAnonymous   Boolean      @default(false)
+  questionType  QuestionType[] // One-to-many relationship with QuestionType
 
-  user      User           @relation(fields: [userId], references: [id], name: "UserQuestions")
-  reports   Reports[]      // One-to-many relationship with Reports
+  user          User         @relation(fields: [userId], references: [id], name: "UserQuestions")
+  reports       Reports[]    // One-to-many relationship with Reports
+  likedBy       Likes[]      @relation("QuestionLikes")
+  dislikedBy    Dislikes[]   @relation("QuestionDislikes")
+  paltaQBy      PaltaQ[]     @relation("QuestionPaltaQ")
 }
 
 model QuestionType {
@@ -69,4 +78,31 @@ model Reports {
 
   user        User     @relation(fields: [userId], references: [id])
   question    Question @relation(fields: [questionId], references: [id])
+}
+
+model Likes {
+  id          String   @id @default(uuid())
+  userId      String
+  questionId  String
+
+  user        User     @relation(fields: [userId], references: [id], name: "UserLikes")
+  question    Question @relation(fields: [questionId], references: [id], name: "QuestionLikes")
+}
+
+model Dislikes {
+  id          String   @id @default(uuid())
+  userId      String
+  questionId  String
+
+  user        User     @relation(fields: [userId], references: [id], name: "UserDislikes")
+  question    Question @relation(fields: [questionId], references: [id], name: "QuestionDislikes")
+}
+
+model PaltaQ {
+  id          String   @id @default(uuid())
+  userId      String
+  questionId  String
+
+  user        User     @relation(fields: [userId], references: [id], name: "UserPaltaQ")
+  question    Question @relation(fields: [questionId], references: [id], name: "QuestionPaltaQ")
 }

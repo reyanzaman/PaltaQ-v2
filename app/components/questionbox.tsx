@@ -15,6 +15,9 @@ export default function QuestionBox() {
       if(question.length < 10) {
         toast.error('Question too short!');
         return;
+      } else if(question.length > 250) {
+        toast.error('Question too long!');
+        return;
       }
 
       // Example of sending the question to your API
