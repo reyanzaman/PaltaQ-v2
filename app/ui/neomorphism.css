@@ -10835,6 +10835,10 @@ a.bg-slack:focus,a.bg-slack:hover,button.bg-slack:focus,button.bg-slack:hover {
     padding-right: 3rem!important
 }
 
+.pr-5o5,.px-5o5 {
+    padding-right: 4rem!important
+}
+
 .pb-5,.py-5 {
     padding-bottom: 3rem!important
 }
@@ -26280,6 +26284,10 @@ label {
 .form-control:disabled,.form-control[readonly] {
     background-color: #e6e7ee;
     opacity: .6
+}
+
+.resize-none {
+    resize: none
 }
 
 textarea[resize=none] {

@@ -15,18 +15,18 @@ export default function QuestionBox() {
       if(question.length < 10) {
         toast.error('Question too short!');
         return;
-      } else if(question.length > 250) {
+      } else if(question.length > 300) {
         toast.error('Question too long!');
         return;
       }
 
       // Example of sending the question to your API
-      const response = await fetch('api/submitQuestion', {
+      const response = await fetch('api/submitGenQuestion', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question: question }),
       });
   
       if (response.ok) {
@@ -37,28 +37,27 @@ export default function QuestionBox() {
       } else {
         // Handle error
         console.error('Failed to submit question');
-        toast.error('Failed to submit question');
+        toast.error(response.statusText);
       }
     };
   
     return (
       <form className="w-[90%] mx-auto" onSubmit={handleSubmit}>
         <div className="mb-4">
-          <input
+          <textarea
             id="questionMain"
-            className="form-control pr-5"
-            type="text"
+            className="form-control pr-5o5 resize-none py-3 pl-3"
             placeholder="Throw a question to your peers!"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
           />
           <button
             type="submit"
-            className="float-end -translate-y-8 -translate-x-5"
+            className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
           >
             <FontAwesomeIcon
               icon={faPaperPlane}
-              className="w-[1.3rem] text-[#31344b]"
+              className="w-[1.5rem] text-[#31344b]"
             />
           </button>
         </div>

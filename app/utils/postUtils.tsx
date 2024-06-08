@@ -1,6 +1,12 @@
 import prisma from '@/app/lib/prisma';
 
-export async function submitQuestionToDatabase(userId: string, question: string, score: number): Promise<void> {
+export enum QuestionCategory {
+  General = 'General',
+  Topic = 'Topic',
+  Palta = 'Palta'
+}
+
+export async function submitQuestionToDatabase(userId: string, question: string, score: number, category: QuestionCategory, topicId: string, classId: string, isAnonymous: boolean): Promise<void> {
     try {
         // Insert the question into the database using Prisma
         await prisma.question.create({
@@ -8,6 +14,10 @@ export async function submitQuestionToDatabase(userId: string, question: string,
               userId: userId,
               question: question,
               score: score,
+              category: category,
+              isAnonymous: isAnonymous,
+              topicId: topicId,
+              classId: classId
             },
         });
     

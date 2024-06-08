@@ -10,7 +10,7 @@ import "@/app/ui/neomorphism.css";
 import "@/app/ui/style.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import SideNav from "@/app/components/sidebar";
-import QuestionBox from "@/app/components/questionbox";
+import QuestionBox from "@/app/components/homequestionbox";
 import type { Metadata } from "next";
 import UserImage from "@/app/components/userimage";
 
@@ -29,8 +29,8 @@ export default function Home() {
 
       <UserImage />
 
-      <div className="w-full">
-        <div className="mb-2 lg:mt-[2.5em] mt-[4.5em]">
+      <div className="w-full h-screen">
+        <div className="mb-2 lg:mt-[2.5em] mt-[4.5em] lg:w-[65em] mx-auto">
           <h1
             className={`${dancing_script.className} antialiased text-6xl text-center m-4`}
           >

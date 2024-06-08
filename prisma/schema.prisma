@@ -8,21 +8,23 @@ datasource db {
 }
 
 model User {
-  id                String       @id @default(uuid())
-  email             String       @unique
+  id                String        @id @default(uuid())
+  email             String        @unique
   name              String?
-  image             String       @default("default_image.png")
-  is_Admin          Boolean      @default(false)
-  is_Faculty        Boolean      @default(false)
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  questions         Question[]   @relation("UserQuestions")
-  userDetails       UserDetails? // One-to-one relationship
-  reports           Reports[]    // One-to-many relationship with Reports
+  image             String        @default("default_image.png")
+  is_Admin          Boolean       @default(false)
+  is_Faculty        Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  questions         Question[]    @relation("UserQuestions")
+  userDetails       UserDetails?  // One-to-one relationship
+  reports           Reports[]     // One-to-many relationship with Reports
+  likedQuestions    Likes[]       @relation("UserLikes")
+  dislikedQuestions Dislikes[]    @relation("UserDislikes")
+  paltaQuestions    PaltaQ[]      @relation("UserPaltaQ")
+  classes           ClassEnrollment[] // Many-to-many relationship with Classes
 
-  likedQuestions    Likes[]      @relation("UserLikes")
-  dislikedQuestions Dislikes[]   @relation("UserDislikes")
-  paltaQuestions    PaltaQ[]     @relation("UserPaltaQ")
+  facultyClasses    Classes[]     @relation("FacultyClasses")
 }
 
 model UserDetails {
@@ -33,12 +35,54 @@ model UserDetails {
   paltaQAsked      Int      @default(0)
   successfulReports Int     @default(0)
 
-  user             User     @relation(fields: [userId], references: [id])
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Classes {
+  id          String          @id @default(uuid())
+  name        String
+  code        String
+  facultyId   String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  faculty     User            @relation(fields: [facultyId], references: [id], name: "FacultyClasses")
+  enrollments ClassEnrollment[] // Many-to-many relationship with Users
+  topics      Topic[]         // One-to-many relationship with Topics
+  questions   Question[]      // One-to-many relationship with Questions
+}
+
+model ClassEnrollment {
+  userId     String
+  classId    String
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class      Classes  @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@id([userId, classId])
+}
+
+model Topic {
+  id        String      @id @default(uuid())
+  name      String
+  classId   String
+  questions Question[] // One-to-many relationship with Questions
+
+  class     Classes     @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([name, classId]) // Unique constraint to ensure no duplicate topics within the same class
+}
+
+enum QuestionCategory {
+  General
+  Topic
+  Palta
 }
 
 model Question {
   id            String       @id @default(uuid())
   userId        String
+  topicId       String       // Foreign key to Topic
   question      String
   score         Int          @default(0)
   likes         Int          @default(0)
@@ -46,15 +90,20 @@ model Question {
   paltaQ        Int          @default(0)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
-  category      String
+  category      QuestionCategory // Enum type for category
   isAnonymous   Boolean      @default(false)
+  isArchived    Boolean      @default(false)
+  
+  classId       String       // Foreign key to Classes
   questionType  QuestionType[] // One-to-many relationship with QuestionType
 
   user          User         @relation(fields: [userId], references: [id], name: "UserQuestions")
+  topic         Topic        @relation(fields: [topicId], references: [id])
   reports       Reports[]    // One-to-many relationship with Reports
   likedBy       Likes[]      @relation("QuestionLikes")
   dislikedBy    Dislikes[]   @relation("QuestionDislikes")
   paltaQBy      PaltaQ[]     @relation("QuestionPaltaQ")
+  class         Classes      @relation(fields: [classId], references: [id], onDelete: Cascade)
 }
 
 model QuestionType {
@@ -67,7 +116,7 @@ model QuestionType {
   evaluating    Boolean  @default(false)
   creating      Boolean  @default(false)
 
-  question      Question @relation(fields: [questionId], references: [id])
+  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
 
 model Reports {
@@ -77,7 +126,7 @@ model Reports {
   reportSuccess Boolean @default(false)
 
   user        User     @relation(fields: [userId], references: [id])
-  question    Question @relation(fields: [questionId], references: [id])
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
 
 model Likes {
@@ -86,7 +135,7 @@ model Likes {
   questionId  String
 
   user        User     @relation(fields: [userId], references: [id], name: "UserLikes")
-  question    Question @relation(fields: [questionId], references: [id], name: "QuestionLikes")
+  question    Question @relation(fields: [questionId], references: [id], name: "QuestionLikes", onDelete: Cascade)
 }
 
 model Dislikes {
@@ -95,7 +144,7 @@ model Dislikes {
   questionId  String
 
   user        User     @relation(fields: [userId], references: [id], name: "UserDislikes")
-  question    Question @relation(fields: [questionId], references: [id], name: "QuestionDislikes")
+  question    Question @relation(fields: [questionId], references: [id], name: "QuestionDislikes", onDelete: Cascade)
 }
 
 model PaltaQ {
@@ -104,5 +153,5 @@ model PaltaQ {
   questionId  String
 
   user        User     @relation(fields: [userId], references: [id], name: "UserPaltaQ")
-  question    Question @relation(fields: [questionId], references: [id], name: "QuestionPaltaQ")
+  question    Question @relation(fields: [questionId], references: [id], name: "QuestionPaltaQ", onDelete: Cascade)
 }
