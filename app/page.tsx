@@ -23,7 +23,7 @@ export default function Home() {
 
       <UserImage />
 
-      <div className="w-full h-screen ml-[6em]">
+      <div className="w-full h-screen lg:ml-[7em]">
         <div className="mb-2 lg:mt-[4em] mt-[4.5em] lg:w-[65em] mx-auto">
           <h1
             className={`${dancing_script.className} antialiased text-6xl text-center m-4`}

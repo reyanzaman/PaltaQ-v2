@@ -26,8 +26,25 @@ const SideNav = () => {
   return (
     <div>
 
+      {/* Mobile */}
+      <div className="lg:hidden block fixed ml-2 mt-2">
+        {isHomeActive ? (
+          <div className="btn btn-pill btn-icon-only btn-primary">
+            <Link href="/" className="flex flex-row space-x-1 items-center">
+              <FontAwesomeIcon
+                icon={faBars}
+                className="text-xl translate-x-[0.55em] translate-y-[0.45em]"
+              />
+            </Link>
+          </div>
+        ): (
+          <div></div>
+        )}
+
+      </div>
+
       {/* Desktop */}
-      <div className="lg:flex hidden z-100 fixed left-0 top-0 h-screen">
+      <div className="lg:flex hidden fixed left-0 top-0 h-screen">
         <div className="flex-col justify-between items-center pt-8 pb-5 card btn bg-[#e6e7ee] w-[110px] md:w-[110px]">
           <div className="space-y-6">
 
@@ -224,23 +241,6 @@ const SideNav = () => {
             opacity: "1",
           }}
         />
-      </div>
-
-      {/* Mobile */}
-      <div className="lg:hidden block fixed ml-2 mt-2">
-        {isHomeActive ? (
-          <div className="btn btn-pill btn-icon-only btn-primary">
-            <Link href="/" className="flex flex-row space-x-1 items-center">
-              <FontAwesomeIcon
-                icon={faBars}
-                className="text-xl translate-x-[0.55em] translate-y-[0.45em]"
-              />
-            </Link>
-          </div>
-        ): (
-          <div></div>
-        )}
-
       </div>
 
     </div>

@@ -15,8 +15,10 @@ interface Question {
     createdAt: string;
     likes: number;
     dislikes: number;
-    isAnonymous: boolean
+    isAnonymous: boolean;
+    score: number;
     user: User;
+    paltaQ: number;
 }
 
 interface User {
@@ -64,7 +66,7 @@ export default function RecentQuestions() {
             {/* Question Card */}
             {questions.map((question: any) => (
                 <div key={question.id} className="card bg-primary shadow-inset border-light w-[90%] mx-auto mb-4">
-                    <div className="card-body p-4">
+                    <div className="px-4 pt-4 pb-2">
                         <div className="flex flex-row justify-between mb-2">
                             <div className="flex items-center">
                                 <div className='icon shadow-inset border border-light rounded-circle p-1'>
@@ -97,29 +99,48 @@ export default function RecentQuestions() {
                             </button>
                         </div>
 
-                        <div className="flex flex-row py-1">
-                            <h4 className="lg:text-lg text-base mb-2 text-justify">
+                        <div className="flex flex-row pt-2 pb-1">
+                            <h4 className="lg:text-lg text-base text-justify">
                                 {question.question}
                             </h4>
                         </div>
 
-                        <div>
-                            <div className="flex mt-2">
-                                <button><FontAwesomeIcon icon={faThumbsUp} className="hover:text-blue-500 duration-500 pb-1" /></button>
-                                <span className="small ml-1 mr-2">{question.likes}</span>
-                                <span className="small mr-2">|</span>
-                                <button><FontAwesomeIcon icon={faThumbsDown} className="hover:text-red-500 duration-500 pb-1" /></button>
-                                <span className="small ml-1 mr-2">{question.dislikes}</span>
-                                <span className="small mr-2">|</span>
-                                <button><FontAwesomeIcon icon={faComment} className="hover:text-indigo-500 duration-500 pb-1" /></button>
-                                <span className="small ml-1">0</span> {/* Assuming no comments */}
-                                <span className="small ml-3">
-                                    {new Date(question.createdAt).toLocaleDateString()}, {new Date(question.createdAt).toLocaleTimeString()}
-                                </span>
-                            </div>
-                        </div>
-
                     </div>
+
+                    <div className='badge-inline'>
+                        <div className={`p-3  ${question.score >= 100
+                                ? "badge-success"
+                                : question.score >= 50
+                                    ? "badge-secondary"
+                                    : "badge-danger"
+                            }`}>
+                            {question.score >= 100
+                                ? <span className='font-bold text-sm pl-2'>HIGH LEVEL QUESTION</span>
+                                : question.score >= 50
+                                    ? <span className='font-bold text-sm pl-2'>MEDIUM LEVEL QUESTION</span>
+                                    : <span className='font-bold text-sm pl-2'>LOW LEVEL QUESTION</span>}
+                            <span className='ml-2'> | </span>
+                            <span className="font-bold text-sm items-end ml-2">
+                                SCORE: {question.score}
+                            </span>
+                        </div>
+    
+                        <div className="flex mt-2 ml-4 pt-2 pb-3">
+                            <button><FontAwesomeIcon icon={faThumbsUp} className="hover:text-blue-500 active:text-blue-600 duration-500 pb-1" /></button>
+                            <span className="small ml-1 mr-2">{question.likes}</span>
+                            <span className="small mr-2">|</span>
+                            <button><FontAwesomeIcon icon={faThumbsDown} className="hover:text-red-500 active:text-red-600 duration-500 pb-1" /></button>
+                            <span className="small ml-1 mr-2">{question.dislikes}</span>
+                            <span className="small mr-2">|</span>
+                            <button><FontAwesomeIcon icon={faComment} className="hover:text-indigo-500 active:text-indigo-600 duration-500 pb-1" /></button>
+                            <span className="small ml-1">{question.paltaQ}</span>
+                            <span className="small ml-3">
+                                {new Date(question.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
+                            </span>
+                        </div>
+                        
+                    </div>
+
                 </div>
             ))}
         </div>
