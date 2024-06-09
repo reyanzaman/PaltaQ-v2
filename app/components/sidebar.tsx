@@ -27,8 +27,8 @@ const SideNav = () => {
     <div>
 
       {/* Desktop */}
-      <div className="lg:flex hidden z-100">
-        <div className="flex-col fixed justify-between items-center pt-8 pb-5 card btn bg-[#e6e7ee] h-screen w-[110px] md:w-[110px]">
+      <div className="lg:flex hidden z-100 fixed left-0 top-0 h-screen">
+        <div className="flex-col justify-between items-center pt-8 pb-5 card btn bg-[#e6e7ee] w-[110px] md:w-[110px]">
           <div className="space-y-6">
 
             {/* Home */}

@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiResponse } from 'next';
 import { validateQuestion, scoreQuestion } from '@/app/utils/questionUtils'; // Import your validation and scoring functions
 import { submitQuestionToDatabase } from '@/app/utils/postUtils'; // Import your function to submit the question to the database
 import { getToken } from 'next-auth/jwt';
@@ -76,12 +76,22 @@ async function postHandler(req: Request, res: NextApiResponse) {
 
     } catch (error) {
       console.error('Failed to submit question:', error);
-      return res.status(500).json({ error: 'Failed to submit question' });
+      return new Response(JSON.stringify({ error: 'Failed to submit question' }), {
+        status: 500,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
     }
 
   } else {
     // Return error for unsupported methods
-    return res.status(405).json({ error: 'Method not allowed' });
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: {
+          'Content-Type': 'application/json'
+      }
+  });
   }
 }
 
