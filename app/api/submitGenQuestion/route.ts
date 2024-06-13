@@ -1,6 +1,6 @@
 import { NextApiResponse } from 'next';
 import { validateQuestion, scoreQuestion } from '@/app/utils/questionUtils'; // Import your validation and scoring functions
-import { submitQuestionToDatabase } from '@/app/utils/postUtils'; // Import your function to submit the question to the database
+import { submitQuestionToDatabase, submitPaltaQToDatabase } from '@/app/utils/postUtils'; // Import your function to submit the question to the database
 import { getToken } from 'next-auth/jwt';
 import { getUserIDFromDatabase } from '@/app/utils/getUtils';
 import { QuestionCategory } from '@/app/utils/postUtils';
@@ -15,8 +15,9 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const token = await getToken({ req: req as any, secret });
 
       // Extract question data from the request body
-      const { question } = await req.json();
+      const { question, category, quesID } = await req.json();
       console.log("Question: ", question);
+      console.log("Category: ", category);
 
       let userId = "";
 
@@ -33,7 +34,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       }
 
       // Validate the question
-      const validText = await validateQuestion(question, QuestionCategory.General, '24acf3e5-9d5a-4b62-8eb7-c9ce0dfaaf5b', 'dc29b163-38b9-48d6-ba4a-59fe07f4b7f5');
+      const validText = await validateQuestion(question, category, '24acf3e5-9d5a-4b62-8eb7-c9ce0dfaaf5b', 'dc29b163-38b9-48d6-ba4a-59fe07f4b7f5');
 
       if (validText !== "Question validated") {
         return new Response("", {
@@ -46,26 +47,46 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const score = await scoreQuestion(question);
 
       // Submit the question to the database
-      if (userId === "") {
-        await submitQuestionToDatabase(
-          '2940290a-b299-4dba-8d2a-7510d5674625',
-          question, 
-          score, 
-          QuestionCategory.General, 
-          '24acf3e5-9d5a-4b62-8eb7-c9ce0dfaaf5b', 
-          'dc29b163-38b9-48d6-ba4a-59fe07f4b7f5',
-          true
-        );
-      } else {
-        await submitQuestionToDatabase(
-          userId,
-          question, 
-          score, 
-          QuestionCategory.General,
-          '24acf3e5-9d5a-4b62-8eb7-c9ce0dfaaf5b', 
-          'dc29b163-38b9-48d6-ba4a-59fe07f4b7f5',
-          false
-        );
+      if(category === QuestionCategory.General){
+        if (userId === "") {
+          await submitQuestionToDatabase(
+            '2940290a-b299-4dba-8d2a-7510d5674625',
+            question, 
+            score, 
+            category, 
+            '24acf3e5-9d5a-4b62-8eb7-c9ce0dfaaf5b', 
+            'dc29b163-38b9-48d6-ba4a-59fe07f4b7f5',
+            true
+          );
+        } else {
+          await submitQuestionToDatabase(
+            userId,
+            question, 
+            score, 
+            category,
+            '24acf3e5-9d5a-4b62-8eb7-c9ce0dfaaf5b', 
+            'dc29b163-38b9-48d6-ba4a-59fe07f4b7f5',
+            false
+          );
+        }
+      } else if (category === QuestionCategory.Palta) {
+        if (userId === "") {
+          await submitPaltaQToDatabase(
+            '2940290a-b299-4dba-8d2a-7510d5674625',
+            question,
+            quesID,
+            score,
+            true
+          );
+        } else {
+          await submitPaltaQToDatabase(
+            userId,
+            question,
+            quesID,
+            score,
+            false
+          );
+        }
       }
 
       // Return success response

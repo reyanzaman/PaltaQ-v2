@@ -17,6 +17,36 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
               image: true,
             },
           },
+          likedBy: {
+            select: {
+              id: true,
+              userId: true,
+              questionId: true,
+            },
+          },
+          dislikedBy: {
+            select: {
+              id: true,
+              userId: true,
+              questionId: true,
+            },
+          },
+          paltaQBy: {
+            select: {
+              id: true,
+              userId: true,
+              user: true,
+              paltaQ: true,
+              questionId: true,
+              score: true,
+              likes: true,
+              dislikes: true,
+              likedBy: true,
+              dislikedBy: true,
+              isAnonymous: true,
+              createdAt: true,
+            },
+          }
         },
       });
 

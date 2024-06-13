@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
+import { QuestionCategory } from '@/app/utils/postUtils';
 
 export default function QuestionBox() {
     const [question, setQuestion] = useState('');
@@ -26,7 +27,7 @@ export default function QuestionBox() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ question: question }),
+        body: JSON.stringify({ question: question, category: QuestionCategory.General }),
       });
   
       if (response.ok) {

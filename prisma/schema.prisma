@@ -88,11 +88,13 @@ model Question {
   likes         Int          @default(0)
   dislikes      Int          @default(0)
   paltaQ        Int          @default(0)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+
   category      QuestionCategory // Enum type for category
   isAnonymous   Boolean      @default(false)
   isArchived    Boolean      @default(false)
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   
   classId       String       // Foreign key to Classes
   questionType  QuestionType[] // One-to-many relationship with QuestionType
@@ -123,35 +125,55 @@ model Reports {
   id          String   @id @default(uuid())
   userId      String
   questionId  String
+  paltaQId    String
   reportSuccess Boolean @default(false)
 
   user        User     @relation(fields: [userId], references: [id])
   question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  paltaQ      PaltaQ   @relation(fields: [paltaQId], references: [id], onDelete: Cascade)
 }
 
 model Likes {
   id          String   @id @default(uuid())
   userId      String
-  questionId  String
+  questionId  String?
+  paltaQId    String?
 
   user        User     @relation(fields: [userId], references: [id], name: "UserLikes")
-  question    Question @relation(fields: [questionId], references: [id], name: "QuestionLikes", onDelete: Cascade)
+  question    Question? @relation(fields: [questionId], references: [id], name: "QuestionLikes", onDelete: Cascade)
+  paltaQ      PaltaQ?   @relation(fields: [paltaQId], references: [id], name: "LikedPaltaQ", onDelete: Cascade)
 }
 
 model Dislikes {
   id          String   @id @default(uuid())
   userId      String
-  questionId  String
+  questionId  String?
+  paltaQId    String?
 
   user        User     @relation(fields: [userId], references: [id], name: "UserDislikes")
-  question    Question @relation(fields: [questionId], references: [id], name: "QuestionDislikes", onDelete: Cascade)
+  question    Question? @relation(fields: [questionId], references: [id], name: "QuestionDislikes", onDelete: Cascade)
+  paltaQ      PaltaQ?   @relation(fields: [paltaQId], references: [id], name: "DislikedPaltaQ", onDelete: Cascade)
 }
 
 model PaltaQ {
   id          String   @id @default(uuid())
   userId      String
   questionId  String
+  paltaQ      String
+  score         Int          @default(0)
 
+  likes         Int          @default(0)
+  dislikes      Int          @default(0)
+
+  isAnonymous   Boolean      @default(false)
+  isArchived    Boolean      @default(false)
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  likedBy       Likes[]    @relation("LikedPaltaQ")
+  dislikedBy    Dislikes[] @relation("DislikedPaltaQ")
+  reports       Reports[]    // One-to-many relationship with Reports
   user        User     @relation(fields: [userId], references: [id], name: "UserPaltaQ")
   question    Question @relation(fields: [questionId], references: [id], name: "QuestionPaltaQ", onDelete: Cascade)
 }

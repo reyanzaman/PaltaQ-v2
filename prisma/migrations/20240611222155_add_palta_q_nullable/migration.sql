@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "Dislikes" ALTER COLUMN "questionId" DROP NOT NULL,
+ALTER COLUMN "paltaQId" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "Likes" ALTER COLUMN "questionId" DROP NOT NULL,
+ALTER COLUMN "paltaQId" DROP NOT NULL;
