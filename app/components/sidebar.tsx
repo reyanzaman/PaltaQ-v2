@@ -34,7 +34,7 @@ const SideNav = () => {
     const queryParams = new URLSearchParams({ email: session?.user?.email ?? '' });
 
     try {
-      const response = await fetch(`api/getisAdmin?${queryParams}`, {
+      const response = await fetch(`/api/getisAdmin?${queryParams}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
