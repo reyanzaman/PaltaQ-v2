@@ -18,7 +18,13 @@ import { Tooltip } from "react-tooltip";
 import { signIn, signOut, useSession } from "next-auth/react";
 import React, { useState, useEffect } from "react";
 
-const SideNav = () => {
+interface SideNavProps {
+  isMobile: boolean;
+  isMobileMenuOpen: boolean;
+  toggleMobileMenu: () => void;
+}
+
+const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMobileMenu }) => {
   const { isHomeActive, isDashboardActive, isQuestionsActive, isInfoActive, isAdminActive } = useNavigation();
 
   const { data: session } = useSession();
@@ -30,7 +36,6 @@ const SideNav = () => {
     if (!session) {
       return;
     }
-    // Constructing query parameters
     const queryParams = new URLSearchParams({ email: session?.user?.email ?? '' });
 
     try {
@@ -39,201 +44,71 @@ const SideNav = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-    });
+      });
 
-    if (response.ok) {
-      // Handle successful submission
-      setIsAdmin(await response.json());
-    } else {
-      console.error('Failed to get isAdmin:', response.statusText);
+      if (response.ok) {
+        setIsAdmin(await response.json());
+      } else {
+        console.error('Failed to get isAdmin:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Failed to get isAdmin:', error);
     }
-  } catch (error) {
-    console.error('Failed to get isAdmin:', error);
-  }
-};
+  };
 
   useEffect(() => {
     getisAdmin();
   }, [session]);
-
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Function to toggle mobile menu
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
   return (
     <div>
 
       {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed right-0 top-0 h-screen bg-[#e6e7ee] w-full z-100">
+      {isMobile && isMobileMenuOpen && (
+        <div className="lg:hidden fixed right-0 top-0 h-screen bg-[#e6e7ee] w-full z-50"> {/* Adjusted z-index */}
           <div className="flex flex-col justify-start items-start pl-4 pt-7 pb-5 space-y-6">
             {/* Links */}
-            {/* Home */}
-            <Link
-              href="/"
-              className="flex flex-row space-x-1 items-center"
-              data-tooltip-content="Home"
-              data-tooltip-id="btn-home"
-              data-tooltip-place="right"
-            >
-              {isHomeActive ? (
-                <FontAwesomeIcon
-                  icon={faHouseChimney}
-                  className="text-3xl bg-white text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle"
-                />
-              ) : (
-                <FontAwesomeIcon
-                  icon={faHouseChimney}
-                  className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle"
-                />
-              )}
-              <span className={`text-3xl ml-3 font-bold ${isHomeActive ? 'text-black' : 'text-neutral-500'}`}>Home</span>
+            <Link href="/" className="flex flex-row space-x-1 items-center">
+              <FontAwesomeIcon icon={faHouseChimney} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
+              <span className="text-3xl ml-3 font-bold text-neutral-500">Home</span>
             </Link>
-
-            <hr className="border-neutral-300 w-full"></hr>
-
-            {/* Dashboard */}
-            <Link
-              href={isLoggedIn ? "/pages/dashboard" : "#"}
-              onClick={() => isLoggedIn ? "" : signIn('google')}
-              className="flex flex-row space-x-1 items-center"
-            >
-              {isDashboardActive ? (
-                <FontAwesomeIcon
-                  icon={faUserTie}
-                  width={30}
-                  className="text-3xl bg-white hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
-                />
-              ) : (
-                <FontAwesomeIcon
-                  icon={faUserTie}
-                  width={30}
-                  className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
-                />
-              )}
-              <span className={`text-3xl ml-3 font-bold ${isDashboardActive ? 'text-black' : 'text-neutral-500'}`}>Dashboard</span>
+            <hr className="border-neutral-300 w-full" />
+            <Link href={isLoggedIn ? "/pages/dashboard" : "#"} onClick={() => isLoggedIn ? "" : signIn('google')} className="flex flex-row space-x-1 items-center">
+              <FontAwesomeIcon icon={faUserTie} width={30} className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle" />
+              <span className="text-3xl ml-3 font-bold text-neutral-500">Dashboard</span>
             </Link>
-
-            <hr className="border-neutral-300 w-full"></hr>
-
-            {/* Questions */}
-            <Link
-              href={isLoggedIn ? "/pages/questions" : "#"}
-              onClick={() => isLoggedIn ? "" : signIn('google')}
-              className="flex flex-row space-x-1 items-center"
-            >
-              {isQuestionsActive ? (
-                <FontAwesomeIcon
-                  icon={faQ}
-                  width={30}
-                  className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle"
-                />
-              ) : (
-                <FontAwesomeIcon
-                  icon={faQ}
-                  width={30}
-                  className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle"
-                />
-              )}
-              <span className={`text-3xl ml-3 font-bold ${isQuestionsActive ? 'text-black' : 'text-neutral-500'}`}>Questions</span>
+            <hr className="border-neutral-300 w-full" />
+            <Link href={isLoggedIn ? "/pages/questions" : "#"} onClick={() => isLoggedIn ? "" : signIn('google')} className="flex flex-row space-x-1 items-center">
+              <FontAwesomeIcon icon={faQ} width={30} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
+              <span className="text-3xl ml-3 font-bold text-neutral-500">Questions</span>
             </Link>
-
-            <hr className="border-neutral-300 w-full"></hr>
-
-            {/* Info */}
-            <Link
-              href="/pages/info"
-              className="flex flex-row space-x-1 items-center"
-            >
-              {isInfoActive ? (
-                <FontAwesomeIcon
-                  icon={faInfo}
-                  width={30}
-                  className="text-3xl neutral-500 p-3 icon shadow-inset border border-light rounded-circle"
-                />
-              ) : (
-                <FontAwesomeIcon
-                  icon={faInfo}
-                  width={30}
-                  className="text-3xl text-neutral-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
-                />
-              )}
-              <span className={`text-3xl ml-3 font-bold ${isInfoActive ? 'text-black' : 'text-neutral-500'}`}>Info</span>
+            <hr className="border-neutral-300 w-full" />
+            <Link href="/pages/info" className="flex flex-row space-x-1 items-center">
+              <FontAwesomeIcon icon={faInfo} width={30} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
+              <span className="text-3xl ml-3 font-bold text-neutral-500">Info</span>
             </Link>
-
-            {/* Admin */}
             {IsAdmin && (
               <div className="w-full m-0">
-                <hr className="border-neutral-300 w-full"></hr>
-                <Link
-                  href="/pages/admin"
-                  className="flex flex-row space-x-1 items-center"
-                >
-                  {isAdminActive ? (
-                    <FontAwesomeIcon
-                      icon={faScrewdriverWrench}
-                      width={30}
-                      className="text-3xl bg-white hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
-                    />
-                  ) : (
-                    <FontAwesomeIcon
-                      icon={faScrewdriverWrench}
-                      width={30}
-                      className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
-                    />
-                  )}
-                  <span className={`text-3xl ml-3 font-bold ${isInfoActive ? 'text-black' : 'text-neutral-500'}`}>Admin Panel</span>
+                <hr className="border-neutral-300 w-full" />
+                <Link href="/pages/admin" className="flex flex-row space-x-1 items-center">
+                  <FontAwesomeIcon icon={faScrewdriverWrench} width={30} className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle" />
+                  <span className="text-3xl ml-3 font-bold text-neutral-500">Admin Panel</span>
                 </Link>
               </div>
             )}
-
-            <hr className="border-neutral-300 w-full"></hr>
-
-            {/* Sign-In / Sign-Out */}
-            <Link
-              href="#"
-              onClick={() => isLoggedIn ? signOut() : signIn('google')}
-              className="flex flex-row space-x-1 items-center"
-              data-tooltip-content={isLoggedIn ? "logout" : "login"}
-              data-tooltip-id="btn-login"
-              data-tooltip-place="right"
-            >
-              {isLoggedIn ? (
-                <FontAwesomeIcon
-                  icon={faArrowRightFromBracket}
-                  width={30}
-                  className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle"
-                />
-              ) : (
-                <FontAwesomeIcon
-                  icon={faArrowRightToBracket}
-                  width={30}
-                  className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle"
-                />
-              )}
+            <hr className="border-neutral-300 w-full" />
+            <Link href="#" onClick={() => isLoggedIn ? signOut() : signIn('google')} className="flex flex-row space-x-1 items-center">
+              <FontAwesomeIcon icon={isLoggedIn ? faArrowRightFromBracket : faArrowRightToBracket} width={30} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
               <span className="text-3xl ml-3 font-bold text-neutral-500">{isLoggedIn ? "Logout" : "Login"}</span>
             </Link>
           </div>
         </div>
       )}
 
-      {/* Mobile */}
-      <div className="lg:hidden block fixed mr-[1.6em] mt-[2em] right-0">
-        {isHomeActive ? (
-          <div className="btn btn-pill btn-icon-only btn-primary">
-            <Link href="/" className="flex flex-row space-x-1 items-center" onClick={toggleMobileMenu}>
-              <FontAwesomeIcon
-                icon={faBars}
-                className="text-xl translate-x-[0.55em] translate-y-[0.45em]"
-              />
-            </Link>
-          </div>
-        ) : (
-          <div></div>
-        )}
+      {/* Mobile Toggle Button */}
+      <div className="lg:hidden block fixed mr-[1.6em] mt-[2em] right-0 z-50"> {/* Adjusted z-index */}
+        <div className="btn btn-pill btn-icon-only btn-primary" onClick={toggleMobileMenu}>
+          <FontAwesomeIcon icon={faBars} className="text-xl translate-y-[0.45em]" />
+        </div>
       </div>
 
       {/* Desktop */}

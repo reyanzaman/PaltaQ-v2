@@ -1,14 +1,24 @@
-import SideNav from "@/app/components/sidebar";
 import { nunito } from "@/app/ui/fonts";
+import "@/app/ui/neomorphism.css";
+import "@/app/ui/style.css";
+import type { Metadata } from "next";
+
+import AdminComponent from "@/app/components/admincomponent";
+
+export const metadata: Metadata = {
+  title: "Admin Dashboard",
+  description: "Admin Dashboard of PaltaQ V2",
+};
 
 export default function Admin(props) {
   
-    return (
-        <div className={`${nunito.className} antialiased flex flex-row`}>
-            {/* Sidebar */}
-            <SideNav />
+  return (
+    <div className={`${nunito.className} antialiased flex flex-row pt-[2em]`}>
 
-            <div className="w-full py-4 pl-[4em] text-center mx-auto text-3xl">Admin Panel</div>
-        </div>
-    )
+      <div className="w-full max-w-full lg:pl-[8em] mr-[1.5em] overflow-auto">
+        <AdminComponent />
+      </div>
+
+    </div>
+  );
 }

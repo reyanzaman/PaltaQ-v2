@@ -1,11 +1,9 @@
 import { nunito, dancing_script } from "@/app/ui/fonts";
 import "@/app/ui/neomorphism.css";
-import "@/app/ui/style.css";
 import type { Metadata } from "next";
 
-import SideNav from "@/app/components/sidebar";
 import UserImage from "@/app/components/userimage";
-import RecentQuestions from "./components/homerecentquestions";
+import RecentQuestions from "@/app/components/homerecentquestions";
 
 export const metadata: Metadata = {
   title: "PaltaQ",
@@ -34,9 +32,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      {/* Sidebar */}
-      <SideNav />
+      
     </div>
   );
 }

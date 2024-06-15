@@ -106,7 +106,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
         headers: {
             'Content-Type': 'application/json'
         }
-    });
+      });
     }
 
   } else {

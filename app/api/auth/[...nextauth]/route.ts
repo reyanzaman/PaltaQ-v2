@@ -42,11 +42,16 @@ export const authOptions = {
 
             if (!existingUser) {
                 // User doesn't exist, create a new user record in the database
-                await prisma.user.create({
+                const newUser = await prisma.user.create({
                     data: {
                         email,
                         name,
                         image
+                    }
+                });
+                await prisma.userDetails.create({
+                    data: {
+                        userId: newUser.id
                     }
                 });
             }

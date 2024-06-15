@@ -1,0 +1,200 @@
+"use client";
+
+import { useEffect, useState } from 'react';
+import useFetchUsers from '@/app/hooks/useFetchUsers/route';
+import { nunito } from "@/app/ui/fonts";
+
+import { signIn, useSession } from "next-auth/react";
+import UserImage from "@/app/components/userimage";
+import { useRouter } from 'next/navigation'
+
+export default function AdminComponent() {
+  const { data: users, loading, error, refetch } = useFetchUsers();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [editableUser, setEditableUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isFaculty, setIsFaculty] = useState<boolean>(false);
+
+  const { data: session, status } = useSession();
+  const router = useRouter()
+
+  useEffect(() => {
+    // Redirect if user is not logged in
+    if (!session) {
+      router.push('/');
+      return;
+    }
+
+    // Fetch user details and check admin status
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(`/api/users/${session?.user?.email}`, {
+          method: 'GET',
+          headers: {
+              'Content-Type': 'application/json'
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+        const data = await response.json();
+        if (!data.is_Admin) {
+          router.push('/')
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        router.push('/');
+      }
+    };
+
+    fetchUser();
+
+  }, [session]);
+
+  if (status === 'loading') {
+    return <p>Loading...</p>;
+  }
+
+  const handleEdit = (user: any) => {
+    setEditableUser(user);
+    setIsAdmin(user.is_Admin);
+    setIsFaculty(user.is_Faculty);
+  };
+
+  const handleSave = async () => {
+    if (editableUser) {
+      try {
+        const response = await fetch(`/api/users/${editableUser.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            isAdmin,
+            isFaculty,
+          }),
+        });
+
+        if (response.ok) {
+          refetch(); // Refetch the users list after successful update
+          setEditableUser(null); // Clear editableUser state after saving
+        } else {
+          console.error('Failed to update user');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+  };
+
+
+  const handleCancel = () => {
+    setEditableUser(null); // Clear editableUser state without saving
+  };
+
+  const filteredUsers = users
+  .filter((user: any) =>
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+  .sort((a: any, b: any) => {
+    // Convert createdAt strings to Date objects for comparison
+    const dateA = new Date(a.createdAt);
+    const dateB = new Date(b.createdAt);
+    return dateB.getTime() - dateA.getTime(); // Sort in descending order
+  });
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error loading users</div>;
+
+  return (
+    <div className={`${nunito.className} antialiased flex flex-col`}>
+
+      <UserImage />
+
+      <div className="w-full p-4">
+        <h2 className="text-2xl font-bold mb-4">Users</h2>
+        <input
+          type="text"
+          placeholder="Search by name or email"
+          className="border border-gray-300 rounded-md px-3 py-2 mb-4"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        {loading && <p>Loading...</p>}
+        {error && <p>Error fetching users</p>}
+        {!loading && !error && (
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border-b border-gray-200">ID</th>
+                <th className="py-2 px-4 border-b border-gray-200">Email</th>
+                <th className="py-2 px-4 border-b border-gray-200">Name</th>
+                <th className="py-2 px-4 border-b border-gray-200">Admin</th>
+                <th className="py-2 px-4 border-b border-gray-200">Faculty</th>
+                <th className="py-2 px-4 border-b border-gray-200">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((user: any) => (
+                <tr key={user.id}>
+                  <td className="py-2 px-4 border-b border-gray-200 w-25">{user.id}</td>
+                  <td className="py-2 px-4 border-b border-gray-200">{user.email}</td>
+                  <td className="py-2 px-4 border-b border-gray-200">{user.name}</td>
+                  <td className="py-2 px-4 border-b border-gray-200">
+                    {editableUser === user ? (
+                      <select
+                        value={isAdmin.toString()}
+                        onChange={(e) => setIsAdmin(e.target.value === 'true')}
+                      >
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                    ) : (
+                      user.is_Admin ? 'Yes' : 'No'
+                    )}
+                  </td>
+                  <td className="py-2 px-4 border-b border-gray-200">
+                    {editableUser === user ? (
+                      <select
+                        value={isFaculty.toString()}
+                        onChange={(e) => setIsFaculty(e.target.value === 'true')}
+                      >
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                    ) : (
+                      user.is_Faculty ? 'Yes' : 'No'
+                    )}
+                  </td>
+                  <td className="py-2 px-4 border-b border-gray-200">
+                    {editableUser === user ? (
+                      <>
+                        <button className="mr-2 bg-blue-500 hover:bg-blue-700 text-white py-1 px-2 rounded"
+                          onClick={handleSave}
+                        >
+                          Save
+                        </button>
+                        <button className="bg-gray-500 hover:bg-gray-700 text-white py-1 px-2 rounded"
+                          onClick={handleCancel}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button className="bg-gray-500 hover:bg-gray-700 text-white py-1 px-2 rounded"
+                        onClick={() => handleEdit(user)}
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
