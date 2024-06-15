@@ -1,7 +1,7 @@
 // pages/api/getUserId/route.ts
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getUserIDFromDatabase } from '@/app/utils/getUtils';
+import { getUserIDFromDatabase, getisAdmin } from '@/app/utils/getUtils';
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -19,10 +19,10 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const email = searchParams.get('email');
 
   try {
-    const userId = await getUserIDFromDatabase(email as string);
+    const isAdmin = await getisAdmin(email as string);
 
-    if (userId) {
-      return new Response(JSON.stringify(userId), {
+    if (isAdmin) {
+      return new Response(JSON.stringify(isAdmin), {
         status: 200,
         headers: {
             'Content-Type': 'application/json'
@@ -37,8 +37,8 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
     }
   } catch (error) {
-    console.error('Error fetching user ID:', error);
-    return new Response(JSON.stringify({ error: `Error fetching user ID: ${error}` }), {
+    console.error('Error fetching user admin status:', error);
+    return new Response(JSON.stringify({ error: `Error fetching user admin status: ${error}` }), {
       status: 500,
       headers: {
           'Content-Type': 'application/json'

@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 
-export default function QuestionBox() {
+export default function QuestionBox({ onQuestionSubmitted }: {onQuestionSubmitted: any}) {
     const [question, setQuestion] = useState('');
+
+    useEffect(() => {
+    }, [question]);
   
     const handleSubmit = async (e: any) => {
       e.preventDefault();
@@ -21,7 +24,6 @@ export default function QuestionBox() {
         return;
       }
 
-      // Example of sending the question to your API
       const response = await fetch('api/submitGenQuestion', {
         method: 'POST',
         headers: {
@@ -33,8 +35,11 @@ export default function QuestionBox() {
       if (response.ok) {
         // Handle successful submission
         setQuestion('');
-        console.log(response);
         toast.success(response.statusText);
+        // Call the parent component's callback
+        if (onQuestionSubmitted) {
+          onQuestionSubmitted();
+       }
       } else {
         // Handle error
         console.error('Failed to submit question');

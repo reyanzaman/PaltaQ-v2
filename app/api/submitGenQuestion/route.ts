@@ -44,7 +44,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       }
 
       // Score the question
-      const score = await scoreQuestion(question);
+      const { score, foundKeywords } = await scoreQuestion(question);
 
       // Submit the question to the database
       if(category === QuestionCategory.General){
@@ -56,7 +56,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
             category, 
             '24acf3e5-9d5a-4b62-8eb7-c9ce0dfaaf5b', 
             'dc29b163-38b9-48d6-ba4a-59fe07f4b7f5',
-            true
+            true,
+            foundKeywords
           );
         } else {
           await submitQuestionToDatabase(
@@ -66,7 +67,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
             category,
             '24acf3e5-9d5a-4b62-8eb7-c9ce0dfaaf5b', 
             'dc29b163-38b9-48d6-ba4a-59fe07f4b7f5',
-            false
+            false,
+            foundKeywords
           );
         }
       } else if (category === QuestionCategory.Palta) {
@@ -76,7 +78,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
             question,
             quesID,
             score,
-            true
+            true,
+            foundKeywords
           );
         } else {
           await submitPaltaQToDatabase(
@@ -84,7 +87,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
             question,
             quesID,
             score,
-            false
+            false,
+            foundKeywords
           );
         }
       }

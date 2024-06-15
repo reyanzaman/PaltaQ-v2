@@ -6,10 +6,10 @@ export enum QuestionCategory {
   Palta = 'Palta'
 }
 
-export async function submitQuestionToDatabase(userId: string, question: string, score: number, category: QuestionCategory, topicId: string, classId: string, isAnonymous: boolean): Promise<void> {
+export async function submitQuestionToDatabase(userId: string, question: string, score: number, category: QuestionCategory, topicId: string, classId: string, isAnonymous: boolean, foundKeywords: { [key: string]: boolean }): Promise<void> {
     try {
         // Insert the question into the database using Prisma
-        await prisma.question.create({
+        const createdQuestion = await prisma.question.create({
             data: {
               userId: userId,
               question: question,
@@ -20,9 +20,20 @@ export async function submitQuestionToDatabase(userId: string, question: string,
               classId: classId
             },
         });
-    
-        console.log('Question submitted to database:', question);
-        console.log('Score:', score);
+
+        // Create QuestionType entry based on foundKeywords
+        await prisma.questionType.create({
+          data: {
+            questionId: createdQuestion.id,
+            remembering: foundKeywords.bloom_remembering ?? false,
+            understanding: foundKeywords.bloom_understanding ?? false,
+            applying: foundKeywords.bloom_applying ?? false,
+            analyzing: foundKeywords.bloom_analyzing ?? false,
+            evaluating: foundKeywords.bloom_evaluating ?? false,
+            creating: foundKeywords.bloom_creating ?? false
+          },
+        });
+
     } catch (error) {
       // Handle database error
       console.error('Failed to submit question to database:', error);
@@ -30,10 +41,10 @@ export async function submitQuestionToDatabase(userId: string, question: string,
     }
 }
 
-export async function submitPaltaQToDatabase(userId: string, question: string, questionId: string, score: number, isAnonymous: boolean): Promise<void> {
+export async function submitPaltaQToDatabase(userId: string, question: string, questionId: string, score: number, isAnonymous: boolean, foundKeywords: { [key: string]: boolean }): Promise<void> {
   try {
       // Insert the question into the database using Prisma
-      await prisma.paltaQ.create({
+      const createdQuestion = await prisma.paltaQ.create({
           data: {
             userId: userId,
             paltaQ: question,
@@ -53,10 +64,21 @@ export async function submitPaltaQToDatabase(userId: string, question: string, q
                 increment: 1, // Increment the paltaQ count by 1
             },
         },
-    });
-  
-      console.log('Question submitted to database:', question);
-      console.log('Score:', score);
+      });
+
+      // Create QuestionType entry based on foundKeywords
+      await prisma.questionType.create({
+        data: {
+          paltaQId: createdQuestion.id,
+          remembering: foundKeywords.bloom_remembering ?? false,
+          understanding: foundKeywords.bloom_understanding ?? false,
+          applying: foundKeywords.bloom_applying ?? false,
+          analyzing: foundKeywords.bloom_analyzing ?? false,
+          evaluating: foundKeywords.bloom_evaluating ?? false,
+          creating: foundKeywords.bloom_creating ?? false
+        },
+      });
+
   } catch (error) {
     // Handle database error
     console.error('Failed to submit question to database:', error);

@@ -52,46 +52,7 @@ export async function postHandler(req: Request, res: NextApiResponse) {
                         likes: {
                             decrement: 1, // Decrement the likes count by 1
                         },
-                    },
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                name: true,
-                                image: true,
-                            },
-                        },
-                        likedBy: {
-                            select: {
-                                id: true,
-                                userId: true,
-                                questionId: true,
-                            },
-                        },
-                        dislikedBy: {
-                            select: {
-                                id: true,
-                                userId: true,
-                                questionId: true,
-                            },
-                        },
-                        paltaQBy: {
-                            select: {
-                              id: true,
-                              userId: true,
-                              user: true,
-                              paltaQ: true,
-                              questionId: true,
-                              score: true,
-                              likes: true,
-                              dislikes: true,
-                              likedBy: true,
-                              dislikedBy: true,
-                              isAnonymous: true,
-                              createdAt: true,
-                            },
-                          }
-                    },
+                    }
                 });
 
                 return new Response(JSON.stringify(updatedQuestion), {
@@ -109,33 +70,10 @@ export async function postHandler(req: Request, res: NextApiResponse) {
                         likes: {
                             decrement: 1, // Decrement the likes count by 1
                         },
-                    },
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                name: true,
-                                image: true,
-                            },
-                        },
-                        likedBy: {
-                            select: {
-                                id: true,
-                                userId: true,
-                                questionId: true,
-                            },
-                        },
-                        dislikedBy: {
-                            select: {
-                                id: true,
-                                userId: true,
-                                questionId: true,
-                            },
-                        },
-                    },
+                    }
                 });
 
-                return new Response(JSON.stringify(updatedQuestion), {
+                return new Response('-1', {
                     status: 200,
                     headers: {
                         'Content-Type': 'application/json'
@@ -164,32 +102,9 @@ export async function postHandler(req: Request, res: NextApiResponse) {
                             increment: 1,
                         },
                     },
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                name: true,
-                                image: true,
-                            },
-                        },
-                        likedBy: {
-                            select: {
-                                id: true,
-                                userId: true,
-                                questionId: true,
-                            },
-                        },
-                        dislikedBy: {
-                            select: {
-                                id: true,
-                                userId: true,
-                                questionId: true,
-                            },
-                        }
-                    },
                 });
 
-                return new Response(JSON.stringify(updatedQuestion), {
+                return new Response('+1', {
                     status: 200,
                     headers: {
                         'Content-Type': 'application/json'
@@ -214,33 +129,10 @@ export async function postHandler(req: Request, res: NextApiResponse) {
                         likes: {
                             increment: 1,
                         },
-                    },
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                name: true,
-                                image: true,
-                            },
-                        },
-                        likedBy: {
-                            select: {
-                                id: true,
-                                userId: true,
-                                questionId: true,
-                            },
-                        },
-                        dislikedBy: {
-                            select: {
-                                id: true,
-                                userId: true,
-                                questionId: true,
-                            },
-                        }
-                    },
+                    }
                 });
 
-                return new Response(JSON.stringify(updatedQuestion), {
+                return new Response('+1', {
                     status: 200,
                     headers: {
                         'Content-Type': 'application/json'

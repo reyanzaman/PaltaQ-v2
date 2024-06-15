@@ -110,7 +110,8 @@ model Question {
 
 model QuestionType {
   id            String   @id @default(uuid())
-  questionId    String
+  questionId    String?
+  paltaQId      String?
   remembering   Boolean  @default(false)
   understanding Boolean  @default(false)
   applying      Boolean  @default(false)
@@ -118,7 +119,8 @@ model QuestionType {
   evaluating    Boolean  @default(false)
   creating      Boolean  @default(false)
 
-  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  question      Question? @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  paltaQ        PaltaQ? @relation(fields: [paltaQId], references: [id], onDelete: Cascade)
 }
 
 model Reports {
@@ -174,6 +176,7 @@ model PaltaQ {
   likedBy       Likes[]    @relation("LikedPaltaQ")
   dislikedBy    Dislikes[] @relation("DislikedPaltaQ")
   reports       Reports[]    // One-to-many relationship with Reports
+  questionType  QuestionType[] // One-to-many relationship with QuestionType
   user        User     @relation(fields: [userId], references: [id], name: "UserPaltaQ")
   question    Question @relation(fields: [questionId], references: [id], name: "QuestionPaltaQ", onDelete: Cascade)
 }

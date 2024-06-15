@@ -10,12 +10,14 @@ const useNavigation = () => {
   const [isDashboardActive, setIsDashboardActive] = useState(false);
   const [isQuestionsActive, setIsQuestionsActive] = useState(false);
   const [isInfoActive, setIsInfoActive] = useState(false);
+  const [isAdminActive, setIsAdminActive] = useState(false);
 
   useEffect(() => {
     setIsHomeActive(false);
     setIsDashboardActive(false);
     setIsQuestionsActive(false);
     setIsInfoActive(false);
+    setIsAdminActive(false);
 
     switch (pathname) {
       case '/':
@@ -30,6 +32,9 @@ const useNavigation = () => {
       case '/info':
         setIsInfoActive(true);
         break;
+      case '/admin':
+        setIsAdminActive(true);
+        break;
       default:
         // Handle any other cases here
         break;
@@ -41,6 +46,7 @@ const useNavigation = () => {
     isDashboardActive,
     isQuestionsActive,
     isInfoActive,
+    isAdminActive,
   };
 };
 

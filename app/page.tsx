@@ -4,7 +4,6 @@ import "@/app/ui/style.css";
 import type { Metadata } from "next";
 
 import SideNav from "@/app/components/sidebar";
-import QuestionBox from "@/app/components/homequestionbox";
 import UserImage from "@/app/components/userimage";
 import RecentQuestions from "./components/homerecentquestions";
 
@@ -18,20 +17,15 @@ export default function Home() {
   return (
     <div className={`${nunito.className} antialiased flex flex-row`}>
 
-      {/* Sidebar */}
-      <SideNav />
-
       <UserImage />
 
       <div className="w-full h-screen lg:ml-[7em]">
-        <div className="mb-2 lg:mt-[4em] mt-[4.5em] lg:w-[65em] mx-auto">
+        <div className="mb-2 lg:mt-[4em] mt-[5.5em] lg:w-[65em] mx-auto">
           <h1
             className={`${dancing_script.className} antialiased text-6xl text-center m-4`}
           >
             Palta Question
           </h1>
-
-          <QuestionBox />
 
           <RecentQuestions />
 
@@ -40,6 +34,9 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Sidebar */}
+      <SideNav />
     </div>
   );
 }

@@ -11,6 +11,8 @@ import { useSession } from "next-auth/react";
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 
+import QuestionBox from "@/app/components/homequestionbox";
+
 
 interface Likes {
     id: string;
@@ -66,6 +68,7 @@ export default function RecentQuestions() {
     const { data: session } = useSession();
     const [userId, setUserId] = useState<string>('');
     const [questions, setQuestions] = useState<Question[]>([]);
+    const [loading, setLoading] = useState(false);
 
     const [pQuestion, setPQuestion] = useState('');
     const [visibleInputBox, setVisibleInputBox] = useState<{ [key: string]: boolean }>({});
@@ -77,26 +80,27 @@ export default function RecentQuestions() {
         }));
     };
 
-    useEffect(() => {
-        const fetchQuestions = async () => {
-            try {
-                const response = await fetch('/api/getLatestQuestions', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.statusText}`);
+    const fetchQuestions = async () => {
+        try {
+            const response = await fetch('/api/getLatestQuestions', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
                 }
+            });
 
-                const data = await response.json();
-                setQuestions(data);
-            } catch (error) {
-                console.error('Error fetching questions:', error);
+            if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`);
             }
-        };
+
+            const data = await response.json();
+            setQuestions(data);
+        } catch (error) {
+            console.error('Error fetching questions:', error);
+        }
+    };
+
+    useEffect(() => {
 
         const fetchUserID = async () => {
             if (session?.user?.email) {
@@ -123,37 +127,41 @@ export default function RecentQuestions() {
         fetchUserID();
         fetchQuestions();
 
-        const intervalId = setInterval(fetchQuestions, 5000); // Fetch every 5 seconds
+        const intervalId = setInterval(fetchQuestions, 10000); // Fetch every 5 seconds
 
         return () => clearInterval(intervalId); // Cleanup function to clear interval
 
-    }, [session?.user?.email]); // Empty dependency array ensures the effect runs only once
+    }, [session?.user?.email]);
 
     const handleLike = async (questionId: string, userId: string, type: string) => {
         try {
+            if (loading) return; // Prevent if already loading
+            setLoading(true);
+    
             // Reject if not logged in
             if (!session) {
                 toast.info('Please log in to like the question');
+                setLoading(false);
                 return;
-            }
-
-            // Find the question the user wants to like
-            const question = questions.find(q => q.id === questionId);
-
-            // Check if the user has already disliked the question
+            }      
+    
             if (type === 'question') {
+                const question = questions.find(q => q.id === questionId);
                 if (question?.dislikedBy?.some(dislike => dislike.userId === userId)) {
                     toast.info('You have already disliked this question');
+                    setLoading(false);
                     return;
                 }
             } else if (type === 'palta') {
-                const paltaQ = questions.find(q => q.paltaQBy.some(p => p.id === questionId));
-                if (paltaQ?.paltaQBy.some(p => p.dislikedBy.some(dislike => dislike.userId === userId))) {
-                    toast.info('You have already disliked this question');
+                const question = questions.find(q => q.paltaQBy.some(p => p.id === questionId));
+                const paltaQ = question?.paltaQBy.find(p => p.id === questionId);
+                if (paltaQ?.dislikedBy.some(dislike => dislike.userId === userId)) {
+                    toast.info('You have already disliked this comment');
+                    setLoading(false);
                     return;
                 }
             }
-            
+    
             const response = await fetch(`/api/likeQuestion`, {
                 method: 'POST',
                 headers: {
@@ -161,57 +169,75 @@ export default function RecentQuestions() {
                 },
                 body: JSON.stringify({ userId: userId, questionId: questionId, type: type })
             });
-
+    
             if (!response.ok) {
                 throw new Error(`Error: ${response.statusText}`);
             }
-
-            const updatedQuestion = await response.json();
-
-            if (type === 'question') {
-                setQuestions(questions.map(q => q.id === questionId ? updatedQuestion : q));
-            } else if (type === 'palta') {
-                const Questions = questions.map(q => {
-                    if (q.paltaQBy.some(p => p.id === questionId)) {
-                        return {
-                            ...q,
-                            paltaQBy: q.paltaQBy.map(p => p.id === questionId ? updatedQuestion : p)
-                        };
+    
+            const result = await response.text();
+    
+            // Update the local state based on the response
+            setQuestions(prevQuestions => {
+                return prevQuestions.map(q => {
+                    if (type === 'question' && q.id === questionId) {
+                        const updatedLikes = result === "+1" ? q.likes + 1 : q.likes - 1;
+                        const updatedLikedBy = result === "+1" 
+                            ? [...q.likedBy, { id: Date.now().toString(), userId, questionId }] 
+                            : q.likedBy.filter(like => like.userId !== userId);
+                        return { ...q, likes: updatedLikes, likedBy: updatedLikedBy };
+                    } else if (type === 'palta') {
+                        const updatedPaltaQBy = q.paltaQBy.map(p => {
+                            if (p.id === questionId) {
+                                const updatedLikes = result === "+1" ? p.likes + 1 : p.likes - 1;
+                                const updatedLikedBy = result === "+1" 
+                                    ? [...p.likedBy, { id: Date.now().toString(), userId, questionId }] 
+                                    : p.likedBy.filter(like => like.userId !== userId);
+                                return { ...p, likes: updatedLikes, likedBy: updatedLikedBy };
+                            }
+                            return p;
+                        });
+                        return { ...q, paltaQBy: updatedPaltaQBy };
                     }
                     return q;
                 });
-                setQuestions(Questions);
-            }
+            });
         } catch (error) {
             console.error('Error liking question:', error);
+            setLoading(false);
+        } finally {
+            setLoading(false);
         }
     };
-
+    
     const handleDislike = async (questionId: string, userId: string, type: string) => {
         try {
+            if (loading) return; // Prevent if already loading
+            setLoading(true);
+    
             // Reject if not logged in
             if (!session) {
-                toast.info('Please log in to like the question');
+                toast.info('Please log in to dislike the question');
+                setLoading(false);
                 return;
             }
-
-            // Find the question the user wants to like
-            const question = questions.find(q => q.id === questionId);
-
-            // Check if the user has already disliked the question
+    
             if (type === 'question') {
-                if (question?.likedBy?.some(like => like.userId === userId)) {
+                const question = questions.find(q => q.id === questionId);
+                if (question?.likedBy.some(like => like.userId === userId)) {
                     toast.info('You have already liked this question');
+                    setLoading(false);
                     return;
                 }
             } else if (type === 'palta') {
-                const paltaQ = questions.find(q => q.id === questionId);
+                const question = questions.find(q => q.paltaQBy.some(p => p.id === questionId));
+                const paltaQ = question?.paltaQBy.find(p => p.id === questionId);
                 if (paltaQ?.likedBy.some(like => like.userId === userId)) {
-                    toast.info('You have already liked this PaltaQ');
+                    toast.info('You have already liked this comment');
+                    setLoading(false);
                     return;
                 }
             }
-            
+    
             const response = await fetch(`/api/dislikeQuestion`, {
                 method: 'POST',
                 headers: {
@@ -219,41 +245,60 @@ export default function RecentQuestions() {
                 },
                 body: JSON.stringify({ userId: userId, questionId: questionId, type: type })
             });
-
+    
             if (!response.ok) {
                 throw new Error(`Error: ${response.statusText}`);
             }
-
-            const updatedQuestion = await response.json();
-
-            if (type === 'question') {
-                setQuestions(questions.map(q => q.id === questionId ? updatedQuestion : q));
-            } else if (type === 'palta') {
-                const Questions = questions.map(q => {
-                    if (q.paltaQBy.some(p => p.id === questionId)) {
-                        return {
-                            ...q,
-                            paltaQBy: q.paltaQBy.map(p => p.id === questionId ? updatedQuestion : p)
-                        };
+    
+            const result = await response.text();
+    
+            // Update the local state based on the response
+            setQuestions(prevQuestions => {
+                return prevQuestions.map(q => {
+                    if (type === 'question' && q.id === questionId) {
+                        const updatedDislikes = result === "+1" ? q.dislikes + 1 : q.dislikes - 1;
+                        const updatedDislikedBy = result === "+1" 
+                            ? [...q.dislikedBy, { id: Date.now().toString(), userId, questionId }] 
+                            : q.dislikedBy.filter(dislike => dislike.userId !== userId);
+                        return { ...q, dislikes: updatedDislikes, dislikedBy: updatedDislikedBy };
+                    } else if (type === 'palta') {
+                        const updatedPaltaQBy = q.paltaQBy.map(p => {
+                            if (p.id === questionId) {
+                                const updatedDislikes = result === "+1" ? p.dislikes + 1 : p.dislikes - 1;
+                                const updatedDislikedBy = result === "+1" 
+                                    ? [...p.dislikedBy, { id: Date.now().toString(), userId, questionId }] 
+                                    : p.dislikedBy.filter(dislike => dislike.userId !== userId);
+                                return { ...p, dislikes: updatedDislikes, dislikedBy: updatedDislikedBy };
+                            }
+                            return p;
+                        });
+                        return { ...q, paltaQBy: updatedPaltaQBy };
                     }
                     return q;
                 });
-                setQuestions(Questions);
-            }
+            });
         } catch (error) {
             console.error('Error disliking question:', error);
+            setLoading(false);
+        } finally {
+            setLoading(false);
         }
     };
+    
 
     const handlePaltaQ = (questionId: string) => async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (loading) return; // Prevent if already loading
+        setLoading(true);
         
         // Handle validation  
         if(pQuestion.length < 10) {
             toast.error('Question too short!');
+            setLoading(false);
             return;
         } else if(pQuestion.length > 300) {
             toast.error('Question too long!');
+            setLoading(false);
             return;
         }
     
@@ -277,17 +322,41 @@ export default function RecentQuestions() {
                 console.error('Failed to submit palta question');
                 toast.error(response.statusText);
             }
+
+            try {
+                const response = await fetch('/api/getLatestQuestions', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                setQuestions(data);
+            } catch (error) {
+                console.error('Error fetching questions:', error);
+                setLoading(false);
+            }
+
+            setLoading(false);
         } catch (error) {
             console.error('Failed to submit palta question:', error);
             toast.error('Failed to submit palta question');
+            setLoading(false);
         }
     };    
 
     return (
         <div>
+            <QuestionBox onQuestionSubmitted={fetchQuestions} />
+
             {/* Question Card */}
             {questions.map((question: any) => (
-                <div key={question.id} className="card bg-primary shadow-inset border-light lg:w-[90%] w-[95%] mx-auto mb-4">
+                <div key={question.id} className="card bg-primary shadow-inset border-light w-[90%] mx-auto mb-4">
                     <div className="px-4 pt-4 pb-2">
 
                         {/* Main Question User Details */}
@@ -320,12 +389,12 @@ export default function RecentQuestions() {
                                     </span>
                                 </div>
                             </div>
-                            <button className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
 
+                            <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
                                 <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
                                 <span className="font-bold lg:block hidden">Report</span>
-
                             </button>
+
                         </div>
 
                         {/* Main Question */}
@@ -362,7 +431,7 @@ export default function RecentQuestions() {
                         {/* Main Question Like/Dislike/PaltaQ */}
                         <div className="flex mt-2 ml-4 pl-2 pt-2 pb-3">
                             {/* Like */}
-                            <button onClick={() => handleLike(question.id, userId, 'question')}>
+                            <button onClick={() => handleLike(question.id, userId, 'question')} disabled={loading}>
                                 <FontAwesomeIcon 
                                 icon={faThumbsUp} 
                                 className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${question.likedBy && question.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`} 
@@ -371,10 +440,10 @@ export default function RecentQuestions() {
                             <span className="small ml-1 mr-2">{question.likes}</span>
                             <span className="small mr-2">|</span>
                             {/* Dislike */}
-                            <button onClick={() => handleDislike(question.id, userId, 'question')}>
+                            <button onClick={() => handleDislike(question.id, userId, 'question')} disabled={loading}>
                                 <FontAwesomeIcon 
                                 icon={faThumbsDown} 
-                                className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${question.dislikedBy && question.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`} 
+                                className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${question.dislikedBy && question.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`} 
                             />
                             </button>
                             <span className="small ml-1 mr-2">{question.dislikes}</span>
@@ -391,37 +460,49 @@ export default function RecentQuestions() {
                             <div className="mt-2 ml-3 mr-2">
 
                                 <div>
-                                    {question.paltaQBy && question.paltaQBy.map((paltaQ: any) => (
+                                {question.paltaQBy
+                                    .slice() // Create a copy of the array to avoid mutating the original
+                                    .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                                    .map((paltaQ: any) => (
                                         <div key={paltaQ.id} className="flex flex-col justify-between mt-2 px-4 pt-3 lg:mx-2 mb-4 mt-1 border rounded">
                                             
                                             {/* PaltaQ User Details */}
-                                            <div className="flex items-center">
-                                                <div className='icon shadow-inset border border-light rounded-circle p-1'>
-                                                    {paltaQ.isAnonymous ? (
-                                                        <Image
-                                                            src="/default_image.png"
-                                                            alt="Anonymous Image"
-                                                            width={30}
-                                                            height={30}
-                                                            className='rounded-full'
-                                                        ></Image>
-                                                    ) : (
-                                                        <Image
-                                                            src={paltaQ.user.image}
-                                                            alt="User Image"
-                                                            width={30}
-                                                            height={30}
-                                                            className='rounded-full'
-                                                        ></Image>
-                                                    )}
+                                            <div className='flex justify-between'>
+                                                <div className="flex items-center">
+                                                    <div className='icon shadow-inset border border-light rounded-circle p-1'>
+                                                        {paltaQ.isAnonymous ? (
+                                                            <Image
+                                                                src="/default_image.png"
+                                                                alt="Anonymous Image"
+                                                                width={30}
+                                                                height={30}
+                                                                className='rounded-full'
+                                                            ></Image>
+                                                        ) : (
+                                                            <Image
+                                                                src={paltaQ.user.image}
+                                                                alt="User Image"
+                                                                width={30}
+                                                                height={30}
+                                                                className='rounded-full'
+                                                            ></Image>
+                                                        )}
+                                                    </div>
+    
+                                                    <div className='flex flex-col'>
+                                                        <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? "Anonymous User" : paltaQ.user.name}</span>
+                                                        {/* Date */}
+                                                        <span className="small ml-2">
+                                                            {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
+                                                        </span>
+                                                    </div>
                                                 </div>
 
-                                                <div className='flex flex-col'>
-                                                    <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? "Anonymous User" : paltaQ.user.name}</span>
-                                                    {/* Date */}
-                                                    <span className="small ml-2">
-                                                        {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
-                                                    </span>
+                                                <div>
+                                                    <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
+                                                        <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
+                                                        <span className="font-bold lg:block hidden">Report</span>
+                                                    </button>
                                                 </div>
                                             </div>
 
@@ -434,7 +515,7 @@ export default function RecentQuestions() {
                                                 {/* PaltaQ Like/Dislike */}
                                                 <div className="flex mt-2 lg:ml-5 ml-0 pt-2 pb-3">
                                                     {/* Like */}
-                                                    <button onClick={() => handleLike(paltaQ.id, userId, 'palta')}>
+                                                    <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading}>
                                                         <FontAwesomeIcon 
                                                         icon={faThumbsUp} 
                                                         className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${paltaQ.likedBy && paltaQ.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`} 
@@ -443,7 +524,7 @@ export default function RecentQuestions() {
                                                     <span className="small ml-1 mr-2">{paltaQ.likes}</span>
                                                     <span className="small mr-2">|</span>
                                                     {/* Dislike */}
-                                                    <button onClick={() => handleDislike(paltaQ.id, userId, 'palta')}>
+                                                    <button onClick={() => handleDislike(paltaQ.id, userId, 'palta')} disabled={loading}>
                                                         <FontAwesomeIcon 
                                                         icon={faThumbsDown} 
                                                         className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${paltaQ.dislikedBy && paltaQ.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`} 

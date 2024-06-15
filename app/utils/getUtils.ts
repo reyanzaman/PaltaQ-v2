@@ -22,6 +22,28 @@ export async function getUserIDFromDatabase(email: string): Promise<string> {
     }
 }
 
+export async function getisAdmin(email: string): Promise<boolean> {
+    try {
+        if (!email || email === '') {
+            throw new Error('Email is required to fetch user ID');
+        }
+
+        const foundUser = await prisma.user.findUnique({
+            where: {
+                email: email,
+            },
+        });
+
+        if (!foundUser) {
+            throw new Error('User not found');
+        }
+
+        return foundUser.is_Admin;
+    } catch (error: any) {
+        throw new Error(`Failed to get user ID from database: ${error.message}`);
+    }
+}
+
 export async function getTopicIDFromDatabase(topic: string, classId: string): Promise<string> {
     try {
         if (!topic || topic.trim() === '') {

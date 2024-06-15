@@ -121,7 +121,7 @@ function tokensToVector(tokens: string[]): { [key: string]: number } {
   return vector;
 }
 
-export async function scoreQuestion(question: string): Promise<number> {
+export async function scoreQuestion(question: string): Promise<{ score: number, foundKeywords: { [key: string]: boolean } }> {
   try {
     const calculatedScore = calculateScore(question);
     return calculatedScore;
@@ -132,6 +132,7 @@ export async function scoreQuestion(question: string): Promise<number> {
   }
 }
 
+// Constants and functions related to scoring and taxonomy
 const keywordScoreMap: { [key: string]: number } = {
   'bloom_remembering': 10,
   'bloom_understanding': 20,
@@ -150,7 +151,7 @@ const bloomKeywords: string[][] = [
   bloom_creating
 ];
 
-function calculateScore(question: string): number {
+function calculateScore(question: string): { score: number, foundKeywords: { [key: string]: boolean } } {
   let totalScore = 0;
   let foundKeywords: { [key: string]: boolean } = {};
 
@@ -170,5 +171,5 @@ function calculateScore(question: string): number {
   });
 
   console.log("Score is:", totalScore);
-  return totalScore;
+  return { score: totalScore, foundKeywords };
 }
