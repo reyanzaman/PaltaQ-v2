@@ -1,8 +1,8 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiResponse } from 'next';
 import prisma from '@/app/lib/prisma';
 
-export async function putHandler(req: Request, res: NextApiResponse) {
-    if (req.method === 'PUT') {
+export async function patchHandler(req: Request, res: NextApiResponse) {
+    if (req.method === 'PATCH') {
         const url = req?.url ? new URL(req.url) : null;
         const pathname = url?.pathname;
         const parts = pathname?.split('/') ?? [];
@@ -51,17 +51,33 @@ export async function getHandler(req: Request, res: NextApiResponse) {
         const parts = pathname?.split('/') ?? [];
         const email = parts[parts.length - 1];
 
-        try {
-            const user = await prisma.user.findUnique({
-                where: {
-                    email: email,
-                }
-            });
+        const include = url?.searchParams.get('include');
 
-            return new Response(JSON.stringify(user), {
-                status: 200,
-                statusText: `User retrieved`
-            })
+        try {
+            if(include === "UD") {
+                const user = await prisma.user.findUnique({
+                    where: {
+                        email: email,
+                    },
+                    include: {
+                        userDetails: true,
+                    }
+                });
+                return new Response(JSON.stringify(user), {
+                    status: 200,
+                    statusText: `User retrieved`
+                })
+            } else {
+                const user = await prisma.user.findUnique({
+                    where: {
+                        email: email,
+                    }
+                });
+                return new Response(JSON.stringify(user), {
+                    status: 200,
+                    statusText: `User retrieved`
+                })
+            }
         } catch (error) {
             console.error('Failed to get user:', error);
             return new Response(JSON.stringify({ error: 'Failed to get user' }), {
@@ -81,5 +97,5 @@ export async function getHandler(req: Request, res: NextApiResponse) {
     }
 }
 
-export { putHandler as PUT };
+export { patchHandler as PATCH };
 export { getHandler as GET };

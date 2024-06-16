@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import useFetchUsers from '@/app/hooks/useFetchUsers/route';
 import { nunito } from "@/app/ui/fonts";
 
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import UserImage from "@/app/components/userimage";
 import { useRouter } from 'next/navigation'
 
@@ -52,8 +52,10 @@ export default function AdminComponent() {
   }, [session]);
 
   if (status === 'loading') {
-    return <p>Loading...</p>;
+    return <div className="pl-[10em] pt-[3em]"><h1 className="text-2xl font-bold">Loading...</h1></div>;
   }
+
+  if (error) return <div className="pl-[10em] pt-[3em]"><h1 className='text-red-500 text-2xl font-bold'></h1>Error loading users</div>;
 
   const handleEdit = (user: any) => {
     setEditableUser(user);
@@ -65,7 +67,7 @@ export default function AdminComponent() {
     if (editableUser) {
       try {
         const response = await fetch(`/api/users/${editableUser.id}`, {
-          method: 'PUT',
+          method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -103,9 +105,6 @@ export default function AdminComponent() {
     const dateB = new Date(b.createdAt);
     return dateB.getTime() - dateA.getTime(); // Sort in descending order
   });
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error loading users</div>;
 
   return (
     <div className={`${nunito.className} antialiased flex flex-col`}>

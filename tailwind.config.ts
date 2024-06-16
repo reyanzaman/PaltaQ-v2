@@ -1,3 +1,4 @@
+import { width } from "@fortawesome/free-solid-svg-icons/fa0";
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -15,6 +16,30 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      const newUtilities = {
+        ".scrollbar-thin": {
+          scrollbarWidth: "thin",
+          scrollbarColor: "rgba(79, 79, 79) transparent",
+        },
+        ".scrollbar-webkit": {
+          "&::-webkit-scrollbar": {
+            width: "8px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "rgba(79, 79, 79)",
+            borderRadius: "20px",
+            border: "1px solid white",
+          }
+        }
+      }
+
+      addUtilities(newUtilities, ["responsive", "hover"])
+    }
+  ],
 };
 export default config;

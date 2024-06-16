@@ -65,13 +65,14 @@ interface User {
 
 export default function RecentQuestions() {
 
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
     const [userId, setUserId] = useState<string>('');
     const [questions, setQuestions] = useState<Question[]>([]);
     const [loading, setLoading] = useState(false);
 
     const [pQuestion, setPQuestion] = useState('');
     const [visibleInputBox, setVisibleInputBox] = useState<{ [key: string]: boolean }>({});
+    const [loadingQuestion, setLoadingQuestion] = useState(true);
 
     const toggleInputBox = (questionId: string) => {
         setVisibleInputBox(prevState => ({
@@ -128,6 +129,7 @@ export default function RecentQuestions() {
         fetchQuestions();
 
         const intervalId = setInterval(fetchQuestions, 10000); // Fetch every 5 seconds
+        setLoadingQuestion(false);
 
         return () => clearInterval(intervalId); // Cleanup function to clear interval
 
@@ -349,6 +351,10 @@ export default function RecentQuestions() {
             setLoading(false);
         }
     };    
+
+    if (status === 'loading' || loadingQuestion) {
+        return <div className="mx-auto text-center py-8"><h1 className="text-2xl font-bold">Loading...</h1></div>;
+    }
 
     return (
         <div>

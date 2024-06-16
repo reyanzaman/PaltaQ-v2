@@ -16,6 +16,7 @@ model User {
   is_Faculty        Boolean       @default(false)
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
+  
   questions         Question[]    @relation("UserQuestions")
   userDetails       UserDetails?  // One-to-one relationship
   reports           Reports[]     // One-to-many relationship with Reports
@@ -23,8 +24,7 @@ model User {
   dislikedQuestions Dislikes[]    @relation("UserDislikes")
   paltaQuestions    PaltaQ[]      @relation("UserPaltaQ")
   classes           ClassEnrollment[] // Many-to-many relationship with Classes
-
-  facultyClasses    Classes[]     @relation("FacultyClasses")
+  taughtClasses  ClassFaculty[]    // Many-to-many relationship with Classes for faculty members
 }
 
 model UserDetails {
@@ -40,26 +40,41 @@ model UserDetails {
 
 model Classes {
   id          String          @id @default(uuid())
-  name        String
-  code        String
-  facultyId   String
+  name        String          @unique
+  code        String          @unique
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  faculty     User            @relation(fields: [facultyId], references: [id], name: "FacultyClasses")
+  faculties   ClassFaculty[]  // Many-to-many relationship with Users for faculty members
   enrollments ClassEnrollment[] // Many-to-many relationship with Users
   topics      Topic[]         // One-to-many relationship with Topics
   questions   Question[]      // One-to-many relationship with Questions
 }
 
+model ClassFaculty {
+  id          String   @id @default(uuid())
+  classId     String
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  class       Classes  @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, userId])
+}
+
 model ClassEnrollment {
-  userId     String
-  classId    String
+  id          String   @id @default(uuid())
+  userId      String
+  classId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   class      Classes  @relation(fields: [classId], references: [id], onDelete: Cascade)
 
-  @@id([userId, classId])
+  @@unique([userId, classId])
 }
 
 model Topic {
