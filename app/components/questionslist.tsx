@@ -1,5 +1,3 @@
-"use client";
-
 import { faPaperPlane, faFlag, faThumbsUp, faThumbsDown, faComment } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
@@ -10,8 +8,7 @@ import { useSession } from "next-auth/react";
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 
-import QuestionBox from "@/app/components/homequestionbox";
-
+import { Question } from '@prisma/client';
 
 interface Likes {
     id: string;
@@ -40,33 +37,15 @@ interface PaltaQ {
     createdAt: string;
 }
 
-interface Question {
-    id: string;
-    userId: string;
-    question: string;
-    likes: number;
-    dislikes: number;
-    isAnonymous: boolean;
-    score: number;
-    user: User;
-    paltaQ: number;
-    paltaQBy: PaltaQ[];
-    likedBy: Likes[];
-    dislikedBy: Dislikes[];
-    createdAt: string;
-}
-
 interface User {
     id: string;
     name: string;
     image: string;
 }
 
-export default function RecentQuestions() {
-
+export default function QuestionsList({ questions }: { questions: Question[] }) {
     const { data: session, status } = useSession();
     const [userId, setUserId] = useState<string>('');
-    const [questions, setQuestions] = useState<Question[]>([]);
     const [loading, setLoading] = useState(false);
 
     const [pQuestion, setPQuestion] = useState('');
@@ -80,72 +59,18 @@ export default function RecentQuestions() {
         }));
     };
 
-    const fetchQuestions = async () => {
-        try {
-            const response = await fetch('/api/getLatestQuestions', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`Error: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            setQuestions(data);
-        } catch (error) {
-            console.error('Error fetching questions:', error);
-        }
-    };
-
-    useEffect(() => {
-
-        const fetchUserID = async () => {
-            if (session?.user?.email) {
-                try {
-                    const response = await fetch(`/api/getUserId?email=${session.user.email}`, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`Error: ${response.statusText}`);
-                    }
-
-                    const data = await response.json();
-                    setUserId(data);
-                } catch (error) {
-                    console.error('Error fetching user id:', error);
-                }
-            }
-        };
-
-        fetchUserID();
-        fetchQuestions();
-
-        const intervalId = setInterval(fetchQuestions, 10000); // Fetch every 5 seconds
-        setLoadingQuestion(false);
-
-        return () => clearInterval(intervalId); // Cleanup function to clear interval
-
-    }, [session?.user?.email]);
-
     const handleLike = async (questionId: string, userId: string, type: string) => {
         try {
             if (loading) return; // Prevent if already loading
             setLoading(true);
-    
+
             // Reject if not logged in
             if (!session) {
                 toast.info('Please log in to like the question');
                 setLoading(false);
                 return;
-            }      
-    
+            }
+
             if (type === 'question') {
                 const question = questions.find(q => q.id === questionId);
                 if (question?.dislikedBy?.some(dislike => dislike.userId === userId)) {
@@ -162,7 +87,7 @@ export default function RecentQuestions() {
                     return;
                 }
             }
-    
+
             const response = await fetch(`/api/likeQuestion`, {
                 method: 'POST',
                 headers: {
@@ -170,28 +95,28 @@ export default function RecentQuestions() {
                 },
                 body: JSON.stringify({ userId: userId, questionId: questionId, type: type })
             });
-    
+
             if (!response.ok) {
                 throw new Error(`Error: ${response.statusText}`);
             }
-    
+
             const result = await response.text();
-    
+
             // Update the local state based on the response
             setQuestions(prevQuestions => {
                 return prevQuestions.map(q => {
                     if (type === 'question' && q.id === questionId) {
                         const updatedLikes = result === "+1" ? q.likes + 1 : q.likes - 1;
-                        const updatedLikedBy = result === "+1" 
-                            ? [...q.likedBy, { id: Date.now().toString(), userId, questionId }] 
+                        const updatedLikedBy = result === "+1"
+                            ? [...q.likedBy, { id: Date.now().toString(), userId, questionId }]
                             : q.likedBy.filter(like => like.userId !== userId);
                         return { ...q, likes: updatedLikes, likedBy: updatedLikedBy };
                     } else if (type === 'palta') {
                         const updatedPaltaQBy = q.paltaQBy.map(p => {
                             if (p.id === questionId) {
                                 const updatedLikes = result === "+1" ? p.likes + 1 : p.likes - 1;
-                                const updatedLikedBy = result === "+1" 
-                                    ? [...p.likedBy, { id: Date.now().toString(), userId, questionId }] 
+                                const updatedLikedBy = result === "+1"
+                                    ? [...p.likedBy, { id: Date.now().toString(), userId, questionId }]
                                     : p.likedBy.filter(like => like.userId !== userId);
                                 return { ...p, likes: updatedLikes, likedBy: updatedLikedBy };
                             }
@@ -209,19 +134,19 @@ export default function RecentQuestions() {
             setLoading(false);
         }
     };
-    
+
     const handleDislike = async (questionId: string, userId: string, type: string) => {
         try {
             if (loading) return; // Prevent if already loading
             setLoading(true);
-    
+
             // Reject if not logged in
             if (!session) {
                 toast.info('Please log in to dislike the question');
                 setLoading(false);
                 return;
             }
-    
+
             if (type === 'question') {
                 const question = questions.find(q => q.id === questionId);
                 if (question?.likedBy.some(like => like.userId === userId)) {
@@ -238,7 +163,7 @@ export default function RecentQuestions() {
                     return;
                 }
             }
-    
+
             const response = await fetch(`/api/dislikeQuestion`, {
                 method: 'POST',
                 headers: {
@@ -246,28 +171,28 @@ export default function RecentQuestions() {
                 },
                 body: JSON.stringify({ userId: userId, questionId: questionId, type: type })
             });
-    
+
             if (!response.ok) {
                 throw new Error(`Error: ${response.statusText}`);
             }
-    
+
             const result = await response.text();
-    
+
             // Update the local state based on the response
             setQuestions(prevQuestions => {
                 return prevQuestions.map(q => {
                     if (type === 'question' && q.id === questionId) {
                         const updatedDislikes = result === "+1" ? q.dislikes + 1 : q.dislikes - 1;
-                        const updatedDislikedBy = result === "+1" 
-                            ? [...q.dislikedBy, { id: Date.now().toString(), userId, questionId }] 
+                        const updatedDislikedBy = result === "+1"
+                            ? [...q.dislikedBy, { id: Date.now().toString(), userId, questionId }]
                             : q.dislikedBy.filter(dislike => dislike.userId !== userId);
                         return { ...q, dislikes: updatedDislikes, dislikedBy: updatedDislikedBy };
                     } else if (type === 'palta') {
                         const updatedPaltaQBy = q.paltaQBy.map(p => {
                             if (p.id === questionId) {
                                 const updatedDislikes = result === "+1" ? p.dislikes + 1 : p.dislikes - 1;
-                                const updatedDislikedBy = result === "+1" 
-                                    ? [...p.dislikedBy, { id: Date.now().toString(), userId, questionId }] 
+                                const updatedDislikedBy = result === "+1"
+                                    ? [...p.dislikedBy, { id: Date.now().toString(), userId, questionId }]
                                     : p.dislikedBy.filter(dislike => dislike.userId !== userId);
                                 return { ...p, dislikes: updatedDislikes, dislikedBy: updatedDislikedBy };
                             }
@@ -285,24 +210,23 @@ export default function RecentQuestions() {
             setLoading(false);
         }
     };
-    
 
     const handlePaltaQ = (questionId: string) => async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (loading) return; // Prevent if already loading
         setLoading(true);
-        
+
         // Handle validation  
-        if(pQuestion.length < 10) {
+        if (pQuestion.length < 10) {
             toast.error('Question too short!');
             setLoading(false);
             return;
-        } else if(pQuestion.length > 300) {
+        } else if (pQuestion.length > 300) {
             toast.error('Question too long!');
             setLoading(false);
             return;
         }
-    
+
         try {
             // Example of sending the question to your API
             const response = await fetch('api/submitGenQuestion', {
@@ -312,7 +236,7 @@ export default function RecentQuestions() {
                 },
                 body: JSON.stringify({ question: pQuestion, category: QuestionCategory.Palta, quesID: questionId }),
             });
-    
+
             if (response.ok) {
                 // Handle successful submission
                 setPQuestion('');
@@ -349,7 +273,7 @@ export default function RecentQuestions() {
             toast.error('Failed to submit palta question');
             setLoading(false);
         }
-    };    
+    };
 
     if (status === 'loading' || loadingQuestion) {
         return <div className="mx-auto text-center py-8"><h1 className="text-2xl font-bold">Loading...</h1></div>;
@@ -357,9 +281,6 @@ export default function RecentQuestions() {
 
     return (
         <div>
-            <QuestionBox onQuestionSubmitted={fetchQuestions} />
-
-            {/* Question Card */}
             {questions.map((question: any) => (
                 <div key={question.id} className="card bg-primary shadow-inset border-light w-[90%] mx-auto mb-4">
                     <div className="px-4 pt-4 pb-2">
@@ -437,19 +358,19 @@ export default function RecentQuestions() {
                         <div className="flex mt-2 ml-4 pl-2 pt-2 pb-3">
                             {/* Like */}
                             <button onClick={() => handleLike(question.id, userId, 'question')} disabled={loading}>
-                                <FontAwesomeIcon 
-                                icon={faThumbsUp} 
-                                className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${question.likedBy && question.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`} 
-                            />
+                                <FontAwesomeIcon
+                                    icon={faThumbsUp}
+                                    className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${question.likedBy && question.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
+                                />
                             </button>
                             <span className="small ml-1 mr-2">{question.likes}</span>
                             <span className="small mr-2">|</span>
                             {/* Dislike */}
                             <button onClick={() => handleDislike(question.id, userId, 'question')} disabled={loading}>
-                                <FontAwesomeIcon 
-                                icon={faThumbsDown} 
-                                className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${question.dislikedBy && question.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`} 
-                            />
+                                <FontAwesomeIcon
+                                    icon={faThumbsDown}
+                                    className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${question.dislikedBy && question.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
+                                />
                             </button>
                             <span className="small ml-1 mr-2">{question.dislikes}</span>
                             <span className="small mr-2">|</span>
@@ -465,99 +386,99 @@ export default function RecentQuestions() {
                             <div className="mt-2 ml-3 mr-2">
 
                                 <div>
-                                {question.paltaQBy
-                                    .slice() // Create a copy of the array to avoid mutating the original
-                                    .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-                                    .map((paltaQ: any) => (
-                                        <div key={paltaQ.id} className="flex flex-col justify-between mt-2 px-4 pt-3 lg:mx-2 mb-4 mt-1 border rounded">
-                                            
-                                            {/* PaltaQ User Details */}
-                                            <div className='flex justify-between'>
-                                                <div className="flex items-center">
-                                                    <div className='icon shadow-inset border border-light rounded-circle p-1'>
-                                                        {paltaQ.isAnonymous ? (
-                                                            <Image
-                                                                src="/default_image.png"
-                                                                alt="Anonymous Image"
-                                                                width={30}
-                                                                height={30}
-                                                                className='rounded-full'
-                                                            ></Image>
-                                                        ) : (
-                                                            <Image
-                                                                src={paltaQ.user.image}
-                                                                alt="User Image"
-                                                                width={30}
-                                                                height={30}
-                                                                className='rounded-full'
-                                                            ></Image>
-                                                        )}
+                                    {question.paltaQBy
+                                        .slice() // Create a copy of the array to avoid mutating the original
+                                        .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                                        .map((paltaQ: any) => (
+                                            <div key={paltaQ.id} className="flex flex-col justify-between mt-2 px-4 pt-3 lg:mx-2 mb-4 mt-1 border rounded">
+
+                                                {/* PaltaQ User Details */}
+                                                <div className='flex justify-between'>
+                                                    <div className="flex items-center">
+                                                        <div className='icon shadow-inset border border-light rounded-circle p-1'>
+                                                            {paltaQ.isAnonymous ? (
+                                                                <Image
+                                                                    src="/default_image.png"
+                                                                    alt="Anonymous Image"
+                                                                    width={30}
+                                                                    height={30}
+                                                                    className='rounded-full'
+                                                                ></Image>
+                                                            ) : (
+                                                                <Image
+                                                                    src={paltaQ.user.image}
+                                                                    alt="User Image"
+                                                                    width={30}
+                                                                    height={30}
+                                                                    className='rounded-full'
+                                                                ></Image>
+                                                            )}
+                                                        </div>
+
+                                                        <div className='flex flex-col'>
+                                                            <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? "Anonymous User" : paltaQ.user.name}</span>
+                                                            {/* Date */}
+                                                            <span className="small ml-2">
+                                                                {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
+                                                            </span>
+                                                        </div>
                                                     </div>
-    
-                                                    <div className='flex flex-col'>
-                                                        <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? "Anonymous User" : paltaQ.user.name}</span>
-                                                        {/* Date */}
-                                                        <span className="small ml-2">
-                                                            {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
-                                                        </span>
+
+                                                    <div>
+                                                        <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
+                                                            <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
+                                                            <span className="font-bold lg:block hidden">Report</span>
+                                                        </button>
                                                     </div>
                                                 </div>
 
-                                                <div>
-                                                    <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
-                                                        <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
-                                                        <span className="font-bold lg:block hidden">Report</span>
-                                                    </button>
+                                                {/* PaltaQ Question */}
+                                                <div className='lg:mt-0 mt-2'>{paltaQ.paltaQ}</div>
+
+
+                                                <div className='flex flex-row'>
+
+                                                    {/* PaltaQ Like/Dislike */}
+                                                    <div className="flex mt-2 lg:ml-5 ml-0 pt-2 pb-3">
+                                                        {/* Like */}
+                                                        <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading}>
+                                                            <FontAwesomeIcon
+                                                                icon={faThumbsUp}
+                                                                className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${paltaQ.likedBy && paltaQ.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
+                                                            />
+                                                        </button>
+                                                        <span className="small ml-1 mr-2">{paltaQ.likes}</span>
+                                                        <span className="small mr-2">|</span>
+                                                        {/* Dislike */}
+                                                        <button onClick={() => handleDislike(paltaQ.id, userId, 'palta')} disabled={loading}>
+                                                            <FontAwesomeIcon
+                                                                icon={faThumbsDown}
+                                                                className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${paltaQ.dislikedBy && paltaQ.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
+                                                            />
+                                                        </button>
+                                                        <span className="small ml-1 mr-2">{paltaQ.dislikes}</span>
+                                                    </div>
+
+                                                    {/* PaltaQ Badge */}
+                                                    <div className="flex items-center lg:translate-y-[0.8em] translate-y-[1em] lg:ml-2 ml-1 h-fit">
+                                                        <div className='badge mx-1'>
+                                                            {paltaQ.score >= 100
+                                                                ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-danger'>HIGH LEVEL</span>
+                                                                : paltaQ.score >= 50
+                                                                    ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-secondary'>MID LEVEL </span>
+                                                                    : <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-success'>LOW LEVEL</span>}
+                                                        </div>
+                                                        <div className='badge mx-1'>
+                                                            <span className="font-bold lg:text-sm text-xxs items-end lg:ml-2 ml-0">
+                                                                SCORE: {paltaQ.score}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
                                                 </div>
+
                                             </div>
-
-                                            {/* PaltaQ Question */}
-                                            <div className='lg:mt-0 mt-2'>{paltaQ.paltaQ}</div>
-
-                                            
-                                            <div className='flex flex-row'>
-
-                                                {/* PaltaQ Like/Dislike */}
-                                                <div className="flex mt-2 lg:ml-5 ml-0 pt-2 pb-3">
-                                                    {/* Like */}
-                                                    <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading}>
-                                                        <FontAwesomeIcon 
-                                                        icon={faThumbsUp} 
-                                                        className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${paltaQ.likedBy && paltaQ.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`} 
-                                                    />
-                                                    </button>
-                                                    <span className="small ml-1 mr-2">{paltaQ.likes}</span>
-                                                    <span className="small mr-2">|</span>
-                                                    {/* Dislike */}
-                                                    <button onClick={() => handleDislike(paltaQ.id, userId, 'palta')} disabled={loading}>
-                                                        <FontAwesomeIcon 
-                                                        icon={faThumbsDown} 
-                                                        className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${paltaQ.dislikedBy && paltaQ.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`} 
-                                                    />
-                                                    </button>
-                                                    <span className="small ml-1 mr-2">{paltaQ.dislikes}</span>
-                                                </div>
-
-                                                {/* PaltaQ Badge */}
-                                                <div className="flex items-center lg:translate-y-[0.8em] translate-y-[1em] lg:ml-2 ml-1 h-fit">
-                                                    <div className='badge mx-1'>
-                                                        {paltaQ.score >= 100
-                                                            ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-danger'>HIGH LEVEL</span>
-                                                            : paltaQ.score >= 50
-                                                                ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-secondary'>MID LEVEL </span>
-                                                                : <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-success'>LOW LEVEL</span>}
-                                                    </div>
-                                                    <div className='badge mx-1'>
-                                                        <span className="font-bold lg:text-sm text-xxs items-end lg:ml-2 ml-0">
-                                                            SCORE: {paltaQ.score}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-
-                                        </div>
-                                    ))}
+                                        ))}
                                 </div>
 
                                 {/* PaltaQ Text Area */}
@@ -575,8 +496,8 @@ export default function RecentQuestions() {
                                             className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
                                         >
                                             <FontAwesomeIcon
-                                            icon={faPaperPlane}
-                                            className="w-[1.5rem] text-[#31344b]"
+                                                icon={faPaperPlane}
+                                                className="w-[1.5rem] text-[#31344b]"
                                             />
                                         </button>
                                     </form>

@@ -8,7 +8,7 @@ export async function deleteHandler(req: Request, res: NextApiResponse) {
         const cid = url?.searchParams.get('cid');
 
         try {
-            if(uid && cid) {
+            if (uid && cid) {
                 await prisma.classEnrollment.delete({
                     where: {
                         userId_classId: {
@@ -49,4 +49,59 @@ export async function deleteHandler(req: Request, res: NextApiResponse) {
     }
 }
 
+export async function getHandler(req: Request, res: NextApiResponse) {
+    if (req.method === 'GET') {
+        const url = req?.url ? new URL(req.url) : null;
+        const id = url?.searchParams.get('id');
+
+        const include = url?.searchParams.get('include');
+
+        try {
+            if (id) {
+                const user = await prisma.classEnrollment.findMany({
+                    where: {
+                        userId: id,
+                    },
+                    include: {
+                        user: {
+                            include: {
+                                userDetails: true
+                            }
+                        },
+                        class: {
+                            include: {
+                                faculties: {
+                                    include: {
+                                        user: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                return new Response(JSON.stringify(user), {
+                    status: 200,
+                    statusText: `Class retrieved`
+                })
+            }
+        } catch (error) {
+            console.error('Failed to get class:', error);
+            return new Response(JSON.stringify({ error: 'Failed to get class' }), {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+    } else {
+        return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+            status: 405,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+}
+
 export { deleteHandler as DELETE };
+export { getHandler as GET };
