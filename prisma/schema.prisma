@@ -82,6 +82,8 @@ model Topic {
   name      String
   classId   String
   questions Question[] // One-to-many relationship with Questions
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt @default(now())
 
   class     Classes     @relation(fields: [classId], references: [id], onDelete: Cascade)
 

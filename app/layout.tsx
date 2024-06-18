@@ -36,10 +36,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className="scrollbar-thin scrollbar-webkit">
         <SessionProvider>
-          <SideNav 
+          <SideNav
             isMobile={isMobile}
             isMobileMenuOpen={isMobileMenuOpen}
             toggleMobileMenu={toggleMobileMenu}
+            setIsMobileMenuOpen={setIsMobileMenuOpen}
           />
           {children}
           <ToastContainer />

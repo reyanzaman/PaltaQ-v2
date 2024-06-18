@@ -116,7 +116,7 @@ export default function AdminComponent() {
         <input
           type="text"
           placeholder="Search by name or email"
-          className="border border-gray-300 rounded-md px-3 py-2 mb-4"
+          className="border border-gray-300 rounded-md px-3 py-2 mb-4 form-control"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />

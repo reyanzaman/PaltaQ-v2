@@ -5,7 +5,10 @@ import { nunito } from "@/app/ui/fonts";
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { faCircleChevronDown, faAngleDown } from "@fortawesome/free-solid-svg-icons";
+
+
+import { Topic } from "@prisma/client";
 
 interface User {
     id: string;
@@ -56,14 +59,20 @@ export default function FacultyClass({ user }: { user: User }) {
 
     const [classes, setClasses] = useState<ClassFaculty[]>([]);
     const [selectedClass, setSelectedClass] = useState<Class>();
+    const [topics, setTopics] = useState<Topic[]>([]);
+
     const [className, setClassName] = useState('' as string);
     const [classCode, setClassCode] = useState('' as string);
-    const [loading, setLoading] = useState(false);
+    const [classTopic, setClassTopic] = useState('' as string);
+    const [topicName, setTopicName] = useState('' as string);
 
+    const [loading, setLoading] = useState(false);
     const [refresh, setRefresh] = useState(false);
 
     const [toggleDelete, setToggleDelete] = useState(null as any);
+    const [toggleTopicDelete, setToggleTopicDelete] = useState(null as any);
     const [toggleRemove, setToggleRemove] = useState(null as any);
+    const [editIndex, setEditIndex] = useState(null);
 
     useEffect(() => {
         const fetchClasses = async () => {
@@ -84,7 +93,26 @@ export default function FacultyClass({ user }: { user: User }) {
             setLoading(false);
         };
 
+        const fetchTopics = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch(`/api/topics?cid=${selectedClass?.id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setTopics(data);
+                } else {
+                    // Handle error
+                    console.error('Failed to fetch classes');
+                }
+            } catch (error) {
+                console.error('Error fetching classes:', error);
+                setLoading(false);
+            }
+            setLoading(false);
+        }
+
         fetchClasses();
+        fetchTopics();
     }, [refresh]);
 
     const createClass = async (e: any) => {
@@ -111,7 +139,7 @@ export default function FacultyClass({ user }: { user: User }) {
                 setLoading(false);
             }
         } catch (error) {
-            console.error('Error fetching questions:', error);
+            console.error('Error creating class:', error);
             setLoading(false);
         }
         setLoading(false);
@@ -180,6 +208,87 @@ export default function FacultyClass({ user }: { user: User }) {
         setToggleDelete(null);
     };
 
+    const createTopic = async (e: any) => {
+        e.preventDefault();
+
+        try {
+            const response = await fetch('/api/topics', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ classId: selectedClass?.id, topicName: classTopic }),
+            });
+
+            if (response.ok) {
+                setClassTopic('');
+                setRefresh(!refresh);
+                toast.success(response.statusText);
+            } else {
+                // Handle error
+                console.error('Failed to submit class topic');
+                toast.error(response.statusText);
+            }
+        } catch (error) {
+            console.error('Error submitting topic:', error);
+        }
+    };
+
+    const deleteTopic = async (index: any) => {
+        setLoading(true);
+        try {
+            const response = await fetch(`/api/topics?id=${topics[index].id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                setRefresh(!refresh);
+                toast.success('Topic deleted');
+            } else {
+                // Handle error
+                console.error('Failed to delete topic');
+                toast.error(response.statusText);
+                setLoading(false);
+            }
+        } catch (error) {
+            console.error('Error deleting topic:', error);
+            setLoading(false);
+        }
+        setLoading(false);
+        setToggleTopicDelete(null);
+    };
+
+    const updateTopic = async (index: any) => {
+        setLoading(true);
+        try {
+            const response = await fetch(`/api/topics?tid=${topics[index].id}&name=${topicName}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                setRefresh(!refresh);
+                toast.success('Topic updated');
+            } else {
+                // Handle error
+                console.error('Failed to update topic');
+                toast.error(response.statusText);
+                setLoading(false);
+            }
+        } catch (error) {
+            console.error('Error updating topic:', error);
+            setLoading(false);
+        }
+        setLoading(false);
+        setTopicName('');
+        setEditIndex(null);
+    }
+
     const removeStudent = async (index: any) => {
         setLoading(true);
         const chosenclass = selectedClass;
@@ -218,20 +327,9 @@ export default function FacultyClass({ user }: { user: User }) {
             if (selectedClass.enrollments.length <= 1) {
                 return (
                     <div>
-                        <div className="flex flex-row justify-between">
-                            <div>
-                                <h5 className="pl-3">Student list of {selectedClass.name}</h5>
-                                <p className="lg:pb-3 pb-1 pl-3">Users Enrolled: {selectedClass.enrollments.length - 1}</p>
-                            </div>
-                            <div>
-                                <button onClick={handleCollapse} className="animate-down-2 font-bold mt-2 mr-4 h-fit lg:block hidden">
-                                    Collapse
-                                    <FontAwesomeIcon className="px-2" icon={faCircleChevronDown} />
-                                </button>
-                                <button onClick={handleCollapse} className="lg:hidden block text-xl mr-[1.7em]">
-                                    <FontAwesomeIcon icon={faCircleChevronDown} />
-                                </button>
-                            </div>
+                        <div>
+                            <h5 className="pl-3">Student list of {selectedClass.name}</h5>
+                            <p className="lg:pb-3 pb-1 pl-3">Users Enrolled: {selectedClass.enrollments.length - 1}</p>
                         </div>
                         <p className="lg:ml-4 ml-3">No students enrolled yet.</p>
                     </div>
@@ -239,20 +337,9 @@ export default function FacultyClass({ user }: { user: User }) {
             } else {
                 return (
                     <div className="lg:w-full w-[85vw] overflow-x-auto scrollbar-thin scrollbar-webkit">
-                        <div className="flex flex-row justify-between">
-                            <div>
-                                <h5 className="pl-3">Enrollment List of {selectedClass.name}</h5>
-                                <p className="lg:pb-3 pb-1 pl-3">Students Enrolled: {selectedClass.enrollments.length - 1}</p>
-                            </div>
-                            <div>
-                                <button onClick={handleCollapse} className="animate-down-2 font-bold mt-2 mr-4 h-fit lg:block hidden">
-                                    Collapse
-                                    <FontAwesomeIcon className="px-2" icon={faCircleChevronDown} />
-                                </button>
-                                <button onClick={handleCollapse} className="lg:hidden block text-xl mr-[0.5em]">
-                                    <FontAwesomeIcon icon={faCircleChevronDown} />
-                                </button>
-                            </div>
+                        <div>
+                            <h5 className="pl-3">Enrollment List of {selectedClass.name}</h5>
+                            <p className="lg:pb-3 pb-1 pl-3">Students Enrolled: {selectedClass.enrollments.length - 1}</p>
                         </div>
 
                         <table className="table lg:mr-0 pr-4">
@@ -285,23 +372,23 @@ export default function FacultyClass({ user }: { user: User }) {
 
                                             {toggleRemove === index && (
                                                 <tr key={`${index}-confirm`}>
-                                                <td colSpan={7} className="w-full">
-                                                  <div className="flex justify-end gap-x-4">
-                                                    <button
-                                                      className="hover:text-red-800 transition-colors duration-500"
-                                                      onClick={() => removeStudent(index)}
-                                                    >
-                                                      Confirm
-                                                    </button>
-                                                    <button
-                                                      className="hover:text-red-800 transition-colors duration-500"
-                                                      onClick={() => setToggleRemove(null)}
-                                                    >
-                                                      Cancel
-                                                    </button>
-                                                  </div>
-                                                </td>
-                                              </tr>
+                                                    <td colSpan={7} className="w-full">
+                                                        <div className="flex justify-end gap-x-4">
+                                                            <button
+                                                                className="hover:text-red-800 transition-colors duration-500"
+                                                                onClick={() => removeStudent(index)}
+                                                            >
+                                                                Confirm
+                                                            </button>
+                                                            <button
+                                                                className="hover:text-red-800 transition-colors duration-500"
+                                                                onClick={() => setToggleRemove(null)}
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
                                             )}
                                         </React.Fragment>
                                     )
@@ -312,9 +399,165 @@ export default function FacultyClass({ user }: { user: User }) {
                 );
             }
         } else {
-            return <p className="lg:pl-4 pl-2">Select a class to view enrolled students.</p>;
+            return (
+                <div>
+                    <h5 className="lg:pl-4 pl-2">Manage students enrolled in your classroom</h5>
+                    <p className="lg:pl-4 pl-2">Select a class to view enrolled students.</p>
+                </div>
+            )
         }
     };
+
+    const displayTopics = () => {
+        if (selectedClass) {
+            return (
+                <div className="flex lg:flex-row flex-col mt-4 mb-4 lg:w-75 w-full ">
+
+                    <div className="border border-gray-400 rounded-lg px-2 py-4 w-full lg:h-[23.8em] h-[24em] overflow-y-auto scrollbar-thin scrollbar-webkit lg:order-first order-last">
+                        <h5 className="pl-3">Topics of {selectedClass?.name}</h5>
+
+
+                        {topics.length !== 0 && (
+                            <div>
+                                <p className="pl-3">Number of topics: {topics.length}</p>
+                                <table className="table table-hover">
+                                    <tr>
+                                        <th className="border-0" scope="col" id="className">Topic Name</th>
+                                        <th className="border-0" scope="col" id="classCode">Associated Questions</th>
+                                        <th className="border-0" scope="col" id="classCode">Actions</th>
+                                    </tr>
+
+                                    {topics.map((topic: any, index: any) => (
+                                        <tr key={index}>
+
+                                            <td>
+                                                {editIndex === index ? (
+                                                    <textarea
+                                                        value={topicName}
+                                                        className="bg-gray-300 border border-gray-500 rounded-lg px-2 py-1 w-full resize-none"
+                                                        onChange={(e) => setTopicName(e.target.value)}
+                                                    />
+                                                ) : (
+                                                    topic.name
+                                                )}
+                                            </td>
+                                            <td>
+                                                {topic.questions}
+                                            </td>
+
+                                            <td className="flex lg:flex-row flex-col items-center">
+                                                {editIndex === index ? (
+                                                    <>
+                                                        <button
+                                                            className="hover:text-lime-700 transition-colors duration-500 py-1"
+                                                            onClick={() => updateTopic(index)}
+                                                            disabled={loading}
+                                                        >
+                                                            Save
+                                                        </button>
+                                                        <p className="lg:block hidden mx-3 translate-y-2">|</p>
+                                                        <button
+                                                            className="hover:text-red-800 transition-colors duration-500 py-1"
+                                                            onClick={() => {
+                                                                setEditIndex(null);
+                                                                setTopicName('');
+                                                            }}
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            className="hover:text-blue-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
+                                                            onClick={() => {
+                                                                setEditIndex(index);
+                                                                setTopicName(topic.name);
+                                                            }}
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        <button
+                                                            className="hover:text-blue-800 transition-colors duration-500 lg:hidden block mb-2"
+                                                            onClick={() => {
+                                                                setEditIndex(index);
+                                                                setTopicName(topic.name);
+                                                            }}
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        <p className="lg:block hidden mx-3">|</p>
+                                                        <div
+                                                            className="hover:text-red-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
+                                                            onClick={() => setToggleTopicDelete(index)}
+                                                        >
+                                                            Delete
+                                                        </div>
+                                                        <button
+                                                            className="hover:text-red-800 transition-colors duration-500 lg:hidden block"
+                                                            onClick={() => setToggleTopicDelete(index)}
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </td>
+
+                                            {toggleTopicDelete === index && (
+                                                <td className="w-full flex gap-x-4">
+                                                    <button
+                                                        className="hover:text-red-800 transition-colors duration-500"
+                                                        onClick={() => deleteTopic(index)}>
+                                                        Confirm
+                                                    </button>
+                                                    <button
+                                                        className="hover:text-red-800 transition-colors duration-500"
+                                                        onClick={() => deleteTopic(null)}>
+                                                        Cancel
+                                                    </button>
+                                                </td>
+                                            )}
+                                        </tr>
+                                    ))}
+                                </table>
+                            </div>
+                        )}
+
+                        {topics.length === 0 && <p className="lg:pl-4 pl-3">No topics set yet.</p>}
+
+                    </div>
+
+                    <div className="lg:w-50 w-full lg:mb-0 mb-5">
+
+                        <h5 className="text-neutral-700 lg:pl-1">Set the topics in your classroom</h5>
+                        <p className="lg:pl-1">Students will only be able to ask questions on the topics you set</p>
+                        <form onSubmit={createTopic} className="flex flex-col lg:pr-20 gap-6 py-2 mb-2">
+                            <div>
+                                <label>Topic Name</label>
+                                <input
+                                    id="classTopic"
+                                    className="form-control pr-5o5 resize-none py-3 pl-3"
+                                    placeholder="Create a class topic here"
+                                    value={classTopic}
+                                    onChange={(e) => setClassTopic(e.target.value)}
+                                />
+                            </div>
+
+                            <button className="btn animate-down-2" type="submit">Create Topic</button>
+                        </form>
+
+                    </div>
+                </div>
+            )
+        } else {
+            return (
+                <div>
+                    <h5 className="lg:pl-4 pl-2">Set topics for your students to ask question on</h5>
+                    <p className="lg:pl-4 pl-2">Select a class to set topics.</p>
+                </div>
+            )
+        }
+    }
 
     if (loading) {
         return <div className=""><h1 className="text-2xl font-bold">Loading...</h1></div>;
@@ -324,6 +567,7 @@ export default function FacultyClass({ user }: { user: User }) {
         <div className={`${nunito.className} antialiased flex flex-col`}>
             <h5 className="font-bold">Welcome {user.name}</h5>
 
+            {/* Create/Join/View Classrooms */}
             <div className="flex lg:flex-row flex-col my-4 lg:w-75 w-full ">
 
                 <div className="border border-gray-400 rounded-lg px-2 py-4 w-full lg:h-[23.8em] h-[24em] overflow-y-auto scrollbar-thin scrollbar-webkit lg:order-first order-last">
@@ -353,12 +597,12 @@ export default function FacultyClass({ user }: { user: User }) {
 
                                             <button
                                                 className="hover:text-blue-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
-                                                onClick={() => selectClass(index)}>
+                                                onClick={() => { selectClass(index); setRefresh(!refresh); }}>
                                                 View
                                             </button>
                                             <button
                                                 className="hover:text-blue-800 transition-colors duration-500 lg:hidden block mb-2"
-                                                onClick={() => selectClass(index)}>
+                                                onClick={() => { selectClass(index); setRefresh(!refresh); }}>
                                                 View
                                             </button>
 
@@ -369,7 +613,7 @@ export default function FacultyClass({ user }: { user: User }) {
                                                 onClick={() => setToggleDelete(index)}>
                                                 Delete
                                             </div>
-                                
+
                                             <button
                                                 className="hover:text-red-800 transition-colors duration-500 lg:hidden block"
                                                 onClick={() => setToggleDelete(index)}>
@@ -378,18 +622,18 @@ export default function FacultyClass({ user }: { user: User }) {
 
                                         </td>
                                         {toggleDelete === index && (
-                                        <td className="w-full flex gap-x-4">
-                                            <button
-                                            className="hover:text-red-800 transition-colors duration-500"
-                                            onClick={() => deleteClass(index)}>
-                                                Confirm
-                                            </button>
-                                            <button
-                                            className="hover:text-red-800 transition-colors duration-500"
-                                            onClick={() => setToggleDelete(null)}>
-                                                Cancel
-                                            </button>
-                                        </td>
+                                            <td className="w-full flex gap-x-4">
+                                                <button
+                                                    className="hover:text-red-800 transition-colors duration-500"
+                                                    onClick={() => deleteClass(index)}>
+                                                    Confirm
+                                                </button>
+                                                <button
+                                                    className="hover:text-red-800 transition-colors duration-500"
+                                                    onClick={() => setToggleDelete(null)}>
+                                                    Cancel
+                                                </button>
+                                            </td>
                                         )}
                                     </tr>
                                 ))}
@@ -429,9 +673,37 @@ export default function FacultyClass({ user }: { user: User }) {
                 </div>
             </div>
 
-            <div className="border border-gray-400 rounded-lg px-2 py-4 mb-5 w-full">
+            {/* Classroom Title */}
+            <div>
+                <hr className="border-b border-gray-400"></hr>
+
+                <div className="flex flex-row justify-between">
+                    <div><h4 className="lg:pl-2 text-sky-800">{selectedClass?.name} Classroom</h4></div>
+                    {selectedClass && (
+                        <div>
+                            <button onClick={handleCollapse} className="animate-down-2 font-bold mt-2 mr-4 h-fit lg:block hidden">
+                                Close
+                                <FontAwesomeIcon className="px-2" icon={faCircleChevronDown} />
+                            </button>
+                            <button onClick={handleCollapse} className="lg:hidden block text-xl mr-[0.5em]">
+                                <FontAwesomeIcon icon={faCircleChevronDown} />
+                            </button>
+                        </div>
+                    )}
+                </div>
+                <hr className="border-b border-gray-400"></hr>
+            </div>
+
+            {/* Display Topics */}
+            <div className="mb-4 w-full">
+                {displayTopics()}
+            </div>
+
+            {/* Display Students */}
+            <div className="border border-gray-400 rounded-lg px-2 py-4 mb-8 w-full">
                 {displayStudents()}
             </div>
+
         </div>
     );
 }

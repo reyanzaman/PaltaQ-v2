@@ -73,6 +73,9 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                                 faculties: {
                                     include: {
                                         user: true
+                                    },
+                                    orderBy: {
+                                        createdAt: 'asc'
                                     }
                                 }
                             }

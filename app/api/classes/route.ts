@@ -17,7 +17,6 @@ export async function postHandler(req: Request, res: NextApiResponse) {
         } while (codeExists);
 
         const { className, facultyId } = await req.json();
-        console.log('name:', className, 'facultyId:', facultyId);
 
         try {
             const newClass = await prisma.classes.create({
@@ -140,7 +139,7 @@ export async function deleteHandler(req: Request, res: NextApiResponse) {
                         id: id,
                     }
                 });
-                return new Response(JSON.stringify(user), {
+                return new Response('', {
                     status: 200,
                     statusText: `Class deleted`
                 })
