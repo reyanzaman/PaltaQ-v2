@@ -55,7 +55,7 @@ export default function QuestionBox({ onQuestionSubmitted, topicId, classId }: {
     };
 
     return (
-        <form className="w-3/4 pl-3 pt-4" onSubmit={handleSubmit}>
+        <form className="lg:w-3/4 pl-3 pt-4 pr-3" onSubmit={handleSubmit}>
             <div className="mb-4">
                 <h4 className='py-1'>Try asking a question here:</h4>
                 <textarea
@@ -78,7 +78,7 @@ export default function QuestionBox({ onQuestionSubmitted, topicId, classId }: {
 
             <div>
 
-                <div className='flex flex-row gap-x-12 items-center'>
+                <div className='flex lg:flex-row flex-col lg:gap-x-12 gap-y-8 lg:pt-0 pt-2 items-center'>
                     <label className='inline-flex items-center cursor-pointer'>
                         <input type="checkbox" value={isAnonymous.toString()} className="sr-only peer" onChange={() => setIsAnonymous(!isAnonymous)} />
                         <div className="relative w-16 h-6 bg-zinc-800 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-5 after:w-7 after:transition-all peer-checked:bg-zinc-500-800"></div>

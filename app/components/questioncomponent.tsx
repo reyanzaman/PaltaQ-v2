@@ -65,7 +65,6 @@ export default function QuestionComponent({ user }: { user: User }) {
 
     useEffect(() => {
         const fetchQuestions = async () => {
-            setLoading(true);
             try {
                 const response = await fetch(`/api/questions?cid=${selectedClass?.id}`);
                 if (response.ok) {
@@ -77,9 +76,7 @@ export default function QuestionComponent({ user }: { user: User }) {
                 }
             } catch (error) {
                 console.error('Error fetching classes:', error);
-                setLoading(false);
             }
-            setLoading(false);
         };
 
         fetchQuestions();
@@ -114,7 +111,8 @@ export default function QuestionComponent({ user }: { user: User }) {
         setLoading(false);
     };
 
-    const selectClass = (index: any) => {
+    const selectClass = (e: React.MouseEvent<HTMLButtonElement>, index: number) => {
+        e.preventDefault()
         setLoading(true);
         setSelectedClass(classes[index].class);
         if (selectedClass === classes[index].class) {
@@ -192,12 +190,16 @@ export default function QuestionComponent({ user }: { user: User }) {
 
                                             <button
                                                 className="hover:text-blue-800 transition-colors duration-500 lg:block hidden"
-                                                onClick={() => selectClass(index)}>
+                                                onClick={(e) => selectClass(e, index)}
+                                                type="button"
+                                                >
                                                 Select
                                             </button>
                                             <button
                                                 className="hover:text-blue-800 transition-colors duration-500 lg:hidden block mb-2"
-                                                onClick={() => selectClass(index)}>
+                                                onClick={(e) => selectClass(e, index)}
+                                                type="button"
+                                                >
                                                 Select
                                             </button>
 
