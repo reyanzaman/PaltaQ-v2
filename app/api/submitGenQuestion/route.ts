@@ -16,8 +16,6 @@ async function postHandler(req: Request, res: NextApiResponse) {
 
       // Extract question data from the request body
       const { question, category, quesID } = await req.json();
-      console.log("Question: ", question);
-      console.log("Category: ", category);
 
       let userId = "";
 
@@ -27,10 +25,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       } else {
         // Extract user email from the token
         const userEmail = token?.email;
-        console.log("Authenticated User:", userEmail);
-
         userId = await getUserIDFromDatabase(userEmail ?? '');
-        console.log("User ID: ", userId)
       }
 
       // Validate the question

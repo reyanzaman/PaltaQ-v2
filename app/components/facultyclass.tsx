@@ -5,7 +5,7 @@ import { nunito } from "@/app/ui/fonts";
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleChevronDown, faAngleDown } from "@fortawesome/free-solid-svg-icons";
+import { faCircleChevronUp } from "@fortawesome/free-solid-svg-icons";
 
 
 import { Topic } from "@prisma/client";
@@ -683,10 +683,10 @@ export default function FacultyClass({ user }: { user: User }) {
                         <div>
                             <button onClick={handleCollapse} className="animate-down-2 font-bold mt-2 mr-4 h-fit lg:block hidden">
                                 Close
-                                <FontAwesomeIcon className="px-2" icon={faCircleChevronDown} />
+                                <FontAwesomeIcon className="px-2" icon={faCircleChevronUp} />
                             </button>
                             <button onClick={handleCollapse} className="lg:hidden block text-xl mr-[0.5em]">
-                                <FontAwesomeIcon icon={faCircleChevronDown} />
+                                <FontAwesomeIcon icon={faCircleChevronUp} />
                             </button>
                         </div>
                     )}

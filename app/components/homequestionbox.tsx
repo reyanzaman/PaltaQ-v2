@@ -19,7 +19,7 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
     if (question.length < 10) {
       toast.error('Question too short!');
       return;
-    } else if (question.length > 300) {
+    } else if (question.length > 350) {
       toast.error('Question too long!');
       return;
     }

@@ -1,6 +1,5 @@
 import { nunito } from "@/app/ui/fonts";
 import "@/app/ui/neomorphism.css";
-import "@/app/ui/style.css";
 import type { Metadata } from "next";
 
 import AdminComponent from "@/app/components/admincomponent";
