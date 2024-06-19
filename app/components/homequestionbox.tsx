@@ -53,13 +53,14 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
         <textarea
           id="questionMain"
           className="form-control pr-5o5 resize-none py-3 pl-3"
+          style={{ height: '6em' }}
           placeholder="Throw a question to your peers!"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
         />
         <button
           type="submit"
-          className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
+          className="float-end -translate-y-[3.7em] -translate-x-5 scale-[1.4]"
         >
           <FontAwesomeIcon
             icon={faPaperPlane}
