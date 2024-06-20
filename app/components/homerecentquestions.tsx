@@ -317,7 +317,17 @@ export default function RecentQuestions() {
                 // Handle successful submission
                 setPQuestion('');
                 console.log(response);
-                toast.success(response.statusText);
+                
+                let responseText = response.statusText
+                const updateText = responseText.split('|')[1];
+                responseText = responseText.split('|')[0];
+
+                if (updateText !== "Rank unchanged") {
+                    toast.dark(updateText);
+                }
+
+                toast.success(responseText);
+
             } else {
                 // Handle error
                 console.error('Failed to submit palta question');
@@ -361,7 +371,10 @@ export default function RecentQuestions() {
 
             <div className='pt-4'>
                 {/* Question Card */}
-                {questions.map((question: any) => (
+                {questions
+                .slice()
+                .sort((b, a) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                .map((question: any) => (
                     <div key={question.id} className="card bg-primary shadow-sm border-light lg:w-[90%] w-[95%] mx-auto mb-4">
                         <div className="px-4 pt-4 pb-2">
     
@@ -470,7 +483,7 @@ export default function RecentQuestions() {
                                         .slice() // Create a copy of the array to avoid mutating the original
                                         .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
                                         .map((paltaQ: any) => (
-                                            <div key={paltaQ.id} className="flex flex-col justify-between mt-2 px-4 pt-3 lg:mx-2 mb-4 mt-1 border rounded">
+                                            <div key={paltaQ.id} className="flex flex-col justify-between mt-2 px-4 pt-3 lg:ml-4 w-fit lg:mx-2 mb-4 mt-1 card border border-gray-400 rounded-xl">
                                                 
                                                 {/* PaltaQ User Details */}
                                                 <div className='flex justify-between'>
@@ -496,7 +509,7 @@ export default function RecentQuestions() {
                                                         </div>
         
                                                         <div className='flex flex-col'>
-                                                            <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? "Anonymous User" : paltaQ.user.name}</span>
+                                                            <span className="font-bold text-base ml-2">{paltaQ.isAnonymous ? "Anonymous User" : paltaQ.user.name}</span>
                                                             {/* Date */}
                                                             <span className="small ml-2">
                                                                 {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}

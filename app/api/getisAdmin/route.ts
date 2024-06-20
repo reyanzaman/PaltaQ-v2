@@ -30,7 +30,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       });
     } else {
       return new Response(JSON.stringify({ error: 'User not found' }), {
-        status: 404,
+        status: 200,
         headers: {
             'Content-Type': 'application/json'
         }

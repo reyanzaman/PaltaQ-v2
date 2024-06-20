@@ -1,5 +1,5 @@
 import { NextApiResponse } from 'next';
-import { validateQuestion, scoreQuestion } from '@/app/utils/questionUtils'; // Import your validation and scoring functions
+import { validateQuestion, scoreQuestion, updateRank } from '@/app/utils/questionUtils'; // Import your validation and scoring functions
 import { submitQuestionToDatabase, submitPaltaQToDatabase } from '@/app/utils/postUtils'; // Import your function to submit the question to the database
 import { getToken } from 'next-auth/jwt';
 import { getUserIDFromDatabase } from '@/app/utils/getUtils';
@@ -29,7 +29,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       }
 
       // Validate the question
-      const validText = await validateQuestion(question, category, '24acf3e5-9d5a-4b62-8eb7-c9ce0dfaaf5b', 'dc29b163-38b9-48d6-ba4a-59fe07f4b7f5');
+      const validText = await validateQuestion(question, category, 'd732b110-22e2-4872-9cbb-47a4c695bdd0', '4267e78d-b166-4524-a1c2-7d32c2351283');
 
       if (validText !== "Question validated") {
         return new Response("", {
@@ -42,26 +42,26 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const { score, foundKeywords } = await scoreQuestion(question);
 
       // Submit the question to the database
-      if(category === QuestionCategory.General){
+      if (category === QuestionCategory.General) {
         if (userId === "") {
           await submitQuestionToDatabase(
-            '2940290a-b299-4dba-8d2a-7510d5674625',
-            question, 
-            score, 
-            category, 
-            '24acf3e5-9d5a-4b62-8eb7-c9ce0dfaaf5b', 
-            'dc29b163-38b9-48d6-ba4a-59fe07f4b7f5',
+            '61740114-1ec2-4fad-90e8-8e16634954bb',
+            question,
+            score,
+            category,
+            'd732b110-22e2-4872-9cbb-47a4c695bdd0',
+            '4267e78d-b166-4524-a1c2-7d32c2351283',
             true,
             foundKeywords
           );
         } else {
           await submitQuestionToDatabase(
             userId,
-            question, 
-            score, 
+            question,
+            score,
             category,
-            '24acf3e5-9d5a-4b62-8eb7-c9ce0dfaaf5b', 
-            'dc29b163-38b9-48d6-ba4a-59fe07f4b7f5',
+            'd732b110-22e2-4872-9cbb-47a4c695bdd0',
+            '4267e78d-b166-4524-a1c2-7d32c2351283',
             false,
             foundKeywords
           );
@@ -69,7 +69,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       } else if (category === QuestionCategory.Palta) {
         if (userId === "") {
           await submitPaltaQToDatabase(
-            '2940290a-b299-4dba-8d2a-7510d5674625',
+            '61740114-1ec2-4fad-90e8-8e16634954bb',
             question,
             quesID,
             score,
@@ -88,8 +88,17 @@ async function postHandler(req: Request, res: NextApiResponse) {
         }
       }
 
+      if (userId !== "") {
+        const status = await updateRank(userId);
+        // Return success response
+        return new Response('', {
+          status: 200,
+          statusText: `${score} Points Awarded!|${status}`,
+        })
+      }
+
       // Return success response
-      return new Response("", {
+      return new Response('', {
         status: 200,
         statusText: `${score} Points Awarded!`
       })
@@ -99,7 +108,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       return new Response(JSON.stringify({ error: 'Failed to submit question' }), {
         status: 500,
         headers: {
-            'Content-Type': 'application/json'
+          'Content-Type': 'application/json'
         }
       });
     }
@@ -109,9 +118,9 @@ async function postHandler(req: Request, res: NextApiResponse) {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
       headers: {
-          'Content-Type': 'application/json'
+        'Content-Type': 'application/json'
       }
-  });
+    });
   }
 }
 

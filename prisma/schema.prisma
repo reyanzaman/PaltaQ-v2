@@ -30,7 +30,7 @@ model User {
 model UserDetails {
   userId           String   @id
   score            Int      @default(0)
-  rank             String   @default("Novice")
+  rank             String   @default("Novice Inquirer")
   questionsAsked   Int      @default(0)
   paltaQAsked      Int      @default(0)
   successfulReports Int     @default(0)
@@ -42,6 +42,7 @@ model Classes {
   id          String          @id @default(uuid())
   name        String          @unique
   code        String          @unique
+  creatorId   String
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 

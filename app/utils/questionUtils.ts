@@ -173,3 +173,62 @@ function calculateScore(question: string): { score: number, foundKeywords: { [ke
   console.log("Score is:", totalScore);
   return { score: totalScore, foundKeywords };
 }
+
+export async function updateRank(userId: string): Promise<string> {
+  try {
+    const userDetails = await prisma.userDetails.findUnique({
+      where: {
+        userId: userId
+      }
+    });
+
+    if (!userDetails) {
+      return "User not found";
+    }
+
+    const currentRank = userDetails.rank;
+    let rank = "Novice Inquirer";
+
+    const score = userDetails.score;
+    
+    if (score >= 551 && score <= 1500) {
+      rank = "Apprentice Inquirer";
+    } else if (score > 1500 && score <= 3000) {
+      rank = "Adept Inquirer";
+    } else if (score > 3000 && score <= 5000) {
+      rank = "Expert Inquirer";
+    } else if (score > 5000 && score <= 7000) {
+      rank = "Master Inquirer";
+    } else if (score > 7000 && score <= 15000) {
+      rank = "Legendary Inquirer";
+    } else if (score > 15000 && score <= 25000) {
+      rank = "Mythical Inquirer";
+    } else if (score > 25000 && score <= 35000) {
+      rank = "Outstanding Inquirer";
+    } else if (score > 35000 && score <= 50000) {
+      rank = "Master of Queries";
+    } else if (score > 50000) {
+      rank = "Grand Inquisitor";
+    }
+
+    await prisma.userDetails.update({
+      where: {
+        userId: userId
+      },
+      data: {
+        rank: rank
+      }
+    });
+
+    if (currentRank === rank) {
+      return "Rank unchanged";
+    } else {
+      return `You have been promoted to ${rank}!`;
+    
+    }
+  } catch (error) {
+    // Handle database error
+    console.error('Failed to update rank', error);
+    return "Failed to update rank";
+  }
+}

@@ -23,6 +23,7 @@ export async function postHandler(req: Request, res: NextApiResponse) {
                 data: {
                     name: className,
                     code: code,
+                    creatorId: facultyId
                 }
             });
 

@@ -8,7 +8,7 @@ import { QuestionCategory } from '@/app/utils/postUtils';
 
 import { Topic, Question } from '@prisma/client';
 
-export default function QuestionBox({ onQuestionSubmitted, classId }: { onQuestionSubmitted: any, classId: string }) {
+export default function QuestionBox({ classId }: { classId: string }) {
     const [question, setQuestion] = useState('');
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -71,11 +71,16 @@ export default function QuestionBox({ onQuestionSubmitted, classId }: { onQuesti
         if (response.ok) {
             // Handle successful submission
             setQuestion('');
-            toast.success(response.statusText);
-            // Call the parent component's callback
-            if (onQuestionSubmitted) {
-                onQuestionSubmitted();
+            
+            let responseText = response.statusText
+            const updateText = responseText.split('|')[1];
+            responseText = responseText.split('|')[0];
+
+            if (updateText !== "Rank unchanged") {
+                toast.dark(updateText);
             }
+
+            toast.success(responseText);
         } else {
             // Handle error
             console.error('Failed to submit question');

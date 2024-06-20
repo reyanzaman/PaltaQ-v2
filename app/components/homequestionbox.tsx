@@ -35,7 +35,17 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
     if (response.ok) {
       // Handle successful submission
       setQuestion('');
-      toast.success(response.statusText);
+
+      let responseText = response.statusText
+      const updateText = responseText.split('|')[1];
+      responseText = responseText.split('|')[0];
+
+      if (updateText !== "Rank unchanged") {
+        toast.dark(updateText);
+      }
+
+      toast.success(responseText);
+      
       // Call the parent component's callback
       if (onQuestionSubmitted) {
         onQuestionSubmitted();

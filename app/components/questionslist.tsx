@@ -3,12 +3,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
 import Image from 'next/image';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSession } from "next-auth/react";
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 
-import { Question, Topic } from '@prisma/client';
+import { Topic } from '@prisma/client';
 
 interface Likes {
     id: string;
@@ -43,6 +43,22 @@ interface User {
     image: string;
 }
 
+interface Question {
+    id: string;
+    userId: string;
+    question: string;
+    likes: number;
+    dislikes: number;
+    isAnonymous: boolean;
+    score: number;
+    user: User;
+    paltaQ: number;
+    paltaQBy: PaltaQ[];
+    likedBy: Likes[];
+    dislikedBy: Dislikes[];
+    createdAt: string;
+}
+
 export default function QuestionsList({ classId }: { classId: string }) {
     const { data: session, status } = useSession();
     const [userId, setUserId] = useState<string>('');
@@ -55,11 +71,30 @@ export default function QuestionsList({ classId }: { classId: string }) {
     const [selectedTopic, setSelectedTopic] = useState('All Topics' as string);
     const [selectedTopicId, setSelectedTopicId] = useState('' as string);
     const [topics, setTopics] = useState<Topic[]>();
-    const [viewQuestions, setViewQuestions] = useState(false);
+    const [viewQuestions, setViewQuestions] = useState(true);
 
     const [questions, setQuestions] = useState<Question[]>([]);
+    const [isAnonymous, setIsAnonymous] = useState(false);
 
     const [refresh, setRefresh] = useState(false);
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+    const questionsRef = useRef<HTMLDivElement>(null);
+
+    const sortedQuestions = questions.slice().sort((b, a) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    const indexOfLastQuestion = currentPage * itemsPerPage;
+    const indexOfFirstQuestion = indexOfLastQuestion - itemsPerPage;
+    const currentQuestions = sortedQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
+
+    const totalPages = Math.ceil(questions.length / itemsPerPage);
+
+    const handlePageChange = (pageNumber: any, event: any) => {
+        event.preventDefault(); // Prevent the default anchor behavior
+        if (pageNumber > 0 && pageNumber <= totalPages) {
+            setCurrentPage(pageNumber);
+        }
+    };
 
     const toggleInputBox = (questionId: string) => {
         setVisibleInputBox(prevState => ({
@@ -238,44 +273,33 @@ export default function QuestionsList({ classId }: { classId: string }) {
 
         try {
             // Example of sending the question to your API
-            const response = await fetch('api/submitGenQuestion', {
+            const response = await fetch(`/api/questions?question=${pQuestion}&qid=${questionId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ question: pQuestion, category: QuestionCategory.Palta, quesID: questionId }),
+                body: JSON.stringify({ isAnonymous: isAnonymous, category: QuestionCategory.Palta }),
             });
 
             if (response.ok) {
                 // Handle successful submission
                 setPQuestion('');
-                console.log(response);
-                toast.success(response.statusText);
+
+                let responseText = response.statusText
+                const updateText = responseText.split('|')[1];
+                responseText = responseText.split('|')[0];
+
+                if (updateText !== "Rank unchanged") {
+                    toast.dark(updateText);
+                }
+
+                toast.success(responseText);
             } else {
                 // Handle error
                 console.error('Failed to submit palta question');
                 toast.error(response.statusText);
             }
-
-            try {
-                const response = await fetch('/api/getLatestQuestions', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                setQuestions(data);
-            } catch (error) {
-                console.error('Error fetching questions:', error);
-                setLoading(false);
-            }
-
+            setRefresh(!refresh);
             setLoading(false);
         } catch (error) {
             console.error('Failed to submit palta question:', error);
@@ -321,17 +345,46 @@ export default function QuestionsList({ classId }: { classId: string }) {
             }
         };
 
+        const fetchUserID = async () => {
+            if (session?.user?.email) {
+                try {
+                    const response = await fetch(`/api/getUserId?email=${session.user.email}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    setUserId(data);
+                } catch (error) {
+                    console.error('Error fetching user id:', error);
+                }
+            }
+        };
+
+        fetchUserID();
         fetchTopics();
         fetchQuestions();
 
     }, [refresh]);
+
+    useEffect(() => {
+        if (questionsRef.current) {
+            questionsRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [currentPage]);
 
     if (status === 'loading') {
         return <div className="mx-auto text-center py-8"><h1 className="text-2xl font-bold">Loading Questions...</h1></div>;
     }
 
     return (
-        <div>
+        <div ref={questionsRef}>
             <div onClick={() => setViewQuestions(!viewQuestions)} className='flex flex-row mb-5 ml-3 w-fit pb-1 pt-2 active:-translate-y-3 active:duration-500'>
                 <h5 className='text-gray-900'>View Questions</h5>
                 {viewQuestions ? <FontAwesomeIcon icon={faAngleUp} className="w-[1.5rem] text-[#31344b] text-indigo-700 translate-y-1" /> : <FontAwesomeIcon icon={faAngleDown} className="w-[1.5rem] text-[#31344b] translate-y-1 text-indigo-700" />}
@@ -340,13 +393,13 @@ export default function QuestionsList({ classId }: { classId: string }) {
             {viewQuestions && (
                 <div>
                     <div className='flex flex-col'>
-            
+
                         {/* Questions List */}
                         <div className='order-last'>
-                            {questions.map((question: any) => (
-                                <div key={question.id} className="card bg-primary shadow-inset border-light lg:w-fit w-[92vw] lg:mx-4 mx-3 mb-4" style={{ minWidth: '50vw' }}>
+                            {currentQuestions.map((question: any) => (
+                                <div key={question.id} className="card bg-primary shadow-sm border-light lg:w-fit w-full lg:mx-4 mb-4" style={{ minWidth: '50vw', border: '2px solid rgba(54, 176, 233, 0.5)' }}>
                                     <div className="px-4 pt-4 pb-2">
-                
+
                                         {/* Main Question User Details */}
                                         <div className="flex flex-row justify-between mb-2">
                                             <div className="flex items-center">
@@ -369,7 +422,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                         ></Image>
                                                     )}
                                                 </div>
-                
+
                                                 <div className='flex flex-col ml-1'>
                                                     <span className="font-bold text-lg ml-2">{question.isAnonymous ? "Anonymous User" : question.user.name}</span>
                                                     <span className="small ml-2">
@@ -377,25 +430,25 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                     </span>
                                                 </div>
                                             </div>
-                
+
                                             <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
                                                 <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
                                                 <span className="font-bold lg:block hidden">Report</span>
                                             </button>
-                
+
                                         </div>
-                
+
                                         {/* Main Question */}
                                         <div className="flex flex-row pt-2 pb-1">
                                             <h4 className="lg:text-lg text-base text-justify">
                                                 {question.question}
                                             </h4>
                                         </div>
-                
+
                                     </div>
-                
+
                                     <div className=''>
-                
+
                                         {/* Main Question Badges */}
                                         <div className='pb-2'>
                                             <div className={`ml-4 badge  ${question.score >= 100
@@ -416,7 +469,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                 </span>
                                             </div>
                                         </div>
-                
+
                                         {/* Main Question Like/Dislike/PaltaQ */}
                                         <div className="flex mt-2 ml-4 pl-2 pt-2 pb-3">
                                             {/* Like */}
@@ -443,18 +496,18 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                             </button>
                                             <span className="small ml-1">{question.paltaQ}</span>
                                         </div>
-                
+
                                         {/* Palta Questions Options */}
                                         {visibleInputBox[question.id] && (
                                             <div className="mt-2 ml-3 mr-2">
-                
+
                                                 <div>
                                                     {question.paltaQBy
                                                         .slice() // Create a copy of the array to avoid mutating the original
                                                         .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
                                                         .map((paltaQ: any) => (
-                                                            <div key={paltaQ.id} className="flex flex-col justify-between mt-2 px-4 pt-3 lg:mx-2 mb-4 mt-1 border rounded">
-                
+                                                            <div key={paltaQ.id} className="flex flex-col justify-between mt-2 px-4 pt-3 lg:ml-4 w-fit lg:mx-2 mb-4 mt-1 card border border-gray-400 rounded-xl">
+
                                                                 {/* PaltaQ User Details */}
                                                                 <div className='flex justify-between'>
                                                                     <div className="flex items-center">
@@ -477,16 +530,16 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                                                 ></Image>
                                                                             )}
                                                                         </div>
-                
+
                                                                         <div className='flex flex-col'>
-                                                                            <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? "Anonymous User" : paltaQ.user.name}</span>
+                                                                            <span className="font-bold text-base ml-2">{paltaQ.isAnonymous ? "Anonymous User" : paltaQ.user.name}</span>
                                                                             {/* Date */}
                                                                             <span className="small ml-2">
                                                                                 {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
                                                                             </span>
                                                                         </div>
                                                                     </div>
-                
+
                                                                     <div>
                                                                         <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
                                                                             <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
@@ -494,13 +547,13 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                                         </button>
                                                                     </div>
                                                                 </div>
-                
+
                                                                 {/* PaltaQ Question */}
                                                                 <div className='lg:mt-0 mt-2'>{paltaQ.paltaQ}</div>
-                
-                
+
+
                                                                 <div className='flex flex-row'>
-                
+
                                                                     {/* PaltaQ Like/Dislike */}
                                                                     <div className="flex mt-2 lg:ml-5 ml-0 pt-2 pb-3">
                                                                         {/* Like */}
@@ -521,7 +574,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                                         </button>
                                                                         <span className="small ml-1 mr-2">{paltaQ.dislikes}</span>
                                                                     </div>
-                
+
                                                                     {/* PaltaQ Badge */}
                                                                     <div className="flex items-center lg:translate-y-[0.8em] translate-y-[1em] lg:ml-2 ml-1 h-fit">
                                                                         <div className='badge mx-1'>
@@ -537,16 +590,23 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                                             </span>
                                                                         </div>
                                                                     </div>
-                
+
                                                                 </div>
-                
+
                                                             </div>
                                                         ))}
                                                 </div>
-                
+
                                                 {/* PaltaQ Text Area */}
                                                 <div>
                                                     <form className="" onSubmit={handlePaltaQ(question.id)}>
+                                                        {/* Anonymity */}
+                                                        <label className='inline-flex items-center cursor-pointer mt-3'>
+                                                            <input type="checkbox" value={isAnonymous.toString()} className="sr-only peer" onChange={() => setIsAnonymous(!isAnonymous)} />
+                                                            <div className="relative w-8 h-4 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-zinc-500-800"></div>
+                                                            <span className="ms-2 text-base font-bold">Toggle Anonymity ({isAnonymous == false ? "Off" : "On"})</span>
+                                                        </label>
+
                                                         <textarea
                                                             id="paltaQuestion"
                                                             className="form-control pr-5o5 resize-none py-3 pl-3"
@@ -565,20 +625,20 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                         </button>
                                                     </form>
                                                 </div>
-                
+
                                             </div>
                                         )}
-                
+
                                     </div>
                                 </div>
                             ))}
                         </div>
-            
+
                         {/* Header */}
                         <div className='flex flex-row justify-between mb-4 pb-2 order-first'>
                             <div className='flex flex-row order-first'>
                                 <h3 className='pl-3 lg:block hidden'>Topic: </h3>
-            
+
                                 {/* DropDown */}
                                 <div className='ml-3 -translate-y-1'>
                                     <span className='dropdown'>
@@ -597,7 +657,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                     className="w-[1.5rem] text-[#31344b]"
                                                 />
                                             </button>
-            
+
                                             <div className={`dropdown-menu ${showDropdown ? 'show' : ''}`} id='dropdown' x-placement="bottom-start" style={{ position: 'absolute', willChange: 'transform', top: '0px', left: '0px', transform: 'translate3d(0px,40px,0px)' }}>
                                                 {/* All Topic */}
                                                 <a
@@ -634,7 +694,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                     </span>
                                 </div>
                             </div>
-            
+
                             <div className='mr-4 ml-3 lg:block hidden'>
                                 <button onClick={() => setRefresh(!refresh)} className="btn btn-primary">Refresh</button>
                             </div>
@@ -644,41 +704,38 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                 </button>
                             </div>
                         </div>
-            
+
+                        {/* Info */}
                         <div className='order-second pl-3'>
                             <p className='text-xl pb-3'>Questions Registered: {questions.length}</p>
+                            {questions.length === 0 && (
+                                <p className='mb-5'>No quesions have been registered yet for this classroom</p>
+                            )}
                         </div>
-            
+
                     </div>
-                
+
                     {/* Pagination */}
-                    <div className='pl-4 py-4'>
-                        <nav aria-label="Products page navigation">
-                            <ul className="pagination">
-                                <li className="page-item">
-                                    <a className="page-link" href="#">Previous</a>
-                                </li>
-                                <li className="page-item active">
-                                    <a className="page-link" href="#">1</a>
-                                </li>
-                                <li className="page-item">
-                                    <a className="page-link" href="#">2</a>
-                                </li>
-                                <li className="page-item">
-                                    <a className="page-link" href="#">3</a>
-                                </li>
-                                <li className="page-item">
-                                    <a className="page-link" href="#">4</a>
-                                </li>
-                                <li className="page-item">
-                                    <a className="page-link" href="#">5</a>
-                                </li>
-                                <li className="page-item">
-                                    <a className="page-link" href="#">Next</a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
+                    {questions.length > 0 && (
+                        <div className='pl-4 py-4'>
+                            <nav aria-label="Questions page navigation">
+                                <ul className="pagination">
+                                    <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                                        <a className="page-link" href="#" onClick={(e) => handlePageChange(currentPage - 1, e)}>Previous</a>
+                                    </li>
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <li key={i} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                                            <a className="page-link" href="#" onClick={(e) => handlePageChange(i + 1, e)}>{i + 1}</a>
+                                        </li>
+                                    ))}
+                                    <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                                        <a className="page-link" href="#" onClick={(e) => handlePageChange(currentPage + 1, e)}>Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    )}
+
                 </div>
             )}
 

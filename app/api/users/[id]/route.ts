@@ -54,13 +54,18 @@ export async function getHandler(req: Request, res: NextApiResponse) {
         const include = url?.searchParams.get('include');
 
         try {
-            if(include === "UD") {
+            if(include === "UDQ") {
                 const user = await prisma.user.findUnique({
                     where: {
                         email: email,
                     },
                     include: {
                         userDetails: true,
+                        questions: {
+                            include: {
+                                questionType: true
+                            }
+                        }
                     }
                 });
                 return new Response(JSON.stringify(user), {

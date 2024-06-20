@@ -113,7 +113,7 @@ export default function QuestionComponent({ user }: { user: User }) {
                 <hr className="border-b border-gray-400 mb-3"></hr>
 
                 <div className="">
-                    <QuestionBox onQuestionSubmitted={() => setRefresh(!refresh)} classId={selectedClass?.id || ''} />
+                    <QuestionBox classId={selectedClass?.id || ''} />
                 </div>
 
                 <hr className="border-b border-gray-400 mt-5 mb-5"></hr>

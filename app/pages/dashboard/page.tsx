@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 
 import UserImage from "@/app/components/userimage";
 import FacultyClass from "@/app/components/facultyclass";
+import StudentDashboard from "@/app/components/studentDashboard";
 
 interface User {
     id: string;
@@ -19,6 +20,7 @@ interface User {
     createdAt: string;
     updatedAt: string;
     userDetails: UserDetails;
+    questions: Question[];
 }
 
 interface UserDetails {
@@ -28,6 +30,32 @@ interface UserDetails {
     questionsAsked: number;
     paltaQAsked: number;
     successfulReports: number;
+}
+
+interface Question {
+    id: string;
+    userId: string;
+    question: string;
+    likes: number;
+    dislikes: number;
+    isAnonymous: boolean;
+    score: number;
+    user: User;
+    paltaQ: number;
+    createdAt: string;
+    questionType: QuestionType;
+}
+
+interface QuestionType {
+    id: String
+    questionId: String
+    paltaQId: String
+    remembering: Boolean
+    understanding: Boolean
+    applying: Boolean
+    analyzing: Boolean
+    evaluating: Boolean
+    creating: Boolean
 }
 
 export default function Dashboard(props) {
@@ -41,7 +69,7 @@ export default function Dashboard(props) {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const response = await fetch(`/api/users/${session?.user?.email}?include=UD`, {
+                const response = await fetch(`/api/users/${session?.user?.email}?include=UDQ`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
@@ -87,6 +115,9 @@ export default function Dashboard(props) {
             ) : (
                 <div className="lg:ml-[7em] pl-4 pr-4 lg:mt-[4em] mt-[5em] lg:w-[80em] w-full">
                     <h1 className="text-2xl font-bold">Student Dashboard</h1>
+                    {user && (
+                        <StudentDashboard user={user} />
+                    )}
                 </div>
             )}
         </div>
