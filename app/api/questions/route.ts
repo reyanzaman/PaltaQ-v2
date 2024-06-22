@@ -95,11 +95,6 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const question = url?.searchParams.get('question') || '';
       const qid = url?.searchParams.get('qid') || '';
 
-      console.log(question);
-      console.log(tid);
-      console.log(cid);
-      console.log(qid);
-
       let userId = "";
 
       // Check if the user is authenticated
@@ -142,6 +137,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
           userId,
           question,
           qid,
+          cid,
           score,
           isAnonymous,
           foundKeywords,
@@ -149,7 +145,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
         );
       }
 
-      const status = await updateRank(userId);
+      const status = await updateRank(userId, cid);
 
       // Return success response
       return new Response('', {

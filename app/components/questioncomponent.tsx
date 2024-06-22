@@ -130,6 +130,7 @@ export default function QuestionComponent({ user }: { user: User }) {
     return (
         <div className={`${nunito.className} antialiased flex flex-col`}>
 
+            {/* Select Another Class Header */}
             <div className="flex lg:flex-row flex-col justify-between lg:items-end">
                 <div className="lg:mt-4">
                     <h1 className="ml-4">Questions</h1>
@@ -160,7 +161,7 @@ export default function QuestionComponent({ user }: { user: User }) {
                         {classes.length !== 0 && (
                             <div>
                                 {/* <p className="pl-3">Classes Enrolled: {classes.length}</p> */}
-                                <table className="table table-hover">
+                                <table className="table table-hover table-responsive-sm">
                                     <thead>
                                         <tr>
                                             <th className="border-0" scope="col" id="className">Class Name</th>

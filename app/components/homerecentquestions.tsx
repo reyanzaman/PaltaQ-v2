@@ -69,7 +69,7 @@ export default function RecentQuestions() {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const [pQuestion, setPQuestion] = useState('');
+    const [paltaQInputs, setPaltaQInputs] = useState<{ [key: string]: any }>({});
     const [visibleInputBox, setVisibleInputBox] = useState<{ [key: string]: boolean }>({});
     const [loadingQuestion, setLoadingQuestion] = useState(true);
 
@@ -79,60 +79,11 @@ export default function RecentQuestions() {
             [questionId]: !prevState[questionId]
         }));
     };
-
-    const fetchQuestions = async () => {
-        try {
-            const response = await fetch('/api/getLatestQuestions', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`Error: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            setQuestions(data);
-        } catch (error) {
-            console.error('Error fetching questions:', error);
-        }
+    
+    const handleInputChange = (questionId: string) => (event: any) => {
+        const value = event.target.value;
+        setPaltaQInputs(prev => ({ ...prev, [questionId]: value }));
     };
-
-    useEffect(() => {
-
-        const fetchUserID = async () => {
-            if (session?.user?.email) {
-                try {
-                    const response = await fetch(`/api/getUserId?email=${session.user.email}`, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`Error: ${response.statusText}`);
-                    }
-
-                    const data = await response.json();
-                    setUserId(data);
-                } catch (error) {
-                    console.error('Error fetching user id:', error);
-                }
-            }
-        };
-
-        fetchUserID();
-        fetchQuestions();
-
-        const intervalId = setInterval(fetchQuestions, 10000); // Fetch every 5 seconds
-        setLoadingQuestion(false);
-
-        return () => clearInterval(intervalId); // Cleanup function to clear interval
-
-    }, [session?.user?.email]);
 
     const handleLike = async (questionId: string, userId: string, type: string) => {
         try {
@@ -291,6 +242,8 @@ export default function RecentQuestions() {
         e.preventDefault();
         if (loading) return; // Prevent if already loading
         setLoading(true);
+
+        const pQuestion = paltaQInputs[questionId] || '';
         
         // Handle validation  
         if(pQuestion.length < 10) {
@@ -359,7 +312,61 @@ export default function RecentQuestions() {
             toast.error('Failed to submit palta question');
             setLoading(false);
         }
-    };    
+    };
+
+    const fetchQuestions = async () => {
+        try {
+            const response = await fetch('/api/getLatestQuestions', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            setQuestions(data);
+        } catch (error) {
+            console.error('Error fetching questions:', error);
+        }
+    };
+    
+    useEffect(() => {
+
+        const fetchUserID = async () => {
+            if (session?.user?.email) {
+                try {
+                    const response = await fetch(`/api/getUserId?email=${session.user.email}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    setUserId(data);
+                } catch (error) {
+                    console.error('Error fetching user id:', error);
+                }
+            }
+        };
+
+        fetchUserID();
+        fetchQuestions();
+
+        const intervalId = setInterval(fetchQuestions, 10000); // Fetch every 5 seconds
+        setLoadingQuestion(false);
+
+        return () => clearInterval(intervalId); // Cleanup function to clear interval
+
+    }, [session?.user?.email]);
 
     if (status === 'loading' || loadingQuestion) {
         return <div className="mx-auto text-center py-8"><h1 className="text-2xl font-bold">Loading...</h1></div>;
@@ -581,8 +588,8 @@ export default function RecentQuestions() {
                                                 id="paltaQuestion"
                                                 className="form-control pr-5o5 resize-none py-3 pl-3"
                                                 placeholder="Type a creative palta question here . . ."
-                                                onChange={(e) => setPQuestion(e.target.value)}
-                                                value={pQuestion}
+                                                onChange={handleInputChange(question.id)}
+                                                value={paltaQInputs[question.id] || ''}
                                             />
                                             <button
                                                 type="submit"

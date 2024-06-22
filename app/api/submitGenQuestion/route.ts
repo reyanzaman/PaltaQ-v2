@@ -7,6 +7,13 @@ import { QuestionCategory } from '@/app/utils/postUtils';
 
 const secret = process.env.SECRET;
 
+// General Class ID
+export const cid = 'ae9b5c88-e98e-4774-a606-790f71947591';
+// General Topic ID
+export const tid = 'e1566b05-fef2-4958-885b-2808695b7ba7';
+// Guest User ID
+export const uid = '03277337-f5ae-42c4-985c-4e35e64b3fc3'
+
 async function postHandler(req: Request, res: NextApiResponse) {
   if (req.method === 'POST') {
 
@@ -29,7 +36,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       }
 
       // Validate the question
-      const validText = await validateQuestion(question, category, 'd732b110-22e2-4872-9cbb-47a4c695bdd0', '4267e78d-b166-4524-a1c2-7d32c2351283');
+      const validText = await validateQuestion(question, category, tid, cid);
 
       if (validText !== "Question validated") {
         return new Response("", {
@@ -45,12 +52,12 @@ async function postHandler(req: Request, res: NextApiResponse) {
       if (category === QuestionCategory.General) {
         if (userId === "") {
           await submitQuestionToDatabase(
-            '61740114-1ec2-4fad-90e8-8e16634954bb',
+            uid,
             question,
             score,
             category,
-            'd732b110-22e2-4872-9cbb-47a4c695bdd0',
-            '4267e78d-b166-4524-a1c2-7d32c2351283',
+            tid,
+            cid,
             true,
             foundKeywords
           );
@@ -60,8 +67,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
             question,
             score,
             category,
-            'd732b110-22e2-4872-9cbb-47a4c695bdd0',
-            '4267e78d-b166-4524-a1c2-7d32c2351283',
+            tid,
+            cid,
             false,
             foundKeywords
           );
@@ -69,9 +76,10 @@ async function postHandler(req: Request, res: NextApiResponse) {
       } else if (category === QuestionCategory.Palta) {
         if (userId === "") {
           await submitPaltaQToDatabase(
-            '61740114-1ec2-4fad-90e8-8e16634954bb',
+            uid,
             question,
             quesID,
+            cid,
             score,
             true,
             foundKeywords
@@ -81,6 +89,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
             userId,
             question,
             quesID,
+            cid,
             score,
             false,
             foundKeywords
@@ -88,14 +97,14 @@ async function postHandler(req: Request, res: NextApiResponse) {
         }
       }
 
-      if (userId !== "") {
-        const status = await updateRank(userId);
-        // Return success response
-        return new Response('', {
-          status: 200,
-          statusText: `${score} Points Awarded!|${status}`,
-        })
-      }
+      // if (userId !== "") {
+      //   const status = await updateRank(userId, cid);
+      //   // Return success response
+      //   return new Response('', {
+      //     status: 200,
+      //     statusText: `${score} Points Awarded!|${status}`,
+      //   })
+      // }
 
       // Return success response
       return new Response('', {

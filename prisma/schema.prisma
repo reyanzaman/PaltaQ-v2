@@ -29,8 +29,7 @@ model User {
 
 model UserDetails {
   userId           String   @id
-  score            Int      @default(0)
-  rank             String   @default("Novice Inquirer")
+  totalScore       Int      @default(0)
   questionsAsked   Int      @default(0)
   paltaQAsked      Int      @default(0)
   successfulReports Int     @default(0)
@@ -66,11 +65,16 @@ model ClassFaculty {
 }
 
 model ClassEnrollment {
-  id          String   @id @default(uuid())
-  userId      String
-  classId     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String    @id @default(uuid())
+  userId        String
+  classId       String
+  colorCode     String    @default("1f2937")
+  score         Int       @default(0)
+  rank          String    @default("Novice Inquirer")
+  questionCount Int       @default(0)
+  paltaQCount   Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   class      Classes  @relation(fields: [classId], references: [id], onDelete: Cascade)
@@ -100,7 +104,6 @@ enum QuestionCategory {
 model Question {
   id            String       @id @default(uuid())
   userId        String
-  topicId       String       // Foreign key to Topic
   question      String
   score         Int          @default(0)
   likes         Int          @default(0)
@@ -114,6 +117,7 @@ model Question {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   
+  topicId       String       // Foreign key to Topic
   classId       String       // Foreign key to Classes
   questionType  QuestionType[] // One-to-many relationship with QuestionType
 
@@ -147,6 +151,8 @@ model Reports {
   questionId  String
   paltaQId    String
   reportSuccess Boolean @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   user        User     @relation(fields: [userId], references: [id])
   question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
@@ -158,6 +164,8 @@ model Likes {
   userId      String
   questionId  String?
   paltaQId    String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   user        User     @relation(fields: [userId], references: [id], name: "UserLikes")
   question    Question? @relation(fields: [questionId], references: [id], name: "QuestionLikes", onDelete: Cascade)
@@ -169,6 +177,8 @@ model Dislikes {
   userId      String
   questionId  String?
   paltaQId    String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   user        User     @relation(fields: [userId], references: [id], name: "UserDislikes")
   question    Question? @relation(fields: [questionId], references: [id], name: "QuestionDislikes", onDelete: Cascade)
@@ -176,10 +186,10 @@ model Dislikes {
 }
 
 model PaltaQ {
-  id          String   @id @default(uuid())
-  userId      String
-  questionId  String
-  paltaQ      String
+  id            String   @id @default(uuid())
+  userId        String
+  questionId    String
+  paltaQ        String
   score         Int          @default(0)
 
   likes         Int          @default(0)

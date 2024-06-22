@@ -54,7 +54,7 @@ export async function getHandler(req: Request, res: NextApiResponse) {
         const include = url?.searchParams.get('include');
 
         try {
-            if(include === "UDQ") {
+            if(include === "Details") {
                 const user = await prisma.user.findUnique({
                     where: {
                         email: email,
@@ -65,7 +65,8 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                             include: {
                                 questionType: true
                             }
-                        }
+                        },
+                        classes: true
                     }
                 });
                 return new Response(JSON.stringify(user), {

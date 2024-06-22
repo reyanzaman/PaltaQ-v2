@@ -57,35 +57,69 @@ export async function getHandler(req: Request, res: NextApiResponse) {
         const include = url?.searchParams.get('include');
 
         try {
-            if (id) {
-                const user = await prisma.classEnrollment.findMany({
-                    where: {
-                        userId: id,
-                    },
-                    include: {
-                        user: {
-                            include: {
-                                userDetails: true
-                            }
+            if (include == "UD") {
+                if (id) {
+                    const user = await prisma.classEnrollment.findMany({
+                        where: {
+                            userId: id,
                         },
-                        class: {
-                            include: {
-                                faculties: {
-                                    include: {
-                                        user: true
-                                    },
-                                    orderBy: {
-                                        createdAt: 'asc'
+                        include: {
+                            user: {
+                                include: {
+                                    userDetails: true
+                                }
+                            },
+                            class: {
+                                include: {
+                                    enrollments: {
+                                        include: {
+                                            user: {
+                                                include: {
+                                                    userDetails: true
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                });
-                return new Response(JSON.stringify(user), {
-                    status: 200,
-                    statusText: `Class retrieved`
-                })
+                    });
+                    return new Response(JSON.stringify(user), {
+                        status: 200,
+                        statusText: `Class retrieved`
+                    })
+                }
+            } else {
+                if (id) {
+                    const user = await prisma.classEnrollment.findMany({
+                        where: {
+                            userId: id,
+                        },
+                        include: {
+                            user: {
+                                include: {
+                                    userDetails: true
+                                }
+                            },
+                            class: {
+                                include: {
+                                    faculties: {
+                                        include: {
+                                            user: true
+                                        },
+                                        orderBy: {
+                                            createdAt: 'asc'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    return new Response(JSON.stringify(user), {
+                        status: 200,
+                        statusText: `Class retrieved`
+                    })
+                }
             }
         } catch (error) {
             console.error('Failed to get class:', error);

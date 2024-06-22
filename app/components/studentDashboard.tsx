@@ -4,7 +4,7 @@
 import { nunito } from "@/app/ui/fonts";
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleQuestion, faComments, faStar, faCrown } from "@fortawesome/free-solid-svg-icons";
+import { faCircleQuestion, faComments, faStar, faCrown, faAngleDown, faTrophy } from "@fortawesome/free-solid-svg-icons";
 import Chart from 'chart.js/auto';
 
 interface User {
@@ -18,12 +18,12 @@ interface User {
     updatedAt: string;
     userDetails: UserDetails;
     questions: Question[];
+    classes: ClassEnrollment[];
 }
 
 interface UserDetails {
     userId: string;
-    score: number;
-    rank: string;
+    totalScore: number;
     questionsAsked: number;
     paltaQAsked: number;
     successfulReports: number;
@@ -32,6 +32,8 @@ interface UserDetails {
 interface Question {
     id: string;
     userId: string;
+    topicId: string;
+    classId: string;
     question: string;
     likes: number;
     dislikes: number;
@@ -55,15 +57,50 @@ interface QuestionType {
     creating: Boolean
 }
 
+interface ClassEnrollment {
+    id: string;
+    userId: string;
+    classId: string;
+    user: User;
+    score: number;
+    rank: string;
+    questionCount: number;
+    paltaQCount: number;
+    class: Class;
+    updatedAt: Date;
+}
+
+interface Class {
+    id: string;
+    name: string;
+    code: string;
+    creatorId: string;
+    createdAt: string;
+    updatedAt: string;
+    enrollments: ClassEnrollment[]
+}
+
 export default function StudentDashboard({ user }: { user: User }) {
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [selectedClassId, setSelectedClassId] = useState('' as string);
+    const [selectedClassIdx, setSelectedClassIdx] = useState(0 as number);
+    const [classEnrollment, setClassEnrollment] = useState<ClassEnrollment[]>([]);
+    const [enrolledStudents, setEnrolledStudents] = useState<ClassEnrollment[]>([]);
+    const [selectedClass, setSelectedClass] = useState('');
+
+    const [loading, setLoading] = useState(false);
+    const [loadingUsers, setLoadingUsers] = useState(false);
+
     const chartContainerQuestions = useRef<HTMLCanvasElement>(null);
     const chartInstanceQuestions = useRef<Chart<"line", number[], string> | null>(null);
     const chartContainerQuestionTypes = useRef<HTMLCanvasElement>(null);
     const chartInstanceQuestionTypes = useRef<Chart<"bar", number[], string> | null>(null);
 
+    // Chart
     useEffect(() => {
-        console.log(user.questions)
         if (user && user.questions) {
+            setLoading(true);
+
             // Prepare data for questions asked per day
             const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             const questionData: { [key: string]: number } = {
@@ -261,12 +298,91 @@ export default function StudentDashboard({ user }: { user: User }) {
                 });
             }
         }
-    }, [user]);
+        setLoading(false);
+    }, [user, selectedClass]);
+
+    // For fetching class enrollments
+    useEffect(() => {
+
+        const fetchEnrollments = async () => {
+            setLoadingUsers(true);
+            try {
+                const response = await fetch(`/api/enrollment?id=${user.id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const sortedData = data.sort((a: ClassEnrollment, b: ClassEnrollment) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+                    setClassEnrollment(sortedData);
+                    if (sortedData.length > 0) {
+                        setSelectedClass(sortedData[0].class.name);
+                        setSelectedClassId(sortedData[0].class.id);
+                    }
+                } else {
+                    // Handle error
+                    console.error('Failed to fetch classes');
+                }
+            } catch (error) {
+                console.error('Error fetching classes:', error);
+                setLoadingUsers(false);
+            }
+            setLoadingUsers(false);
+        };
+
+        fetchEnrollments();
+    }, []);
+
+    // For fetching all enrolled students
+    useEffect(() => {
+        const fetchAllEnrollments = async () => {
+            setLoadingUsers(true);
+            try {
+                const response = await fetch(`/api/scoreboard?id=${selectedClassId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                    setEnrolledStudents(data);
+                } else {
+                    // Handle error
+                    console.error('Failed to fetch classes');
+                }
+            } catch (error) {
+                console.error('Error fetching classes:', error);
+                setLoadingUsers(false);
+            }
+            setLoadingUsers(false);
+        };
+
+        if (selectedClassId !== '') {
+            if (classEnrollment.length > 0) {
+                fetchAllEnrollments();
+            }
+        }
+    }, [selectedClass]);
+
+    if (loading) {
+        return <div className=""><h1 className="text-2xl font-bold">Loading...</h1></div>;
+    }
+
+    const handleDropdown = () => {
+        setShowDropdown(!showDropdown);
+    }
 
     function calculateProgress(score: number) {
         let minScore = 0, maxScore = 0;
 
-        if (score >= 551 && score <= 1500) {
+        if (score >= 0 && score <= 550) {
+            minScore = 0;
+            maxScore = 550;
+        } else if (score >= 551 && score <= 1500) {
             minScore = 551;
             maxScore = 1500;
         } else if (score > 1500 && score <= 3000) {
@@ -295,58 +411,107 @@ export default function StudentDashboard({ user }: { user: User }) {
             maxScore = 50001;
         }
 
-        const progress = ((score - minScore) / (maxScore - minScore)) * 100;
-        return progress;
+        let progressNum = `${score}/${maxScore}`;
+
+        if (maxScore === minScore) {
+            // Handle the case where maxScore equals minScore (score > 50000)
+            return {progress: 100, progressNum}; // Assuming 100% progress as score is greater than 50000
+        } else {
+            const progress = ((score - minScore) / (maxScore - minScore)) * 100;
+            return {progress, progressNum};
+        }
     }
 
     // Assuming you have the user's score and rank
-    const userScore = user.userDetails.score;
-    const progress = calculateProgress(userScore);
+    const userScore = classEnrollment[selectedClassIdx]?.score;
+    const {progress, progressNum} = calculateProgress(userScore);
 
 
     return (
         <div className={`${nunito.className} antialiased flex flex-col`}>
             <h6 className="text-base">{user.name}</h6>
 
+            {/* DropDown */}
+            <div className='lg:mt-4'>
+                <label className='lg:hidden block pb-2 text-base font-bold'>Select your topic</label>
+
+                <span className='dropdown'>
+                    <div className='btn-group mr-2 mb-2'>
+                        <button type='button' className='btn btn-primary' onClick={handleDropdown}>{selectedClass}</button>
+                        <button
+                            type='button'
+                            className='btn btn-primary dropdown-toggle dropdown-toggle-split'
+                            data-toggle='dropdown'
+                            aria-haspopup='true'
+                            aria-expanded='false'
+                            onClick={handleDropdown}
+                        >
+                            <FontAwesomeIcon
+                                icon={faAngleDown}
+                                className="w-[1.5rem] text-[#31344b]"
+                            />
+                        </button>
+
+                        <div className={`dropdown-menu ${showDropdown ? 'show' : ''}`} id='dropdown' x-placement="bottom-start" style={{ position: 'absolute', willChange: 'transform', top: '0px', left: '0px', transform: 'translate3d(0px,40px,0px)' }}>
+                            {classEnrollment?.map((enrollment: ClassEnrollment, index: number) => (
+                                <a
+                                    key={index}
+                                    className='dropdown-item'
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setSelectedClass(enrollment.class.name);
+                                        setSelectedClassIdx(index);
+                                        setSelectedClassId(enrollment.class.id);
+                                        setShowDropdown(false);
+                                    }}
+                                >
+                                    {enrollment.class.name}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                </span>
+            </div>
+
             {/* Info */}
-            <div className="grid lg:grid-cols-4 grid-cols-2 lg:gap-20 gap-6 border-light border w-fit lg:px-5 px-4 py-4 my-4">
+            <div className="grid lg:grid-cols-4 grid-cols-2 lg:gap-20 gap-8 w-fit lg:pr-5 py-4 my-4">
 
                 <div className="w-full">
-                    <div className="card shadow-md border-light p-4 flex flex-col items-center lg:mt-4 lg:h-[8em] h-[9em]">
+                    <div className="card shadow-soft border-light p-4 flex flex-col items-center lg:mt-4 lg:h-[8em] h-[9em]">
                         <FontAwesomeIcon icon={faCrown} size="2x" />
-                        <h5 className="text-center pt-3">{user.userDetails.rank}</h5>
+                        <h5 className="text-center pt-3 text-gray-800">{classEnrollment[selectedClassIdx]?.rank}</h5>
                     </div>
-                    <h6 className="text-center pt-2 font-bold">Your Ranking</h6>
+                    <h6 className="text-center pt-3 font-bold text-gray-800">Your Ranking</h6>
                 </div>
 
                 <div className="w-full">
-                    <div className="card shadow-md border-light p-4 flex flex-col items-center lg:mt-4 lg:h-[8em] h-[9em]">
+                    <div className="card shadow-soft border-light p-4 flex flex-col items-center lg:mt-4 lg:h-[8em] h-[9em]">
                         <FontAwesomeIcon icon={faStar} size="2x" />
-                        <h5 className="text-center pt-3 lg:block hidden">{user.userDetails.score}</h5>
-                        <h5 className="text-center pt-3 lg:hidden block">{user.userDetails.score} Points</h5>
+                        <h5 className="text-center pt-3 text-2xl text-gray-800">{classEnrollment[selectedClassIdx]?.score}</h5>
                     </div>
-                    <h6 className="text-center pt-2 font-bold">Your Score</h6>
+                    <h6 className="text-center pt-3 font-bold text-gray-800">Your Score</h6>
                 </div>
 
                 <div className="w-full">
-                    <div className="card shadow-md border-light p-4 flex flex-col items-center lg:mt-4 lg:h-[8em] h-[7.5em]">
+                    <div className="card shadow-soft border-light p-4 flex flex-col items-center lg:mt-4 lg:h-[8em] h-[7.5em]">
                         <FontAwesomeIcon icon={faCircleQuestion} size="2x" />
-                        <h5 className="text-center pt-3 text-2xl">{user.userDetails.questionsAsked}</h5>
+                        <h5 className="text-center pt-3 text-2xl text-gray-800">{classEnrollment[selectedClassIdx]?.questionCount}</h5>
                     </div>
-                    <h6 className="text-center pt-2 font-bold">Questions Asked</h6>
+                    <h6 className="text-center pt-3 font-bold text-gray-800">Questions Asked</h6>
                 </div>
 
                 <div className="w-full">
-                    <div className="card shadow-md border-light p-4 flex flex-col items-center lg:mt-4 lg:h-[8em] h-[7.5em]">
+                    <div className="card shadow-soft border-light p-4 flex flex-col items-center lg:mt-4 lg:h-[8em] h-[7.5em]">
                         <FontAwesomeIcon icon={faComments} size="2x" />
-                        <h5 className="text-center pt-3 text-2xl">{user.userDetails.paltaQAsked}</h5>
+                        <h5 className="text-center pt-3 text-2xl text-gray-800">{classEnrollment[selectedClassIdx]?.paltaQCount}</h5>
                     </div>
-                    <h6 className="text-center pt-2 font-bold">Palta Questions Asked</h6>
+                    <h6 className="text-center pt-3 font-bold text-gray-800">Palta Questions Asked</h6>
                 </div>
             </div>
 
             {/* Progress Bar */}
-            <h5>Your progress for next ranking: {Math.round(progress)}%</h5>
+            <h5>Your progress for next ranking: {Math.round(progress)}% &nbsp;({progressNum})</h5>
             <div className="progress progress-xl lg:w-[96%]" style={{ height: '1.5em' }}>
                 <div
                     className="progress-bar progress-bar-striped bg-info"
@@ -365,17 +530,80 @@ export default function StudentDashboard({ user }: { user: User }) {
 
             <hr className="lg:hidden mt-4"></hr>
 
-            {/* Chart */}
-            <div className="flex lg:flex-row flex-col my-4 mx-auto lg:space-x-4 w-[96%] space-y-4">
-                <div className="w-full">
-                    <h6 className="lg:ml-9 py-4">Questions Asked by Day of Week</h6>
-                    <canvas ref={chartContainerQuestions} width="300" height="200"></canvas>
+            {/* Charts */}
+            <div>
+                {loading ? (
+                    <h1 className="text-2xl font-bold">Loading...</h1>
+                ) : (
+                    <div className="flex lg:flex-row flex-col my-4 mx-auto lg:space-x-4 w-[96%] space-y-4">
+                        <div className="w-full">
+                            <h6 className="lg:ml-9 py-4">Questions Asked by Day of Week</h6>
+                            <canvas ref={chartContainerQuestions} width="300" height="200"></canvas>
+                        </div>
+                        <hr className="lg:hidden mt-4"></hr>
+                        <div className="w-full">
+                            <h6 className="lg:ml-9 py-4">Types of Questions Asked by Day of Week</h6>
+                            <canvas ref={chartContainerQuestionTypes} width="300" height="200"></canvas>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Leaderboard */}
+            <div className="mb-8">
+                <h4 className="py-4 font-bold">Leaderboard</h4>
+
+                {/* Rankings */}
+                <div>
+                    {loadingUsers ? (
+                        <h1 className="text-2xl font-bold">Loading...</h1>
+                    ) : (
+                        <div className="my-3">
+                            {selectedClassId !== undefined && (
+                                <div>
+                                    <table className="table table-striped table-responsive-sm shadow-soft rounded">
+                                        <thead>
+                                            <tr>
+                                                <th className="border-0" scope="col">Rank Position</th>
+                                                <th className="border-0" scope="col">Name</th>
+                                                <th className="border-0" scope="col">Score</th>
+                                                <th className="border-0" scope="col">Rank Title</th>
+                                                <th className="border-0" scope="col">Questions Asked</th>
+                                                <th className="border-0" scope="col">PaltaQ Asked</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {enrolledStudents
+                                                .sort((a: any, b: any) => b.score - a.score)
+                                                .map((student: any, index: any) => {
+                                                    var crownIcon;
+    
+                                                    if (index === 0) {
+                                                        crownIcon = <FontAwesomeIcon icon={faTrophy} className="text-amber-500 pr-1" />
+                                                    } else if (index === 1) {
+                                                        crownIcon = <FontAwesomeIcon icon={faTrophy} className="text-zinc-500 pr-1" />
+                                                    } else if (index === 2) {
+                                                        crownIcon = <FontAwesomeIcon icon={faTrophy} className="text-amber-800 pr-1" />
+                                                    }
+                                                    return (
+                                                        <tr key={student.user.id}>
+                                                            <td>{crownIcon} {index + 1}</td>
+                                                            <td>{student.user.name}</td>
+                                                            <td>{student.score}</td>
+                                                            <td>{student.rank}</td>
+                                                            <td>{student.questionCount}</td>
+                                                            <td>{student.paltaQCount}</td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
-                <hr className="lg:hidden mt-4"></hr>
-                <div className="w-full">
-                    <h6 className="lg:ml-9 py-4">Types of Questions Asked by Day of Week</h6>
-                    <canvas ref={chartContainerQuestionTypes} width="300" height="200"></canvas>
-                </div>
+
             </div>
 
         </div>

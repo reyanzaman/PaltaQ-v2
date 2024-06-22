@@ -21,12 +21,12 @@ interface User {
     updatedAt: string;
     userDetails: UserDetails;
     questions: Question[];
+    classes: ClassEnrollment[];
 }
 
 interface UserDetails {
     userId: string;
-    score: number;
-    rank: string;
+    totalScore: number;
     questionsAsked: number;
     paltaQAsked: number;
     successfulReports: number;
@@ -35,6 +35,8 @@ interface UserDetails {
 interface Question {
     id: string;
     userId: string;
+    topicId: string;
+    classId: string;
     question: string;
     likes: number;
     dislikes: number;
@@ -58,6 +60,17 @@ interface QuestionType {
     creating: Boolean
 }
 
+interface ClassEnrollment {
+    id: string;
+    userId: string;
+    classId: string;
+    user: User;
+    score: number;
+    rank: string;
+    questionCount: number;
+    paltaQCount: number;
+}
+
 export default function Dashboard(props) {
 
     const { data: session, status } = useSession();
@@ -69,7 +82,7 @@ export default function Dashboard(props) {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const response = await fetch(`/api/users/${session?.user?.email}?include=UDQ`, {
+                const response = await fetch(`/api/users/${session?.user?.email}?include=Details`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'

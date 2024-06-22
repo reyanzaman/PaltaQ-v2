@@ -1,10 +1,16 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '@/app/lib/prisma';
 
+import { cid, tid } from '@/app/api/submitGenQuestion/route';
+
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
       const questions = await prisma.question.findMany({
+        where: {
+          classId: cid,
+          topicId: tid,
+        },
         orderBy: {
           createdAt: 'desc',
         },

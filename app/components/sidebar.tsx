@@ -48,7 +48,11 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
       });
 
       if (response.ok) {
-        setIsAdmin(await response.json());
+        if (response.statusText === 'true') {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
       }
     } catch (error) {
       console.error('Failed to get isAdmin:', error);

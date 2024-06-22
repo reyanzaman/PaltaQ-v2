@@ -123,24 +123,24 @@ export default function AdminComponent() {
         {loading && <p>Loading...</p>}
         {error && <p>Error fetching users</p>}
         {!loading && !error && (
-          <table className="min-w-full bg-white">
+          <table className="table shadow-inset rounded table-responsive-sm table-striped">
             <thead>
               <tr>
-                <th className="py-2 px-4 border-b border-gray-200">ID</th>
-                <th className="py-2 px-4 border-b border-gray-200">Email</th>
-                <th className="py-2 px-4 border-b border-gray-200">Name</th>
-                <th className="py-2 px-4 border-b border-gray-200">Admin</th>
-                <th className="py-2 px-4 border-b border-gray-200">Faculty</th>
-                <th className="py-2 px-4 border-b border-gray-200">Actions</th>
+                <th className="border-0">ID</th>
+                <th className="border-0">Email</th>
+                <th className="border-0">Name</th>
+                <th className="border-0">Admin</th>
+                <th className="border-0">Faculty</th>
+                <th className="border-0">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map((user: any) => (
                 <tr key={user.id}>
-                  <td className="py-2 px-4 border-b border-gray-200 w-25">{user.id}</td>
-                  <td className="py-2 px-4 border-b border-gray-200">{user.email}</td>
-                  <td className="py-2 px-4 border-b border-gray-200">{user.name}</td>
-                  <td className="py-2 px-4 border-b border-gray-200">
+                  <td className="w-25">{user.id}</td>
+                  <td className="">{user.email}</td>
+                  <td className="">{user.name}</td>
+                  <td className="">
                     {editableUser === user ? (
                       <select
                         value={isAdmin.toString()}
@@ -153,7 +153,7 @@ export default function AdminComponent() {
                       user.is_Admin ? 'Yes' : 'No'
                     )}
                   </td>
-                  <td className="py-2 px-4 border-b border-gray-200">
+                  <td className="">
                     {editableUser === user ? (
                       <select
                         value={isFaculty.toString()}
@@ -166,7 +166,7 @@ export default function AdminComponent() {
                       user.is_Faculty ? 'Yes' : 'No'
                     )}
                   </td>
-                  <td className="py-2 px-4 border-b border-gray-200">
+                  <td className="">
                     {editableUser === user ? (
                       <>
                         <button className="mr-2 bg-blue-500 hover:bg-blue-700 text-white py-1 px-2 rounded"
@@ -174,14 +174,14 @@ export default function AdminComponent() {
                         >
                           Save
                         </button>
-                        <button className="bg-gray-500 hover:bg-gray-700 text-white py-1 px-2 rounded"
+                        <button className="bg-gray-600 hover:bg-gray-700 text-white py-1 px-2 rounded"
                           onClick={handleCancel}
                         >
                           Cancel
                         </button>
                       </>
                     ) : (
-                      <button className="bg-gray-500 hover:bg-gray-700 text-white py-1 px-2 rounded"
+                      <button className="bg-gray-600 hover:bg-gray-700 text-white py-1 px-2 rounded"
                         onClick={() => handleEdit(user)}
                       >
                         Edit

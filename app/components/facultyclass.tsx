@@ -19,16 +19,7 @@ interface User {
     is_Faculty: boolean;
     createdAt: string;
     updatedAt: string;
-    userDetails: UserDetails;
-}
-
-interface UserDetails {
-    userId: string;
-    score: number;
-    rank: string;
-    questionsAsked: number;
-    paltaQAsked: number;
-    successfulReports: number;
+    classes: ClassEnrollment[];
 }
 
 interface Class {
@@ -54,6 +45,10 @@ interface ClassEnrollment {
     userId: string;
     classId: string;
     user: User;
+    score: number;
+    rank: string;
+    questionCount: number;
+    paltaQCount: number;
 }
 
 export default function FacultyClass({ user }: { user: User }) {
@@ -359,9 +354,9 @@ export default function FacultyClass({ user }: { user: User }) {
                     <div>
                         <div>
                             <h5 className="pl-3">Student list of {selectedClass.name}</h5>
-                            <p className="lg:pb-3 pb-1 pl-3">Users Enrolled: {selectedClass.enrollments.length - 1}</p>
+                            <p className="lg:pb-3 pb-1 pl-3">Users Enrolled: {selectedClass.enrollments.length}</p>
                         </div>
-                        <p className="lg:ml-4 ml-3">No students enrolled yet.</p>
+                        <p className="lg:ml-4 ml-3">No students or faculties except you have enrolled to this classroom yet.</p>
                     </div>
                 )
             } else {
@@ -369,10 +364,14 @@ export default function FacultyClass({ user }: { user: User }) {
                     <div className="lg:w-full w-[85vw] overflow-x-auto scrollbar-thin scrollbar-webkit">
                         <div>
                             <h5 className="pl-3">Enrollment List of {selectedClass.name}</h5>
-                            <p className="lg:pb-3 pb-1 pl-3">Students Enrolled: {selectedClass.enrollments.length - 1}</p>
+                            <div className="flex flex-row">
+                                <p className="lg:pb-3 pb-1 pl-3">Student Count: {selectedClass.enrollments.filter(enrollment => !enrollment.user.is_Faculty).length}</p>
+                                <p className="mx-2">|</p>
+                                <p>Faculty Count: {selectedClass.enrollments.filter(enrollment => enrollment.user.is_Faculty).length}</p>
+                            </div>
                         </div>
 
-                        <table className="table lg:mr-0 pr-4">
+                        <table className="table table-responsive-sm lg:mr-0 pr-4">
                             <thead>
                                 <tr>
                                     <th className="border-0" scope="col" id="className">Name</th>
@@ -391,18 +390,18 @@ export default function FacultyClass({ user }: { user: User }) {
                                             <tr>
                                                 <td>{student.user.name}</td>
                                                 <td>
-                                                    {student.user.is_Faculty 
-                                                        ? (student.user.id == selectedClass.creatorId ? "Admin" : "Faculty") 
+                                                    {student.user.is_Faculty
+                                                        ? (student.user.id == selectedClass.creatorId ? "Admin" : "Faculty")
                                                         : "Student"
                                                     }
                                                 </td>
-                                                <td>{student.user.userDetails ? student.user.userDetails.score : 0}</td>
-                                                <td>{student.user.userDetails ? student.user.userDetails.questionsAsked : 0}</td>
-                                                <td>{student.user.userDetails ? student.user.userDetails.paltaQAsked : 0}</td>
-                                                <td>{student.user.userDetails ? student.user.userDetails.rank : 'Novice'}</td>
+                                                <td>{student ? student.score : -1}</td>
+                                                <td>{student ? student.questionCount : -1}</td>
+                                                <td>{student ? student.paltaQCount : -1}</td>
+                                                <td>{student ? student.rank : 'Unknown'}</td>
                                                 <td>
                                                     {student.user.id !== selectedClass.creatorId && (
-                                                    <div className="hover:text-red-800 transition-colors duration-500" onClick={() => setToggleRemove(index)}>Remove</div>
+                                                        <div className="hover:text-red-800 transition-colors duration-500" onClick={() => setToggleRemove(index)}>Remove</div>
                                                     )}
                                                 </td>
                                             </tr>
@@ -457,7 +456,7 @@ export default function FacultyClass({ user }: { user: User }) {
                         {topics.length !== 0 && (
                             <div>
                                 <p className="pl-3">Number of topics: {topics.length}</p>
-                                <table className="table table-hover">
+                                <table className="table table-hover table-responsive-sm">
                                     <tr>
                                         <th className="border-0" scope="col" id="className">Topic Name</th>
                                         <th className="border-0" scope="col" id="classCode">Associated Questions</th>
@@ -622,7 +621,7 @@ export default function FacultyClass({ user }: { user: User }) {
                     {classes.length !== 0 && (
                         <div>
                             <p className="pl-3">Number of classes: {classes.length}</p>
-                            <table className="table table-hover">
+                            <table className="table table-hover table-responsive-sm">
                                 <tr>
                                     <th className="border-0" scope="col" id="className">Class Name</th>
                                     <th className="border-0" scope="col" id="classCode">Class Code</th>
@@ -683,19 +682,40 @@ export default function FacultyClass({ user }: { user: User }) {
                                             )}
 
                                         </td>
-                                        {toggleDelete === index && (
-                                            <td className="w-full flex gap-x-4">
-                                                <button
-                                                    className="hover:text-red-800 transition-colors duration-500"
-                                                    onClick={() => unenroll(index)}>
-                                                    Confirm
-                                                </button>
-                                                <button
-                                                    className="hover:text-red-800 transition-colors duration-500"
-                                                    onClick={() => setToggleDelete(null)}>
-                                                    Cancel
-                                                </button>
-                                            </td>
+                                        {user.id !== classItem.class.creatorId ? (
+                                            <div>
+                                                {toggleDelete === index && (
+                                                    <td className="w-full flex gap-x-4">
+                                                        <button
+                                                            className="hover:text-red-800 transition-colors duration-500"
+                                                            onClick={() => {unenroll(index); setToggleDelete(null)}}>
+                                                            Confirm
+                                                        </button>
+                                                        <button
+                                                            className="hover:text-red-800 transition-colors duration-500"
+                                                            onClick={() => setToggleDelete(null)}>
+                                                            Cancel
+                                                        </button>
+                                                    </td>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                {toggleDelete === index && (
+                                                    <td className="w-full flex gap-x-4">
+                                                        <button
+                                                            className="hover:text-red-800 transition-colors duration-500"
+                                                            onClick={() => {deleteClass(index); setToggleDelete(null)}}>
+                                                            Confirm
+                                                        </button>
+                                                        <button
+                                                            className="hover:text-red-800 transition-colors duration-500"
+                                                            onClick={() => setToggleDelete(null)}>
+                                                            Cancel
+                                                        </button>
+                                                    </td>
+                                                )}
+                                            </div>
                                         )}
                                     </tr>
                                 ))}

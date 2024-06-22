@@ -47,6 +47,7 @@ interface Question {
     id: string;
     userId: string;
     question: string;
+    topicId: string;
     likes: number;
     dislikes: number;
     isAnonymous: boolean;
@@ -64,7 +65,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
     const [userId, setUserId] = useState<string>('');
     const [loading, setLoading] = useState(false);
 
-    const [pQuestion, setPQuestion] = useState('');
+    const [paltaQInputs, setPaltaQInputs] = useState<{ [key: string]: any }>({});
     const [visibleInputBox, setVisibleInputBox] = useState<{ [key: string]: boolean }>({});
 
     const [showDropdown, setShowDropdown] = useState(false);
@@ -74,7 +75,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
     const [viewQuestions, setViewQuestions] = useState(true);
 
     const [questions, setQuestions] = useState<Question[]>([]);
-    const [isAnonymous, setIsAnonymous] = useState(false);
+    const [isAnonymous, setIsAnonymous] = useState<{ [key: string]: boolean }>({});
 
     const [refresh, setRefresh] = useState(false);
 
@@ -96,10 +97,22 @@ export default function QuestionsList({ classId }: { classId: string }) {
         }
     };
 
+    const handleInputChange = (questionId: string) => (event: any) => {
+        const value = event.target.value;
+        setPaltaQInputs(prev => ({ ...prev, [questionId]: value }));
+    };
+
     const toggleInputBox = (questionId: string) => {
         setVisibleInputBox(prevState => ({
             ...prevState,
             [questionId]: !prevState[questionId]
+        }));
+    };
+
+    const toggleAnonymity = (questionId: string) => {
+        setIsAnonymous(prev => ({
+            ...prev,
+            [questionId]: !prev[questionId]
         }));
     };
 
@@ -255,10 +268,12 @@ export default function QuestionsList({ classId }: { classId: string }) {
         }
     };
 
-    const handlePaltaQ = (questionId: string) => async (e: React.FormEvent<HTMLFormElement>) => {
+    const handlePaltaQ = (questionId: string, topicId: string) => async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (loading) return; // Prevent if already loading
         setLoading(true);
+
+        const pQuestion = paltaQInputs[questionId] || '';
 
         // Handle validation  
         if (pQuestion.length < 10) {
@@ -273,17 +288,17 @@ export default function QuestionsList({ classId }: { classId: string }) {
 
         try {
             // Example of sending the question to your API
-            const response = await fetch(`/api/questions?question=${pQuestion}&qid=${questionId}`, {
+            const response = await fetch(`/api/questions?question=${pQuestion}&qid=${questionId}&cid=${classId}&tid=${topicId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ isAnonymous: isAnonymous, category: QuestionCategory.Palta }),
+                body: JSON.stringify({ isAnonymous: isAnonymous[questionId], category: QuestionCategory.Palta }),
             });
 
             if (response.ok) {
                 // Handle successful submission
-                setPQuestion('');
+                setPaltaQInputs(prev => ({ ...prev, [questionId]: '' }));
 
                 let responseText = response.statusText
                 const updateText = responseText.split('|')[1];
@@ -313,6 +328,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
     }
 
     useEffect(() => {
+
         const fetchTopics = async () => {
             const response = await fetch(`/api/topics?cid=${classId}`, {
                 method: 'GET',
@@ -394,8 +410,31 @@ export default function QuestionsList({ classId }: { classId: string }) {
                 <div>
                     <div className='flex flex-col'>
 
-                        {/* Questions List */}
+                        {/* Pagination */}
                         <div className='order-last'>
+                            {questions.length > 0 && (
+                                <div className='pl-4 py-4'>
+                                    <nav aria-label="Questions page navigation">
+                                        <ul className="pagination">
+                                            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                                                <a className="page-link" href="#" onClick={(e) => handlePageChange(currentPage - 1, e)}>Previous</a>
+                                            </li>
+                                            {[...Array(totalPages)].map((_, i) => (
+                                                <li key={i} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                                                    <a className="page-link" href="#" onClick={(e) => handlePageChange(i + 1, e)}>{i + 1}</a>
+                                                </li>
+                                            ))}
+                                            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                                                <a className="page-link" href="#" onClick={(e) => handlePageChange(currentPage + 1, e)}>Next</a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Questions List */}
+                        <div className='order-3'>
                             {currentQuestions.map((question: any) => (
                                 <div key={question.id} className="card bg-primary shadow-sm border-light lg:w-fit w-full lg:mx-4 mb-4" style={{ minWidth: '50vw', border: '2px solid rgba(54, 176, 233, 0.5)' }}>
                                     <div className="px-4 pt-4 pb-2">
@@ -501,6 +540,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                         {visibleInputBox[question.id] && (
                                             <div className="mt-2 ml-3 mr-2">
 
+                                                {/* PaltaQ Card */}
                                                 <div>
                                                     {question.paltaQBy
                                                         .slice() // Create a copy of the array to avoid mutating the original
@@ -599,20 +639,25 @@ export default function QuestionsList({ classId }: { classId: string }) {
 
                                                 {/* PaltaQ Text Area */}
                                                 <div>
-                                                    <form className="" onSubmit={handlePaltaQ(question.id)}>
+                                                    <form className="" onSubmit={handlePaltaQ(question.id, question.topicId)}>
                                                         {/* Anonymity */}
                                                         <label className='inline-flex items-center cursor-pointer mt-3'>
-                                                            <input type="checkbox" value={isAnonymous.toString()} className="sr-only peer" onChange={() => setIsAnonymous(!isAnonymous)} />
+                                                            <input
+                                                            type="checkbox" 
+                                                            value={(isAnonymous[question.id] || false).toString()} 
+                                                            className="sr-only peer" 
+                                                            onChange={() => toggleAnonymity(question.id)}
+                                                            />
                                                             <div className="relative w-8 h-4 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-zinc-500-800"></div>
-                                                            <span className="ms-2 text-base font-bold">Toggle Anonymity ({isAnonymous == false ? "Off" : "On"})</span>
+                                                            <span className="ms-2 text-base font-bold">Toggle Anonymity ({isAnonymous[question.id] ? "On" : "Off"})</span>
                                                         </label>
 
                                                         <textarea
                                                             id="paltaQuestion"
                                                             className="form-control pr-5o5 resize-none py-3 pl-3"
                                                             placeholder="Type a creative palta question here . . ."
-                                                            onChange={(e) => setPQuestion(e.target.value)}
-                                                            value={pQuestion}
+                                                            onChange={handleInputChange(question.id)}
+                                                            value={paltaQInputs[question.id] || ''}
                                                         />
                                                         <button
                                                             type="submit"
@@ -667,6 +712,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                         e.preventDefault();
                                                         setSelectedTopic('All Topics');
                                                         setSelectedTopicId('');
+                                                        handlePageChange(1, e);
                                                         setRefresh(!refresh);
                                                         setShowDropdown(false);
                                                     }}
@@ -682,6 +728,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                             e.preventDefault();
                                                             setSelectedTopic(topic.name);
                                                             setSelectedTopicId(topic.id);
+                                                            handlePageChange(1, e);
                                                             setRefresh(!refresh);
                                                             setShowDropdown(false);
                                                         }}
@@ -706,7 +753,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
                         </div>
 
                         {/* Info */}
-                        <div className='order-second pl-3'>
+                        <div className='order-2 pl-3'>
                             <p className='text-xl pb-3'>Questions Registered: {questions.length}</p>
                             {questions.length === 0 && (
                                 <p className='mb-5'>No quesions have been registered yet for this classroom</p>
@@ -714,27 +761,6 @@ export default function QuestionsList({ classId }: { classId: string }) {
                         </div>
 
                     </div>
-
-                    {/* Pagination */}
-                    {questions.length > 0 && (
-                        <div className='pl-4 py-4'>
-                            <nav aria-label="Questions page navigation">
-                                <ul className="pagination">
-                                    <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                                        <a className="page-link" href="#" onClick={(e) => handlePageChange(currentPage - 1, e)}>Previous</a>
-                                    </li>
-                                    {[...Array(totalPages)].map((_, i) => (
-                                        <li key={i} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
-                                            <a className="page-link" href="#" onClick={(e) => handlePageChange(i + 1, e)}>{i + 1}</a>
-                                        </li>
-                                    ))}
-                                    <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                                        <a className="page-link" href="#" onClick={(e) => handlePageChange(currentPage + 1, e)}>Next</a>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </div>
-                    )}
 
                 </div>
             )}

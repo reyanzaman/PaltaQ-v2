@@ -36,17 +36,19 @@ export async function submitQuestionToDatabase(userId: string, question: string,
 
     let scoreToUpdate = 0;
 
-    if (from === "general") {
-      if (score <= 50) {
-        scoreToUpdate = 2;
-      } else if (score <= 100) {
-        scoreToUpdate = 5;
-      } else if (score <= 150) {
-        scoreToUpdate = 10;
-      }
-    } else {
-      scoreToUpdate = score;
-    }
+    // if (from === "general") {
+    //   if (score <= 50) {
+    //     scoreToUpdate = 2;
+    //   } else if (score <= 100) {
+    //     scoreToUpdate = 5;
+    //   } else if (score <= 150) {
+    //     scoreToUpdate = 10;
+    //   }
+    // } else {
+    //   scoreToUpdate = score;
+    // }
+
+    scoreToUpdate = score;
 
     await prisma.userDetails.update({
       where: {
@@ -56,11 +58,30 @@ export async function submitQuestionToDatabase(userId: string, question: string,
         questionsAsked: {
           increment: 1,
         },
-        score: {
+        totalScore: {
           increment: scoreToUpdate,
         },
       },
     });
+
+    if (category !== QuestionCategory.General) {
+      await prisma.classEnrollment.update({
+        where: {
+          userId_classId: {
+            userId: userId,
+            classId: classId,
+          },
+        },
+        data: {
+          questionCount: {
+            increment: 1,
+          },
+          score: {
+            increment: scoreToUpdate,
+          },
+        },
+      });
+    }
 
   } catch (error) {
     // Handle database error
@@ -69,7 +90,7 @@ export async function submitQuestionToDatabase(userId: string, question: string,
   }
 }
 
-export async function submitPaltaQToDatabase(userId: string, question: string, questionId: string, score: number, isAnonymous: boolean, foundKeywords: { [key: string]: boolean }, from: string = "general"): Promise<void> {
+export async function submitPaltaQToDatabase(userId: string, question: string, questionId: string, classId: string, score: number, isAnonymous: boolean, foundKeywords: { [key: string]: boolean }, from: string = "general"): Promise<void> {
   try {
     // Insert the question into the database using Prisma
     const createdQuestion = await prisma.paltaQ.create({
@@ -109,24 +130,43 @@ export async function submitPaltaQToDatabase(userId: string, question: string, q
 
     let scoreToUpdate = 0;
 
-    if (from === "general") {
-      if (score <= 50) {
-        scoreToUpdate = 5;
-      } else if (score <= 100) {
-        scoreToUpdate = 10;
-      } else if (score <= 150) {
-        scoreToUpdate = 15;
-      }
-      else {
-        scoreToUpdate = score;
-      }
+    // if (from === "general") {
+    //   if (score <= 50) {
+    //     scoreToUpdate = 5;
+    //   } else if (score <= 100) {
+    //     scoreToUpdate = 10;
+    //   } else if (score <= 150) {
+    //     scoreToUpdate = 15;
+    //   }
+    // } else {
+    //   scoreToUpdate = score + (0.1 * score);
+    // }
+    scoreToUpdate = score + (0.1 * score);
 
-      await prisma.userDetails.update({
+    await prisma.userDetails.update({
+      where: {
+        userId: userId,
+      },
+      data: {
+        paltaQAsked: {
+          increment: 1,
+        },
+        totalScore: {
+          increment: scoreToUpdate,
+        },
+      },
+    });
+
+    if (from !== "general") {
+      await prisma.classEnrollment.update({
         where: {
-          userId: userId,
+          userId_classId: {
+            userId: userId,
+            classId: classId,
+          },
         },
         data: {
-          paltaQAsked: {
+          paltaQCount: {
             increment: 1,
           },
           score: {
@@ -135,9 +175,10 @@ export async function submitPaltaQToDatabase(userId: string, question: string, q
         },
       });
     }
+
   } catch (error) {
     // Handle database error
-    console.error('Failed to submit question to database:', error);
-    throw new Error('Failed to submit question to database');
+    console.error('Failed to submit paltaQ to database:', error);
+    throw new Error('Failed to submit paltaQ to database');
   }
 }

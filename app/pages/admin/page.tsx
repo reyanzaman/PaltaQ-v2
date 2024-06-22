@@ -14,7 +14,7 @@ export default function Admin(props) {
   return (
     <div className={`${nunito.className} antialiased flex flex-row pt-[2em]`}>
 
-      <div className="w-full max-w-full lg:pl-[8em] mr-[1.5em] overflow-auto">
+      <div className="w-full max-w-full lg:pl-[8em] lg:mr-[1.5em] overflow-auto">
         <AdminComponent />
       </div>
 

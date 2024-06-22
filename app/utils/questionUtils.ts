@@ -48,14 +48,20 @@ export async function validateQuestion(question: string, category: QuestionCateg
       where: {
         topicId: topicID,
         classId: classID,
-        category: category
       }
     });
 
-    // If no existing questions, skip similarity check
-    if (existingQuestions.length === 0) {
-      console.log('No existing questions found for the same topic, class, and category.');
-      console.log('Question validation complete');
+    const existingPaltaQs = await prisma.paltaQ.findMany({
+      where: {
+        question: {
+          topicId: topicID,
+          classId: classID,
+        }
+      }
+    });
+
+    // If no existing questions and no PaltaQ comments, skip similarity check
+    if (existingQuestions.length === 0 && existingPaltaQs.length === 0) {
       return "Question validated";
     }
 
@@ -69,6 +75,16 @@ export async function validateQuestion(question: string, category: QuestionCateg
       if (similarity >= similarityThreshold) {
         console.log('Similar question found:', existingQuestion.question);
         return "Similar question exists";
+      }
+    }
+    
+    // Check similarity in existing PaltaQ comments
+    for (const existingPaltaQ of existingPaltaQs) {
+      const similarity = CosineSimilarity(question, existingPaltaQ.paltaQ);
+
+      if (similarity >= similarityThreshold) {
+        console.log('Similar PaltaQ found:', existingPaltaQ.paltaQ);
+        return "Similar question exists in PaltaQ";
       }
     }
 
@@ -170,50 +186,65 @@ function calculateScore(question: string): { score: number, foundKeywords: { [ke
     }
   });
 
-  console.log("Score is:", totalScore);
   return { score: totalScore, foundKeywords };
 }
 
-export async function updateRank(userId: string): Promise<string> {
+export async function updateRank(userId: string, classId: string): Promise<string> {
   try {
-    const userDetails = await prisma.userDetails.findUnique({
+    const classEnrollment = await prisma.classEnrollment.findUnique({
       where: {
-        userId: userId
+        userId_classId: {
+          userId: userId,
+          classId: classId
+        }
       }
     });
 
-    if (!userDetails) {
-      return "User not found";
+    if (!classEnrollment) {
+      return "Class enrollment not found";
     }
 
-    const currentRank = userDetails.rank;
+    const currentRank = classEnrollment.rank;
     let rank = "Novice Inquirer";
+    let colorCode = '1f2937' // Default dark blue
 
-    const score = userDetails.score;
+    const score = classEnrollment.score;
     
     if (score >= 551 && score <= 1500) {
       rank = "Apprentice Inquirer";
+      colorCode = "22a4ef";  // Light blue
     } else if (score > 1500 && score <= 3000) {
       rank = "Adept Inquirer";
+      colorCode = "2ecc71";  // Green
     } else if (score > 3000 && score <= 5000) {
       rank = "Expert Inquirer";
+      colorCode = "9b59b6";  // Purple
     } else if (score > 5000 && score <= 7000) {
       rank = "Master Inquirer";
+      colorCode = "f39c12";  // Orange
     } else if (score > 7000 && score <= 15000) {
       rank = "Legendary Inquirer";
+      colorCode = "e67e22";  // Darker orange
     } else if (score > 15000 && score <= 25000) {
       rank = "Mythical Inquirer";
+      colorCode = "e74c3c";  // Red
     } else if (score > 25000 && score <= 35000) {
       rank = "Outstanding Inquirer";
+      colorCode = "3498db";  // Blue
     } else if (score > 35000 && score <= 50000) {
       rank = "Master of Queries";
+      colorCode = "1abc9c";  // Turquoise
     } else if (score > 50000) {
       rank = "Grand Inquisitor";
+      colorCode = "e74c3c";  // Red (final rank)
     }
 
-    await prisma.userDetails.update({
+    await prisma.classEnrollment.update({
       where: {
-        userId: userId
+        userId_classId: {
+          userId: userId,
+          classId: classId
+        }
       },
       data: {
         rank: rank
