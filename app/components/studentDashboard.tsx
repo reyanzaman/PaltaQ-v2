@@ -19,6 +19,7 @@ interface User {
     userDetails: UserDetails;
     questions: Question[];
     classes: ClassEnrollment[];
+    paltaQuestions: PaltaQ[];
 }
 
 interface UserDetails {
@@ -43,6 +44,7 @@ interface Question {
     paltaQ: number;
     createdAt: string;
     questionType: QuestionType;
+    paltaQBy: PaltaQ[];
 }
 
 interface QuestionType {
@@ -80,6 +82,23 @@ interface Class {
     enrollments: ClassEnrollment[]
 }
 
+interface PaltaQ {
+    id: string;
+    userId: string;
+    questionId: string;
+    paltaQ: string;
+    score: number;
+    likes: number;
+    dislikes: number;
+    isAnonymous: boolean;
+    isArchived: boolean;
+    user: User;
+    question: Question;
+    questionType: QuestionType;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export default function StudentDashboard({ user }: { user: User }) {
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedClassId, setSelectedClassId] = useState('' as string);
@@ -96,62 +115,121 @@ export default function StudentDashboard({ user }: { user: User }) {
     const chartContainerQuestionTypes = useRef<HTMLCanvasElement>(null);
     const chartInstanceQuestionTypes = useRef<Chart<"bar", number[], string> | null>(null);
 
+    function getLast7DaysWithDayNames() {
+        const days = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            days.push({
+                date: date.toISOString().split('T')[0], // Get the date in YYYY-MM-DD format
+                dayName: date.toLocaleDateString('en-US', { weekday: 'long' }) // Get the day name
+            });
+        }
+        return days;
+    }  
+
     // Chart
     useEffect(() => {
-        if (user && user.questions) {
+        if (selectedClass !== '' && selectedClassId !== '' && user && user.questions) {
             setLoading(true);
 
-            // Prepare data for questions asked per day
             const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const questionData: { [key: string]: number } = {
-                'Sunday': 0,
-                'Monday': 0,
-                'Tuesday': 0,
-                'Wednesday': 0,
-                'Thursday': 0,
-                'Friday': 0,
-                'Saturday': 0
-            };
+
+            const last7DaysWithDayNames = getLast7DaysWithDayNames();
+
+            const questionData: { [key: string]: number } = last7DaysWithDayNames.reduce((acc, item) => {
+                acc[item.date] = 0;
+                return acc;
+            }, {} as { [key: string]: number });
+            
+            const paltaQData: { [key: string]: number } = last7DaysWithDayNames.reduce((acc, item) => {
+                acc[item.date] = 0;
+                return acc;
+            }, {} as { [key: string]: number });
 
             user.questions.forEach(question => {
-                const createdAt = new Date(question.createdAt);
-                const dayOfWeek = daysOfWeek[createdAt.getDay()];
-                questionData[dayOfWeek] += 1;
+                if (question.classId === selectedClassId) {
+                    const createdAt = new Date(question.createdAt).toISOString().split('T')[0];
+                    if (questionData[createdAt] !== undefined) {
+                        questionData[createdAt] += 1;
+                    }
+                }
             });
-
-            const labelsQuestions = Object.keys(questionData);
-            const dataQuestions = Object.values(questionData);
-
-            // Prepare data for types of questions per day
-            const questionTypesData: { [key: string]: number[] } = {
-                'Sunday': [0, 0, 0, 0, 0, 0],
-                'Monday': [0, 0, 0, 0, 0, 0],
-                'Tuesday': [0, 0, 0, 0, 0, 0],
-                'Wednesday': [0, 0, 0, 0, 0, 0],
-                'Thursday': [0, 0, 0, 0, 0, 0],
-                'Friday': [0, 0, 0, 0, 0, 0],
-                'Saturday': [0, 0, 0, 0, 0, 0]
-            };
-
-            user.questions.forEach(question => {
-                const createdAt = new Date(question.createdAt);
-                const dayOfWeek = daysOfWeek[createdAt.getDay()];
-                const { questionType } = question;
-
-                if (questionType && Array.isArray(questionType)) {
-                    // Increment counts for each type in questionType
-                    questionType.forEach(type => {
-                        if (type.remembering) questionTypesData[dayOfWeek][0] += 1;
-                        if (type.understanding) questionTypesData[dayOfWeek][1] += 1;
-                        if (type.applying) questionTypesData[dayOfWeek][2] += 1;
-                        if (type.analyzing) questionTypesData[dayOfWeek][3] += 1;
-                        if (type.evaluating) questionTypesData[dayOfWeek][4] += 1;
-                        if (type.creating) questionTypesData[dayOfWeek][5] += 1;
-                    });
+            
+            user.paltaQuestions.forEach(paltaQ => {
+                if (paltaQ.question.classId === selectedClassId) {
+                    const createdAt = new Date(paltaQ.createdAt).toISOString().split('T')[0];
+                    if (paltaQData[createdAt] !== undefined) {
+                        paltaQData[createdAt] += 1;
+                    }
                 }
             });
 
-            const labelsQuestionTypes = Object.keys(questionTypesData);
+            const labels = last7DaysWithDayNames.map(item => item.dayName);
+            const dataQuestions = last7DaysWithDayNames.map(item => questionData[item.date]);
+            const dataPaltaQ = last7DaysWithDayNames.map(item => paltaQData[item.date]);
+
+            type QuestionTypesData = {
+                [key: string]: number[];
+            };
+
+            // Prepare data for types of questions per day
+            const questionTypesData: QuestionTypesData = last7DaysWithDayNames.reduce((acc, item) => {
+                acc[item.date] = [0, 0, 0, 0, 0, 0];
+                return acc;
+            }, {} as QuestionTypesData);
+
+            // Bar Chart Data
+            user.questions.forEach(question => {
+                if (question.classId === selectedClassId) {
+                    const createdAt = new Date(question.createdAt).toISOString().split('T')[0];
+                    const { questionType } = question;
+            
+                    if (questionType && Array.isArray(questionType)) {
+                        if (questionTypesData[createdAt] !== undefined) {
+                            // Increment counts for each type in questionType
+                            questionType.forEach(type => {
+                                if (type.remembering) questionTypesData[createdAt][0] += 1;
+                                if (type.understanding) questionTypesData[createdAt][1] += 1;
+                                if (type.applying) questionTypesData[createdAt][2] += 1;
+                                if (type.analyzing) questionTypesData[createdAt][3] += 1;
+                                if (type.evaluating) questionTypesData[createdAt][4] += 1;
+                                if (type.creating) questionTypesData[createdAt][5] += 1;
+                            });
+                        }
+                    }
+                }
+            });
+            
+            user.paltaQuestions.forEach(paltaQ => {
+                if (paltaQ.question.classId === selectedClassId) {
+                    const createdAt = new Date(paltaQ.createdAt).toISOString().split('T')[0];
+                    const { questionType } = paltaQ;
+            
+                    if (questionType && Array.isArray(questionType)) {
+                        if (questionTypesData[createdAt] !== undefined) {
+                            // Increment counts for each type in questionType
+                            questionType.forEach(type => {
+                                if (type.remembering) questionTypesData[createdAt][0] += 1;
+                                if (type.understanding) questionTypesData[createdAt][1] += 1;
+                                if (type.applying) questionTypesData[createdAt][2] += 1;
+                                if (type.analyzing) questionTypesData[createdAt][3] += 1;
+                                if (type.evaluating) questionTypesData[createdAt][4] += 1;
+                                if (type.creating) questionTypesData[createdAt][5] += 1;
+                            });
+                        }
+                    }
+                }
+            });
+            
+            const labelsQuestionTypes = last7DaysWithDayNames.map(item => item.dayName);
+            const dataRemembering = last7DaysWithDayNames.map(item => questionTypesData[item.date][0]);
+            const dataUnderstanding = last7DaysWithDayNames.map(item => questionTypesData[item.date][1]);
+            const dataApplying = last7DaysWithDayNames.map(item => questionTypesData[item.date][2]);
+            const dataAnalyzing = last7DaysWithDayNames.map(item => questionTypesData[item.date][3]);
+            const dataEvaluating = last7DaysWithDayNames.map(item => questionTypesData[item.date][4]);
+            const dataCreating = last7DaysWithDayNames.map(item => questionTypesData[item.date][5]);
+
 
             // Check if chartInstanceQuestions.current exists and destroy it
             if (chartInstanceQuestions.current) {
@@ -164,18 +242,27 @@ export default function StudentDashboard({ user }: { user: User }) {
                 chartInstanceQuestions.current = new Chart(ctxQuestions, {
                     type: 'line',
                     data: {
-                        labels: labelsQuestions,
-                        datasets: [{
-                            label: 'Questions Asked',
-                            data: dataQuestions,
-                            borderColor: 'rgb(75, 192, 192)',
-                            tension: 0.1,
-                            fill: false,
-                            pointBackgroundColor: 'rgb(75, 192, 192)',
-                            pointRadius: 5,
-                            pointHoverRadius: 8,
-                            pointHoverBackgroundColor: 'rgb(75, 192, 192)',
-                        }]
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Questions',
+                                data: dataQuestions,
+                                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1,
+                                fill: false,
+                                tension: 0
+                            },
+                            {
+                                label: 'PaltaQ',
+                                data: dataPaltaQ,
+                                backgroundColor: 'rgba(153, 102, 255, 0.5)',
+                                borderColor: 'rgba(153, 102, 255, 1)',
+                                borderWidth: 1,
+                                fill: false,
+                                tension: 0
+                            }
+                        ]
                     },
                     options: {
                         scales: {
@@ -190,7 +277,7 @@ export default function StudentDashboard({ user }: { user: User }) {
                                 display: true,
                                 title: {
                                     display: true,
-                                    text: 'Number of Questions'
+                                    text: 'Number of Entries'
                                 },
                                 beginAtZero: true
                             }
@@ -214,7 +301,7 @@ export default function StudentDashboard({ user }: { user: User }) {
                         datasets: [
                             {
                                 label: 'Remembering',
-                                data: labelsQuestionTypes.map(day => questionTypesData[day][0]),
+                                data: dataRemembering,
                                 backgroundColor: 'rgba(255, 99, 132, 0.5)',
                                 borderColor: 'rgb(255, 99, 132)',
                                 barPercentage: 0.5,
@@ -224,7 +311,7 @@ export default function StudentDashboard({ user }: { user: User }) {
                             },
                             {
                                 label: 'Understanding',
-                                data: labelsQuestionTypes.map(day => questionTypesData[day][1]),
+                                data: dataUnderstanding,
                                 backgroundColor: 'rgba(54, 162, 235, 0.5)',
                                 borderColor: 'rgb(54, 162, 235)',
                                 borderWidth: 1,
@@ -234,7 +321,7 @@ export default function StudentDashboard({ user }: { user: User }) {
                             },
                             {
                                 label: 'Applying',
-                                data: labelsQuestionTypes.map(day => questionTypesData[day][2]),
+                                data: dataApplying,
                                 backgroundColor: 'rgba(255, 206, 86, 0.5)',
                                 borderColor: 'rgb(255, 206, 86)',
                                 borderWidth: 1,
@@ -244,7 +331,7 @@ export default function StudentDashboard({ user }: { user: User }) {
                             },
                             {
                                 label: 'Analyzing',
-                                data: labelsQuestionTypes.map(day => questionTypesData[day][3]),
+                                data: dataAnalyzing,
                                 backgroundColor: 'rgba(75, 192, 192, 0.5)',
                                 borderColor: 'rgb(75, 192, 192)',
                                 borderWidth: 1,
@@ -254,7 +341,7 @@ export default function StudentDashboard({ user }: { user: User }) {
                             },
                             {
                                 label: 'Evaluating',
-                                data: labelsQuestionTypes.map(day => questionTypesData[day][4]),
+                                data: dataEvaluating,
                                 backgroundColor: 'rgba(153, 102, 255, 0.5)',
                                 borderColor: 'rgb(153, 102, 255)',
                                 borderWidth: 1,
@@ -264,7 +351,7 @@ export default function StudentDashboard({ user }: { user: User }) {
                             },
                             {
                                 label: 'Creating',
-                                data: labelsQuestionTypes.map(day => questionTypesData[day][5]),
+                                data: dataCreating,
                                 backgroundColor: 'rgba(255, 159, 64, 0.5)',
                                 borderColor: 'rgb(255, 159, 64)',
                                 borderWidth: 1,
@@ -415,16 +502,16 @@ export default function StudentDashboard({ user }: { user: User }) {
 
         if (maxScore === minScore) {
             // Handle the case where maxScore equals minScore (score > 50000)
-            return {progress: 100, progressNum}; // Assuming 100% progress as score is greater than 50000
+            return { progress: 100, progressNum }; // Assuming 100% progress as score is greater than 50000
         } else {
             const progress = ((score - minScore) / (maxScore - minScore)) * 100;
-            return {progress, progressNum};
+            return { progress, progressNum };
         }
     }
 
     // Assuming you have the user's score and rank
     const userScore = classEnrollment[selectedClassIdx]?.score;
-    const {progress, progressNum} = calculateProgress(userScore);
+    const { progress, progressNum } = calculateProgress(userScore);
 
 
     return (
@@ -537,12 +624,12 @@ export default function StudentDashboard({ user }: { user: User }) {
                 ) : (
                     <div className="flex lg:flex-row flex-col my-4 mx-auto lg:space-x-4 w-[96%] space-y-4">
                         <div className="w-full">
-                            <h6 className="lg:ml-9 py-4">Questions Asked by Day of Week</h6>
+                            <h6 className="lg:ml-9 py-4">Questions Asked by Day of Week in Selected Class</h6>
                             <canvas ref={chartContainerQuestions} width="300" height="200"></canvas>
                         </div>
                         <hr className="lg:hidden mt-4"></hr>
                         <div className="w-full">
-                            <h6 className="lg:ml-9 py-4">Types of Questions Asked by Day of Week</h6>
+                            <h6 className="lg:ml-9 py-4">Levels of Questions Asked by Day of Week in Selected Class</h6>
                             <canvas ref={chartContainerQuestionTypes} width="300" height="200"></canvas>
                         </div>
                     </div>
@@ -577,7 +664,7 @@ export default function StudentDashboard({ user }: { user: User }) {
                                                 .sort((a: any, b: any) => b.score - a.score)
                                                 .map((student: any, index: any) => {
                                                     var crownIcon;
-    
+
                                                     if (index === 0) {
                                                         crownIcon = <FontAwesomeIcon icon={faTrophy} className="text-amber-500 pr-1" />
                                                     } else if (index === 1) {

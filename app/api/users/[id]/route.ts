@@ -63,7 +63,13 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                         userDetails: true,
                         questions: {
                             include: {
-                                questionType: true
+                                questionType: true,
+                            }
+                        },
+                        paltaQuestions: {
+                            include: {
+                                questionType: true,
+                                question: true,
                             }
                         },
                         classes: true

@@ -22,6 +22,7 @@ interface User {
     userDetails: UserDetails;
     questions: Question[];
     classes: ClassEnrollment[];
+    paltaQuestions: PaltaQ[];
 }
 
 interface UserDetails {
@@ -46,6 +47,7 @@ interface Question {
     paltaQ: number;
     createdAt: string;
     questionType: QuestionType;
+    paltaQBy: PaltaQ[];
 }
 
 interface QuestionType {
@@ -58,6 +60,23 @@ interface QuestionType {
     analyzing: Boolean
     evaluating: Boolean
     creating: Boolean
+}
+
+interface PaltaQ {
+    id: string;
+    userId: string;
+    questionId: string;
+    paltaQ: string;
+    score: number;
+    likes: number;
+    dislikes: number;
+    isAnonymous: boolean;
+    isArchived: boolean;
+    user: User;
+    question: Question;
+    questionType: QuestionType;
+    createdAt: string;
+    updatedAt: string;
 }
 
 interface ClassEnrollment {
