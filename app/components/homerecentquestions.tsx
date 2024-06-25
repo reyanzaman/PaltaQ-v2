@@ -258,7 +258,7 @@ export default function RecentQuestions() {
     
         try {
             // Example of sending the question to your API
-            const response = await fetch('api/submitGenQuestion', {
+            const response = await fetch('/api/submitGenQuestion', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -268,7 +268,7 @@ export default function RecentQuestions() {
     
             if (response.ok) {
                 // Handle successful submission
-                setPQuestion('');
+                setPaltaQInputs(prev => ({ ...prev, [questionId]: '' }));
                 console.log(response);
                 
                 let responseText = response.statusText

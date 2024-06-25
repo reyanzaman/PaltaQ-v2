@@ -24,7 +24,7 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
       return;
     }
 
-    const response = await fetch('api/submitGenQuestion', {
+    const response = await fetch('/api/submitGenQuestion', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

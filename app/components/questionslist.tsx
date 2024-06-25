@@ -64,6 +64,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
     const { data: session, status } = useSession();
     const [userId, setUserId] = useState<string>('');
     const [loading, setLoading] = useState(false);
+    const [loadingQ, setLoadingQ] = useState(false);
 
     const [paltaQInputs, setPaltaQInputs] = useState<{ [key: string]: any }>({});
     const [visibleInputBox, setVisibleInputBox] = useState<{ [key: string]: boolean }>({});
@@ -328,6 +329,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
     }
 
     useEffect(() => {
+        setLoadingQ(true);
 
         const fetchTopics = async () => {
             const response = await fetch(`/api/topics?cid=${classId}`, {
@@ -356,8 +358,10 @@ export default function QuestionsList({ classId }: { classId: string }) {
                     // Handle error
                     console.error('Failed to fetch classes');
                 }
+                setLoadingQ(false);
             } catch (error) {
                 console.error('Error fetching classes:', error);
+                setLoadingQ(false);
             }
         };
 
@@ -754,9 +758,16 @@ export default function QuestionsList({ classId }: { classId: string }) {
 
                         {/* Info */}
                         <div className='order-2 pl-3'>
-                            <p className='text-xl pb-3'>Questions Registered: {questions.length}</p>
-                            {questions.length === 0 && (
-                                <p className='mb-5'>No quesions have been registered yet for this classroom</p>
+                            <p className='text-xl pb-3'>Questions Registered: {loadingQ ? "Loading" : questions.length}</p>
+                            {loadingQ ? (
+                                <p className='mb-5'>Loading questions...</p>
+                            
+                            ): (
+                                <div>
+                                    {questions.length === 0 && (
+                                        <p className='mb-5'>No quesions have been registered yet for this classroom</p>
+                                    )}
+                                </div>
                             )}
                         </div>
 

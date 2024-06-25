@@ -435,7 +435,6 @@ export default function StudentDashboard({ user }: { user: User }) {
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(data);
                     setEnrolledStudents(data);
                 } else {
                     // Handle error
@@ -498,14 +497,25 @@ export default function StudentDashboard({ user }: { user: User }) {
             maxScore = 50001;
         }
 
-        let progressNum = `${score}/${maxScore}`;
+        let progressNum
+
+        if(score == undefined){
+            progressNum = "Loading";
+        } else {
+            progressNum = `${score}/${maxScore}`;
+        }
 
         if (maxScore === minScore) {
             // Handle the case where maxScore equals minScore (score > 50000)
             return { progress: 100, progressNum }; // Assuming 100% progress as score is greater than 50000
         } else {
-            const progress = ((score - minScore) / (maxScore - minScore)) * 100;
-            return { progress, progressNum };
+            if (score == undefined){
+                const progress = 0;
+                return { progress, progressNum };
+            } else {
+                const progress = ((score - minScore) / (maxScore - minScore)) * 100;
+                return { progress, progressNum };
+            }
         }
     }
 
@@ -598,21 +608,29 @@ export default function StudentDashboard({ user }: { user: User }) {
             </div>
 
             {/* Progress Bar */}
-            <h5>Your progress for next ranking: {Math.round(progress)}% &nbsp;({progressNum})</h5>
-            <div className="progress progress-xl lg:w-[96%]" style={{ height: '1.5em' }}>
-                <div
-                    className="progress-bar progress-bar-striped bg-info"
-                    role="progressbar"
-                    aria-valuenow={progress}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    style={{
-                        width: `${progress}%`,
-                        animation: "3s ease 0s 1 normal none running animate-positive",
-                        opacity: 1
-                    }}
-                >
+            <div>
+                {loading ? (
+                    <h1 className="text-2xl font-bold">Loading...</h1>
+                ) : (
+                <div>
+                    <h5>Your progress for next ranking: {Math.round(progress) ? Math.round(progress): "Loading"}% &nbsp;({progressNum ? progressNum : ""})</h5>
+                    <div className="progress progress-xl lg:w-[96%]" style={{ height: '1.5em' }}>
+                            <div
+                                className="progress-bar progress-bar-striped bg-info"
+                                role="progressbar"
+                                aria-valuenow={progress}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                style={{
+                                    width: `${progress}%`,
+                                    animation: "3s ease 0s 1 normal none running animate-positive",
+                                    opacity: 1
+                                }}
+                            >
+                            </div>
+                    </div>
                 </div>
+                )}
             </div>
 
             <hr className="lg:hidden mt-4"></hr>
