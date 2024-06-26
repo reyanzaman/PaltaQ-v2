@@ -255,6 +255,9 @@ export default function RecentQuestions() {
             return;
         }
     
+        // Show loading toast
+        const loadingToastId = toast.loading('Submitting your question...');
+
         try {
             // Example of sending the question to your API
             const response = await fetch('/api/submitGenQuestion', {
@@ -264,26 +267,38 @@ export default function RecentQuestions() {
                 },
                 body: JSON.stringify({ question: pQuestion, category: QuestionCategory.Palta, quesID: questionId }),
             });
+
+            const responseData = await response.json();
     
             if (response.ok) {
                 // Handle successful submission
                 setPaltaQInputs(prev => ({ ...prev, [questionId]: '' }));
                 console.log(response);
                 
-                let responseText = response.statusText
+                const responseText = responseData.message;
                 const updateText = responseText.split('|')[1];
-                responseText = responseText.split('|')[0];
+                const mainText = responseText.split('|')[0];
 
-                if (updateText !== "Rank unchanged") {
+                if (updateText && updateText !== "Rank unchanged") {
                     toast.dark(updateText);
                 }
-
-                toast.success(responseText);
+          
+                toast.update(loadingToastId, {
+                    render: mainText,
+                    type: 'success',
+                    isLoading: false,
+                    autoClose: 5000,
+                });
 
             } else {
                 // Handle error
                 console.error('Failed to submit palta question');
-                toast.error(response.statusText);
+                toast.update(loadingToastId, {
+                    render: responseData.message || 'PaltaQ submission failed',
+                    type: 'error',
+                    isLoading: false,
+                    autoClose: 5000,
+                });
             }
 
             try {
@@ -308,7 +323,7 @@ export default function RecentQuestions() {
             setLoading(false);
         } catch (error) {
             console.error('Failed to submit palta question:', error);
-            toast.error('Failed to submit palta question');
+            toast.error('Failed to submit PaltaQ');
             setLoading(false);
         }
     };
