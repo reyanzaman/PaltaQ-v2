@@ -71,7 +71,6 @@ export default function RecentQuestions() {
 
     const [paltaQInputs, setPaltaQInputs] = useState<{ [key: string]: any }>({});
     const [visibleInputBox, setVisibleInputBox] = useState<{ [key: string]: boolean }>({});
-    const [loadingQuestion, setLoadingQuestion] = useState(true);
 
     const toggleInputBox = (questionId: string) => {
         setVisibleInputBox(prevState => ({
@@ -319,7 +318,10 @@ export default function RecentQuestions() {
             const response = await fetch('/api/getLatestQuestions', {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
                 }
             });
 
@@ -358,37 +360,16 @@ export default function RecentQuestions() {
             }
         };
 
-        const fetchQuestions = async () => {
-            try {
-                const response = await fetch('/api/getLatestQuestions', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-    
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.statusText}`);
-                }
-    
-                const data = await response.json();
-                setQuestions(data);
-            } catch (error) {
-                console.error('Error fetching questions:', error);
-            }
-        };
-
         fetchUserID();
         fetchQuestions();
 
         const intervalId = setInterval(fetchQuestions, 5000); // Fetch every 5 seconds
-        setLoadingQuestion(false);
 
         return () => clearInterval(intervalId); // Cleanup function to clear interval
 
     }, [session?.user?.email]);
 
-    if (status === 'loading' || loadingQuestion) {
+    if (status === 'loading') {
         return <div className="mx-auto text-center py-8"><h1 className="text-2xl font-bold">Loading...</h1></div>;
     }
 
