@@ -24,36 +24,60 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
       return;
     }
 
-    const response = await fetch('/api/submitGenQuestion', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ question: question, category: QuestionCategory.General }),
-    });
+    // Show loading toast
+    const loadingToastId = toast.loading('Submitting your question...');
 
-    if (response.ok) {
-      // Handle successful submission
-      setQuestion('');
+    try {
+      const response = await fetch('/api/submitGenQuestion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ question: question, category: QuestionCategory.General }),
+      });
 
-      let responseText = response.statusText
-      const updateText = responseText.split('|')[1];
-      responseText = responseText.split('|')[0];
+      if (response.ok) {
+        // Handle successful submission
+        setQuestion('');
 
-      if (updateText !== "Rank unchanged") {
-        toast.dark(updateText);
+        let responseText = response.statusText;
+        const updateText = responseText.split('|')[1];
+        responseText = responseText.split('|')[0];
+
+        if (updateText !== "Rank unchanged") {
+          toast.dark(updateText);
+        }
+
+        toast.update(loadingToastId, {
+          render: responseText,
+          type: 'success',
+          isLoading: false,
+          autoClose: 5000,
+        });
+
+        // Call the parent component's callback
+        if (onQuestionSubmitted) {
+          onQuestionSubmitted();
+        }
+      } else {
+        // Handle error
+        console.error('Failed to submit question');
+        toast.update(loadingToastId, {
+          render: response.statusText,
+          type: 'error',
+          isLoading: false,
+          autoClose: 5000,
+        });
       }
-
-      toast.success(responseText);
-      
-      // Call the parent component's callback
-      if (onQuestionSubmitted) {
-        onQuestionSubmitted();
-      }
-    } else {
-      // Handle error
-      console.error('Failed to submit question');
-      toast.error(response.statusText);
+    } catch (error) {
+      // Handle fetch error
+      console.error('Error occurred during submission:', error);
+      toast.update(loadingToastId, {
+        render: 'Submission failed. Please try again.',
+        type: 'error',
+        isLoading: false,
+        autoClose: 5000,
+      });
     }
   };
 

@@ -60,6 +60,9 @@ export default function QuestionBox({ classId }: { classId: string }) {
             return;
         }
 
+        // Show loading toast
+        const loadingToastId = toast.loading('Submitting your question...');
+
         const response = await fetch(`/api/questions?question=${question}&tid=${selectedTopicId}&cid=${classId}`, {
             method: 'POST',
             headers: {
@@ -80,11 +83,21 @@ export default function QuestionBox({ classId }: { classId: string }) {
                 toast.dark(updateText);
             }
 
-            toast.success(responseText);
+            toast.update(loadingToastId, {
+                render: responseText,
+                type: 'success',
+                isLoading: false,
+                autoClose: 5000,
+              });
         } else {
             // Handle error
             console.error('Failed to submit question');
-            toast.error(response.statusText);
+            toast.update(loadingToastId, {
+                render: response.statusText,
+                type: 'error',
+                isLoading: false,
+                autoClose: 5000,
+            });
         }
     };
 

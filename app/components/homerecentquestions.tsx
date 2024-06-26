@@ -358,10 +358,30 @@ export default function RecentQuestions() {
             }
         };
 
+        const fetchQuestions = async () => {
+            try {
+                const response = await fetch('/api/getLatestQuestions', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+    
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.statusText}`);
+                }
+    
+                const data = await response.json();
+                setQuestions(data);
+            } catch (error) {
+                console.error('Error fetching questions:', error);
+            }
+        };
+
         fetchUserID();
         fetchQuestions();
 
-        const intervalId = setInterval(fetchQuestions, 10000); // Fetch every 5 seconds
+        const intervalId = setInterval(fetchQuestions, 5000); // Fetch every 5 seconds
         setLoadingQuestion(false);
 
         return () => clearInterval(intervalId); // Cleanup function to clear interval
