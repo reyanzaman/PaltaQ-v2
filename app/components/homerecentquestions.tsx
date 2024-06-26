@@ -319,10 +319,14 @@ export default function RecentQuestions() {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Cache-Control': 'no-cache',
+                    'Cache-Control': 'public, no-cache',
                     'Pragma': 'no-cache',
                     'Expires': '0'
-                }
+                },
+                next: {
+                    revalidate: 0
+                },
+                cache: 'no-store'
             });
 
             if (!response.ok) {
