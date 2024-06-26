@@ -324,7 +324,7 @@ export default function RecentQuestions() {
                     'Expires': '0'
                 },
                 next: {
-                    revalidate: 0
+                    tags: ['questions']
                 },
                 cache: 'no-store'
             });
