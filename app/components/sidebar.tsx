@@ -75,35 +75,92 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
         <div className="lg:hidden fixed right-0 top-0 h-screen bg-[#e6e7ee] w-full z-50"> {/* Adjusted z-index */}
           <div className="flex flex-col justify-start items-start pl-4 pt-7 pb-5 space-y-6">
             {/* Links */}
-            <Link href="/" onClick={handleLinkClick} className="flex flex-row space-x-1 items-center">
-              <FontAwesomeIcon icon={faHouseChimney} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
-              <span className="text-3xl ml-3 font-bold text-neutral-500">Home</span>
+
+            <Link href="/" onClick={handleLinkClick} className="">
+              {isHomeActive ? (
+                <div className="flex flex-row space-x-1 items-center">
+                  <FontAwesomeIcon icon={faHouseChimney} className="text-3xl bg-white text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
+                  <span className="text-3xl ml-3 font-bold text-neutral-700">Home</span>
+                </div>
+              ): (
+                <div className="flex flex-row space-x-1 items-center">
+                  <FontAwesomeIcon icon={faHouseChimney} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
+                  <span className="text-3xl ml-3 font-bold text-neutral-500">Home</span>
+                </div>
+              )}
             </Link>
+
             <hr className="border-neutral-300 w-full" />
+
             <Link href={isLoggedIn ? "/pages/dashboard" : "#"} onClick={() => {isLoggedIn ? "" : signIn('google'); handleLinkClick()}} className="flex flex-row space-x-1 items-center">
-              <FontAwesomeIcon icon={faUserTie} width={30} className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle" />
-              <span className="text-3xl ml-3 font-bold text-neutral-500">Dashboard</span>
+              {isDashboardActive ? (
+                <div className="flex flex-row space-x-1 items-center">
+                  <FontAwesomeIcon icon={faUserTie} width={30} className="text-3xl bg-white text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle" />
+                  <span className="text-3xl ml-3 font-bold text-neutral-700">Dashboard</span>
+                </div>
+              ) : (
+                <div className="flex flex-row space-x-1 items-center">
+                  <FontAwesomeIcon icon={faUserTie} width={30} className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle" />
+                  <span className="text-3xl ml-3 font-bold text-neutral-500">Dashboard</span>
+                </div>
+              )}
             </Link>
+
             <hr className="border-neutral-300 w-full" />
+
             <Link href={isLoggedIn ? "/pages/questions" : "#"} onClick={() => {isLoggedIn ? "" : signIn('google'); handleLinkClick()}} className="flex flex-row space-x-1 items-center">
-              <FontAwesomeIcon icon={faQ} width={30} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
-              <span className="text-3xl ml-3 font-bold text-neutral-500">Questions</span>
+              {isQuestionsActive ? (
+                <div className="flex flex-row space-x-1 items-center">
+                  <FontAwesomeIcon icon={faQ} width={30} className="text-3xl bg-white text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
+                  <span className="text-3xl ml-3 font-bold text-neutral-700">Questions</span>
+                </div>
+              ) : (
+                <div className="flex flex-row space-x-1 items-center">
+                  <FontAwesomeIcon icon={faQ} width={30} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
+                  <span className="text-3xl ml-3 font-bold text-neutral-500">Questions</span>
+                </div>
+              )}
             </Link>
+
             <hr className="border-neutral-300 w-full" />
+
             <Link href="/pages/info" onClick={handleLinkClick} className="flex flex-row space-x-1 items-center">
-              <FontAwesomeIcon icon={faInfo} width={30} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
-              <span className="text-3xl ml-3 font-bold text-neutral-500">Info</span>
+              {isInfoActive ? (
+                <div className="flex flex-row space-x-1 items-center">
+                  <FontAwesomeIcon icon={faInfo} width={30} className="text-3xl bg-white text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
+                  <span className="text-3xl ml-3 font-bold text-neutral-700">Info</span>
+                </div>
+              ) : (
+                <div className="flex flex-row space-x-1 items-center">
+                  <FontAwesomeIcon icon={faInfo} width={30} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
+                  <span className="text-3xl ml-3 font-bold text-neutral-500">Info</span>
+                </div>
+              )}
             </Link>
+
             {IsAdmin && (
               <div className="w-full m-0">
+
                 <hr className="border-neutral-300 w-full" />
+
                 <Link href="/pages/admin" onClick={handleLinkClick} className="flex flex-row space-x-1 items-center">
-                  <FontAwesomeIcon icon={faScrewdriverWrench} width={30} className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle" />
-                  <span className="text-3xl ml-3 font-bold text-neutral-500">Admin Panel</span>
+                  {isDashboardActive ? (
+                    <div className="flex flex-row space-x-1 items-center">
+                      <FontAwesomeIcon icon={faScrewdriverWrench} width={30} className="text-3xl bg-white text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle" />
+                      <span className="text-3xl ml-3 font-bold text-neutral-700">Admin Panel</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-row space-x-1 items-center">
+                      <FontAwesomeIcon icon={faScrewdriverWrench} width={30} className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle" />
+                      <span className="text-3xl ml-3 font-bold text-neutral-500">Admin Panel</span>
+                    </div>
+                  )}
                 </Link>
               </div>
             )}
+
             <hr className="border-neutral-300 w-full" />
+            
             <Link href="#" onClick={() => {isLoggedIn ? signOut() : signIn('google'); handleLinkClick()}} className="flex flex-row space-x-1 items-center">
               <FontAwesomeIcon icon={isLoggedIn ? faArrowRightFromBracket : faArrowRightToBracket} width={30} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
               <span className="text-3xl ml-3 font-bold text-neutral-500">{isLoggedIn ? "Logout" : "Login"}</span>
@@ -141,7 +198,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
                 ) : (
                   <FontAwesomeIcon
                     icon={faHouseChimney}
-                    className="text-3xl text-zinc-500 p-3 icon shadow-inset border border-light rounded-circle"
+                    className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
                   />
                 )}
               </Link>

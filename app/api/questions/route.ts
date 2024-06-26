@@ -110,9 +110,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const validText = await validateQuestion(question, category, tid, cid);
 
       if (validText !== "Question validated") {
-        return new Response("", {
+        return new Response(JSON.stringify({ message: `${validText}` }), {
           status: 400,
-          statusText: validText
         })
       }
 
@@ -148,9 +147,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const status = await updateRank(userId, cid);
 
       // Return success response
-      return new Response('', {
+      return new Response(JSON.stringify({ message: `${score} Points Awarded!|${status}` }), {
         status: 200,
-        statusText: `${score} Points Awarded!|${status}`,
       })
 
     } catch (error) {

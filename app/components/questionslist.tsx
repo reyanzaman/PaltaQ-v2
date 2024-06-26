@@ -287,6 +287,9 @@ export default function QuestionsList({ classId }: { classId: string }) {
             return;
         }
 
+        // Show loading toast
+        const loadingToastId = toast.loading('Submitting your question...');
+
         try {
             // Example of sending the question to your API
             const response = await fetch(`/api/questions?question=${pQuestion}&qid=${questionId}&cid=${classId}&tid=${topicId}`, {
@@ -297,23 +300,36 @@ export default function QuestionsList({ classId }: { classId: string }) {
                 body: JSON.stringify({ isAnonymous: isAnonymous[questionId], category: QuestionCategory.Palta }),
             });
 
+            const responseData = await response.json();
+
             if (response.ok) {
                 // Handle successful submission
                 setPaltaQInputs(prev => ({ ...prev, [questionId]: '' }));
 
-                let responseText = response.statusText
+                const responseText = responseData.message;
                 const updateText = responseText.split('|')[1];
-                responseText = responseText.split('|')[0];
+                const mainText = responseText.split('|')[0];
 
-                if (updateText !== "Rank unchanged") {
+                if (updateText && updateText !== "Rank unchanged") {
                     toast.dark(updateText);
                 }
 
-                toast.success(responseText);
+                toast.update(loadingToastId, {
+                    render: mainText,
+                    type: 'success',
+                    isLoading: false,
+                    autoClose: 5000,
+                });
+
             } else {
                 // Handle error
                 console.error('Failed to submit palta question');
-                toast.error(response.statusText);
+                toast.update(loadingToastId, {
+                    render: responseData.message || 'PaltaQ submission failed',
+                    type: 'error',
+                    isLoading: false,
+                    autoClose: 5000,
+                });
             }
             setRefresh(!refresh);
             setLoading(false);

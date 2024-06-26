@@ -71,29 +71,32 @@ export default function QuestionBox({ classId }: { classId: string }) {
             body: JSON.stringify({ isAnonymous: isAnonymous, category: QuestionCategory.Topic }),
         });
 
+        const responseData = await response.json();
+
         if (response.ok) {
             // Handle successful submission
             setQuestion('');
             
-            let responseText = response.statusText
+            const responseText = responseData.message;
             const updateText = responseText.split('|')[1];
-            responseText = responseText.split('|')[0];
+            const mainText = responseText.split('|')[0];
 
-            if (updateText !== "Rank unchanged") {
+            if (updateText && updateText !== "Rank unchanged") {
                 toast.dark(updateText);
-            }
+            }      
 
             toast.update(loadingToastId, {
-                render: responseText,
+                render: mainText,
                 type: 'success',
                 isLoading: false,
                 autoClose: 5000,
-              });
+            });
+
         } else {
             // Handle error
             console.error('Failed to submit question');
             toast.update(loadingToastId, {
-                render: response.statusText,
+                render: responseData.message || 'Question submission failed',
                 type: 'error',
                 isLoading: false,
                 autoClose: 5000,

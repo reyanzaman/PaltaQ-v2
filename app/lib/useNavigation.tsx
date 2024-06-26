@@ -23,16 +23,16 @@ const useNavigation = () => {
       case '/':
         setIsHomeActive(true);
         break;
-      case '/dashboard':
+      case '/pages/dashboard':
         setIsDashboardActive(true);
         break;
-      case '/questions':
+      case '/pages/questions':
         setIsQuestionsActive(true);
         break;
-      case '/info':
+      case '/pages/info':
         setIsInfoActive(true);
         break;
-      case '/admin':
+      case '/pages/admin':
         setIsAdminActive(true);
         break;
       default:
