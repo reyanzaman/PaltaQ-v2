@@ -8,7 +8,7 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
         const pathname = url?.pathname;
         const parts = pathname?.split('/') ?? [];
         const userId = parts[parts.length - 1];
-        revalidateTag('questions');
+        revalidateTag('users');
 
         try {
             const { isAdmin, isFaculty } = await req.json();

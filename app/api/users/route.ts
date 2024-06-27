@@ -1,6 +1,9 @@
 import prisma from '@/app/lib/prisma';
+import { revalidateTag } from 'next/cache';
 
 export async function GET() {
+  revalidateTag('users');
+  
   try {
     const users = await prisma.user.findMany({
       include: {

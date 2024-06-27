@@ -31,8 +31,15 @@ export default function AdminComponent() {
         const response = await fetch(`/api/users/${session?.user?.email}`, {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+            'Cache-Control': 'public, no-cache',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          next: {
+            tags: ['users']
+          },
+          cache: 'no-store',
         });
         if (!response.ok) {
           throw new Error('Failed to fetch user data');
@@ -75,7 +82,7 @@ export default function AdminComponent() {
             'Expires': '0'
           },
           next: {
-            tags: ['questions']
+            tags: ['users']
           },
           cache: 'no-store',
           body: JSON.stringify({
