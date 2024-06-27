@@ -124,14 +124,16 @@ export default function FacultyClass({ user }: { user: User }) {
                 body: JSON.stringify({ className: className, facultyId: user.id }),
             });
 
+            const responseText = await response.json();
+
             if (response.ok) {
                 setClassName('');
                 setRefresh(!refresh);
-                toast.success(response.statusText);
+                toast.success(responseText.message);
             } else {
                 // Handle error
                 console.error('Failed to submit class details');
-                toast.error(response.statusText);
+                toast.error(responseText.message);
                 setLoading(false);
             }
         } catch (error) {
@@ -153,14 +155,16 @@ export default function FacultyClass({ user }: { user: User }) {
                 },
             });
 
+            const responseText = await response.json();
+
             if (response.ok) {
                 setClassCode('');
                 setRefresh(!refresh);
-                toast.success(response.statusText);
+                toast.success(responseText.message);
             } else {
                 // Handle error
                 console.error('Failed to submit class details');
-                toast.error(response.statusText);
+                toast.error(responseText.message);
                 setLoading(false);
             }
         } catch (error) {
@@ -193,7 +197,7 @@ export default function FacultyClass({ user }: { user: User }) {
             } else {
                 // Handle error
                 console.error('Failed to delete class');
-                toast.error(response.statusText);
+                toast.error('Failed to delete class');
                 setLoading(false);
             }
         } catch (error) {
@@ -216,14 +220,16 @@ export default function FacultyClass({ user }: { user: User }) {
                 body: JSON.stringify({ classId: selectedClass?.id, topicName: classTopic }),
             });
 
+            const responseText = await response.json();
+
             if (response.ok) {
                 setClassTopic('');
                 setRefresh(!refresh);
-                toast.success(response.statusText);
+                toast.success(responseText.message);
             } else {
                 // Handle error
                 console.error('Failed to submit class topic');
-                toast.error(response.statusText);
+                toast.error(responseText.message);
             }
         } catch (error) {
             console.error('Error submitting topic:', error);
@@ -246,7 +252,7 @@ export default function FacultyClass({ user }: { user: User }) {
             } else {
                 // Handle error
                 console.error('Failed to delete topic');
-                toast.error(response.statusText);
+                toast.error('Failed to delete topic');
                 setLoading(false);
             }
         } catch (error) {
@@ -273,7 +279,7 @@ export default function FacultyClass({ user }: { user: User }) {
             } else {
                 // Handle error
                 console.error('Failed to update topic');
-                toast.error(response.statusText);
+                toast.error('Failed to update topic');
                 setLoading(false);
             }
         } catch (error) {
@@ -303,7 +309,7 @@ export default function FacultyClass({ user }: { user: User }) {
             } else {
                 // Handle error
                 console.error('Failed to removed user');
-                toast.error(response.statusText);
+                toast.error('Failed to remove user');
                 setLoading(false);
             }
         } catch (error) {
@@ -332,7 +338,7 @@ export default function FacultyClass({ user }: { user: User }) {
             } else {
                 // Handle error
                 console.error('Failed to unenroll user');
-                toast.error(response.statusText);
+                toast.error('Failed to unenroll user');
                 setLoading(false);
             }
         } catch (error) {

@@ -22,17 +22,15 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const isAdmin = await getisAdmin(email as string);
 
     if (isAdmin) {
-      return new Response('', {
+      return new Response(JSON.stringify({ message: `true` }), {
         status: 200,
-        statusText: 'true',
         headers: {
             'Content-Type': 'application/json'
         }
       });
     } else {
-      return new Response('', {
+      return new Response(JSON.stringify({ message: `false` }), {
         status: 200,
-        statusText: 'false',
         headers: {
             'Content-Type': 'application/json'
         }

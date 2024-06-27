@@ -27,7 +27,6 @@ export async function deleteHandler(req: Request, res: NextApiResponse) {
                 });
                 return new Response('', {
                     status: 200,
-                    statusText: `User Removed`
                 })
             }
         } catch (error) {
@@ -86,7 +85,6 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                     });
                     return new Response(JSON.stringify(user), {
                         status: 200,
-                        statusText: `Class retrieved`
                     })
                 }
             } else {
@@ -117,7 +115,6 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                     });
                     return new Response(JSON.stringify(user), {
                         status: 200,
-                        statusText: `Class retrieved`
                     })
                 }
             }

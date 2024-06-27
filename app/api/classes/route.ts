@@ -41,18 +41,17 @@ export async function postHandler(req: Request, res: NextApiResponse) {
                 }
             });
 
-            return new Response('', {
+            return new Response(JSON.stringify({ message: `Class created with code ${code}` }), {
                 status: 200,
-                statusText: `Class created with code ${code}`
             })
+
         } catch (error: any) {
             if (error.code === 'P2002') {
                 // Unique constraint error
                 console.error('Failed to create class due to unique constraint:', error.meta.target);
         
-                return new Response(JSON.stringify({ error: `Class with this ${error.meta.target} already exists` }), {
-                    status: 409, // Conflict status code
-                    statusText: `Class name must be unique`,
+                return new Response(JSON.stringify({ error: `Class with this ${error.meta.target} already exists`, message: `Class name must be unique` }), {
+                    status: 409,
                     headers: {
                         'Content-Type': 'application/json'
                     }
@@ -106,7 +105,6 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                 });
                 return new Response(JSON.stringify(user), {
                     status: 200,
-                    statusText: `Class retrieved`
                 })
             }
         } catch (error) {
@@ -140,9 +138,8 @@ export async function deleteHandler(req: Request, res: NextApiResponse) {
                         id: id,
                     }
                 });
-                return new Response('', {
+                return new Response(JSON.stringify({ message: 'Class deleted' }), {
                     status: 200,
-                    statusText: `Class deleted`
                 })
             }
         } catch (error) {
@@ -188,9 +185,8 @@ export async function putHandler(req: Request, res: NextApiResponse) {
             });
 
             if (!classData) {
-                return new Response(JSON.stringify({ error: 'Class not found' }), {
+                return new Response(JSON.stringify({ error: 'Class not found', message: 'Clas does not exist' }), {
                     status: 404,
-                    statusText: 'Class not found',
                     headers: {
                         'Content-Type': 'application/json'
                     }
@@ -215,18 +211,16 @@ export async function putHandler(req: Request, res: NextApiResponse) {
                 }
             });
 
-            return new Response('', {
+            return new Response(JSON.stringify({ message: 'Class joined' }), {
                 status: 200,
-                statusText: `Class joined`,
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
         } catch (error: any) {
             if (error.code === 'P2002') {
-                return new Response(JSON.stringify({ error: 'Conflict' }), {
+                return new Response(JSON.stringify({ error: 'Conflict', mesage: 'User is already enrolled in this class' }), {
                     status: 409,
-                    statusText: 'User is already enrolled in this class',
                     headers: {
                         'Content-Type': 'application/json'
                     }

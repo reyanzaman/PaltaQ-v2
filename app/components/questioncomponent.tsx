@@ -78,14 +78,16 @@ export default function QuestionComponent({ user }: { user: User }) {
                 },
             });
 
+            const responseText = await response.json();
+
             if (response.ok) {
                 setClassCode('');
                 setRefresh(!refresh);
-                toast.success(response.statusText);
+                toast.success(responseText.message);
             } else {
                 // Handle error
                 console.error('Failed to submit class details');
-                toast.error(response.statusText);
+                toast.error(responseText.message);
                 setLoading(false);
             }
         } catch (error) {

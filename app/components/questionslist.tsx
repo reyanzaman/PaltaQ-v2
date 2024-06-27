@@ -155,7 +155,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
             });
 
             if (!response.ok) {
-                throw new Error(`Error: ${response.statusText}`);
+                throw new Error(`Error: Failed to like question`);
             }
 
             const result = await response.text();
@@ -231,7 +231,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
             });
 
             if (!response.ok) {
-                throw new Error(`Error: ${response.statusText}`);
+                throw new Error(`Error: Failed to dislike question`);
             }
 
             const result = await response.text();
@@ -392,7 +392,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
                     });
 
                     if (!response.ok) {
-                        throw new Error(`Error: ${response.statusText}`);
+                        throw new Error(`Error: Failed to get user ID`);
                     }
 
                     const data = await response.json();

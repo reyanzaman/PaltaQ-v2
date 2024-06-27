@@ -21,9 +21,8 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
                 },
             });
 
-            return new Response("", {
+            return new Response(JSON.stringify({ message: 'User updated' }), {
                 status: 200,
-                statusText: `User updated`
             })
         } catch (error) {
             console.error('Failed to update user:', error);
@@ -77,7 +76,6 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                 });
                 return new Response(JSON.stringify(user), {
                     status: 200,
-                    statusText: `User retrieved`
                 })
             } else {
                 const user = await prisma.user.findUnique({
@@ -87,7 +85,6 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                 });
                 return new Response(JSON.stringify(user), {
                     status: 200,
-                    statusText: `User retrieved`
                 })
             }
         } catch (error) {

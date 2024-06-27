@@ -122,7 +122,7 @@ export default function RecentQuestions() {
             });
     
             if (!response.ok) {
-                throw new Error(`Error: ${response.statusText}`);
+                throw new Error(`Error: Failed to Like Question`);
             }
     
             const result = await response.text();
@@ -198,7 +198,7 @@ export default function RecentQuestions() {
             });
     
             if (!response.ok) {
-                throw new Error(`Error: ${response.statusText}`);
+                throw new Error(`Error: Failed to Dislike Question`);
             }
     
             const result = await response.text();
@@ -310,7 +310,7 @@ export default function RecentQuestions() {
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Error: ${response.statusText}`);
+                    throw new Error(`Error: Failed to get latest questions`);
                 }
 
                 const data = await response.json();
@@ -345,7 +345,7 @@ export default function RecentQuestions() {
             });
 
             if (!response.ok) {
-                throw new Error(`Error: ${response.statusText}`);
+                throw new Error(`Error: Failed to get latest questions`);
             }
 
             const data = await response.json();
@@ -368,7 +368,7 @@ export default function RecentQuestions() {
                     });
 
                     if (!response.ok) {
-                        throw new Error(`Error: ${response.statusText}`);
+                        throw new Error(`Error: Failed to fetch user id`);
                     }
 
                     const data = await response.json();

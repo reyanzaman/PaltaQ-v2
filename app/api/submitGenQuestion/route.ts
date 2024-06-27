@@ -96,15 +96,6 @@ async function postHandler(req: Request, res: NextApiResponse) {
         }
       }
 
-      // if (userId !== "") {
-      //   const status = await updateRank(userId, cid);
-      //   // Return success response
-      //   return new Response('', {
-      //     status: 200,
-      //     statusText: `${score} Points Awarded!|${status}`,
-      //   })
-      // }
-
       // Return success response
       return new Response(JSON.stringify({ message: `${score} Points Awarded!` }), {
         status: 200,

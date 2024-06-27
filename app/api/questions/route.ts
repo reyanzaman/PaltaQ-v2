@@ -28,14 +28,15 @@ export async function getHandler(req: Request, res: NextApiResponse) {
             dislikedBy: true,
             paltaQBy: {
               include: {
-                user: true
+                user: true,
+                likedBy: true,
+                dislikedBy: true,
               }
             }
           }
         });
         return new Response(JSON.stringify(question), {
           status: 200,
-          statusText: `Questions retrieved`
         })
       } else if (cid) {
         const question = await prisma.question.findMany({
@@ -49,7 +50,9 @@ export async function getHandler(req: Request, res: NextApiResponse) {
             dislikedBy: true,
             paltaQBy: {
               include: {
-                user: true
+                user: true,
+                likedBy: true,
+                dislikedBy: true,
               }
             },
             questionType: true
@@ -58,7 +61,6 @@ export async function getHandler(req: Request, res: NextApiResponse) {
         );
         return new Response(JSON.stringify(question), {
           status: 200,
-          statusText: `Questions retrieved`
         })
       }
     } catch (error) {

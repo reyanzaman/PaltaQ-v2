@@ -32,7 +32,6 @@ export async function getHandler(req: Request, res: NextApiResponse) {
 
                 return new Response(JSON.stringify(topicsWithQuestionCount), {
                     status: 200,
-                    statusText: `Topics retrieved`
                 })
             }
         } catch (error) {
@@ -67,18 +66,16 @@ export async function postHandler(req: Request, res: NextApiResponse) {
                 }
             });
 
-            return new Response('', {
+            return new Response(JSON.stringify({ message: 'Topic created'}), {
                 status: 200,
-                statusText: `Topic created`
             })
         } catch (error: any) {
             if (error.code === 'P2002') {
                 // Unique constraint error
                 console.error('Failed to create topic due to unique constraint:', error.meta.target);
 
-                return new Response(JSON.stringify({ error: `Topic with this ${error.meta.target} already exists` }), {
-                    status: 409, // Conflict status code
-                    statusText: `Topic name must be unique within a class`,
+                return new Response(JSON.stringify({ error: `Topic with this ${error.meta.target} already exists` , message: 'Topic name must be unique within a class'}), {
+                    status: 409,
                     headers: {
                         'Content-Type': 'application/json'
                     }
@@ -115,9 +112,8 @@ export async function deleteHandler(req: Request, res: NextApiResponse) {
                         id: id,
                     }
                 });
-                return new Response('', {
+                return new Response(JSON.stringify({ message: 'Topic deleted'}), {
                     status: 200,
-                    statusText: `Topic deleted`
                 })
             }
         } catch (error) {
@@ -166,13 +162,11 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
 
             return new Response(JSON.stringify(updatedTopic), {
                 status: 200,
-                statusText: `Topic updated`
             })
         } catch (error: any) {
             if (error.code === 'P2002') {
-                return new Response(JSON.stringify({ error: 'Conflict' }), {
+                return new Response(JSON.stringify({ error: 'Conflict', message: 'Topic name already exists in this class' }), {
                     status: 409,
-                    statusText: 'Topic name already exists in this class',
                     headers: {
                         'Content-Type': 'application/json'
                     }
