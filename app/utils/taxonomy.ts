@@ -343,6 +343,8 @@ export const bloom_applying = [
     "articulate",
     "articulated",
     "articulating",
+    "algorithm",
+    "algorithms",
     "code",
     "coded",
     "coding",

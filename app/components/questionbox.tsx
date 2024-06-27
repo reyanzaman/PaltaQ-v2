@@ -6,7 +6,40 @@ import { faPaperPlane, faAngleDown } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 
-import { Topic, Question } from '@prisma/client';
+import { Topic } from '@prisma/client';
+
+interface ClassEnrollment {
+    id: string;
+    userId: string;
+    classId: string;
+    user: User;
+    score: number;
+    rank: string;
+    questionCount: number;
+    paltaQCount: number;
+    updatedAt: Date;
+}
+
+interface User {
+    id: string;
+    name: string;
+    image: string;
+    email: String;
+    is_Admin: boolean;
+    is_Faculty: boolean;
+    createdAt: string;
+    updatedAt: string;
+    userDetails: UserDetails;
+    classes: ClassEnrollment[];
+}
+
+interface UserDetails {
+    userId: string;
+    totalScore: number;
+    questionsAsked: number;
+    paltaQAsked: number;
+    successfulReports: number;
+}
 
 export default function QuestionBox({ classId }: { classId: string }) {
     const [question, setQuestion] = useState('');
@@ -17,7 +50,13 @@ export default function QuestionBox({ classId }: { classId: string }) {
     const [selectedTopicId, setSelectedTopicId] = useState('' as string);
     const [topics, setTopics] = useState<Topic[]>();
 
+    const [loading, setLoading] = useState(false);
+
+    const [enrollment, setEnrollment] = useState<ClassEnrollment>();
+
     useEffect(() => {
+        setLoading(true);
+
         const fetchTopics = async () => {
             const response = await fetch(`/api/topics?cid=${classId}`, {
                 method: 'GET',
@@ -29,14 +68,39 @@ export default function QuestionBox({ classId }: { classId: string }) {
             if (response.ok) {
                 // Handle successful submission
                 setTopics(await response.json())
+                setLoading(false);
             } else {
                 // Handle error
                 console.error('Failed to get topics');
+                setLoading(false);
             }
         }
 
+        const fetchProgressData = async () => {
+            try {
+                const response = await fetch(`/api/progressData?id=${classId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setEnrollment(data);
+                    setLoading(false);
+                } else {
+                    // Handle error
+                    console.error('Failed to fetch progress data');
+                    setLoading(false);
+                }
+            } catch (error) {
+                console.error('Error fetching progress data:', error);
+                setLoading(false);
+            }
+        };
+
         fetchTopics();
-        
+        fetchProgressData();
     }, []);
 
     const handleDropdown = () => {
@@ -103,6 +167,67 @@ export default function QuestionBox({ classId }: { classId: string }) {
             });
         }
     };
+
+    function calculateProgress(score: number) {
+        let minScore = 0, maxScore = 0;
+
+        if (score >= 0 && score <= 550) {
+            minScore = 0;
+            maxScore = 550;
+        } else if (score >= 551 && score <= 1500) {
+            minScore = 551;
+            maxScore = 1500;
+        } else if (score > 1500 && score <= 3000) {
+            minScore = 1501;
+            maxScore = 3000;
+        } else if (score > 3000 && score <= 5000) {
+            minScore = 3001;
+            maxScore = 5000;
+        } else if (score > 5000 && score <= 7000) {
+            minScore = 5001;
+            maxScore = 7000;
+        } else if (score > 7000 && score <= 15000) {
+            minScore = 7001;
+            maxScore = 15000;
+        } else if (score > 15000 && score <= 25000) {
+            minScore = 15001;
+            maxScore = 25000;
+        } else if (score > 25000 && score <= 35000) {
+            minScore = 25001;
+            maxScore = 35000;
+        } else if (score > 35000 && score <= 50000) {
+            minScore = 35001;
+            maxScore = 50000;
+        } else if (score > 50000) {
+            minScore = 50001;
+            maxScore = 50001;
+        }
+
+        let progressNum
+
+        if(score == undefined){
+            progressNum = "Loading";
+        } else {
+            progressNum = `${score}/${maxScore}`;
+        }
+
+        if (maxScore === minScore) {
+            // Handle the case where maxScore equals minScore (score > 50000)
+            return { progress: 100, progressNum }; // Assuming 100% progress as score is greater than 50000
+        } else {
+            if (score == undefined){
+                const progress = 0;
+                return { progress, progressNum };
+            } else {
+                const progress = ((score - minScore) / (maxScore - minScore)) * 100;
+                return { progress, progressNum };
+            }
+        }
+    }
+
+    // Assuming you have the user's score and rank
+    const userScore = enrollment?.score || 0;
+    const { progress, progressNum } = calculateProgress(userScore);
 
     return (
         <form className="lg:w-3/4 pl-3 pt-2 pr-3" onSubmit={handleSubmit}>
@@ -185,6 +310,32 @@ export default function QuestionBox({ classId }: { classId: string }) {
                         className="w-[1.5rem] text-[#31344b] -translate-y-2"
                     />
                 </button>
+            </div>
+
+            {/* Progress Bar */}
+            <div>
+                {loading ? (
+                    <h1 className="text-2xl font-bold">Loading...</h1>
+                ) : (
+                <div>
+                    <h5>Your progress for next ranking: {Math.round(progress) ? Math.round(progress): "Loading"}% &nbsp;({progressNum ? progressNum : ""})</h5>
+                    <div className="progress progress-xl lg:w-[96%]" style={{ height: '1.5em' }}>
+                            <div
+                                className="progress-bar progress-bar-striped bg-info"
+                                role="progressbar"
+                                aria-valuenow={progress}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                style={{
+                                    width: `${progress}%`,
+                                    animation: "3s ease 0s 1 normal none running animate-positive",
+                                    opacity: 1
+                                }}
+                            >
+                            </div>
+                    </div>
+                </div>
+                )}
             </div>
         </form>
     );
