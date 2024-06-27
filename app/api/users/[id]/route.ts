@@ -1,5 +1,6 @@
 import { NextApiResponse } from 'next';
 import prisma from '@/app/lib/prisma';
+import { revalidateTag } from 'next/cache';
 
 export async function patchHandler(req: Request, res: NextApiResponse) {
     if (req.method === 'PATCH') {
@@ -7,6 +8,7 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
         const pathname = url?.pathname;
         const parts = pathname?.split('/') ?? [];
         const userId = parts[parts.length - 1];
+        revalidateTag('questions');
 
         try {
             const { isAdmin, isFaculty } = await req.json();

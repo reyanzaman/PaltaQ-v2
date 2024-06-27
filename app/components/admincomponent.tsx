@@ -31,7 +31,7 @@ export default function AdminComponent() {
         const response = await fetch(`/api/users/${session?.user?.email}`, {
           method: 'GET',
           headers: {
-              'Content-Type': 'application/json'
+            'Content-Type': 'application/json'
           }
         });
         if (!response.ok) {
@@ -70,7 +70,14 @@ export default function AdminComponent() {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
+            'Cache-Control': 'public, no-cache',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           },
+          next: {
+            tags: ['questions']
+          },
+          cache: 'no-store',
           body: JSON.stringify({
             isAdmin,
             isFaculty,
@@ -95,16 +102,16 @@ export default function AdminComponent() {
   };
 
   const filteredUsers = users
-  .filter((user: any) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-  .sort((a: any, b: any) => {
-    // Convert createdAt strings to Date objects for comparison
-    const dateA = new Date(a.createdAt);
-    const dateB = new Date(b.createdAt);
-    return dateB.getTime() - dateA.getTime(); // Sort in descending order
-  });
+    .filter((user: any) =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a: any, b: any) => {
+      // Convert createdAt strings to Date objects for comparison
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      return dateB.getTime() - dateA.getTime(); // Sort in descending order
+    });
 
   return (
     <div className={`${nunito.className} antialiased flex flex-col`}>
