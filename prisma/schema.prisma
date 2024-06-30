@@ -99,6 +99,7 @@ enum QuestionCategory {
   General
   Topic
   Palta
+  PaltaPalta
 }
 
 model Question {
@@ -188,10 +189,10 @@ model Dislikes {
 model PaltaQ {
   id            String   @id @default(uuid())
   userId        String
-  questionId    String
+  questionId    String?
+  parentId      String?      // Foreign key to another PaltaQ
   paltaQ        String
   score         Int          @default(0)
-
   likes         Int          @default(0)
   dislikes      Int          @default(0)
 
@@ -205,6 +206,11 @@ model PaltaQ {
   dislikedBy    Dislikes[] @relation("DislikedPaltaQ")
   reports       Reports[]    // One-to-many relationship with Reports
   questionType  QuestionType[] // One-to-many relationship with QuestionType
+
   user        User     @relation(fields: [userId], references: [id], name: "UserPaltaQ")
-  question    Question @relation(fields: [questionId], references: [id], name: "QuestionPaltaQ", onDelete: Cascade)
+  question    Question? @relation(fields: [questionId], references: [id], name: "QuestionPaltaQ", onDelete: Cascade)
+  parent      PaltaQ?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     PaltaQ[] @relation("CommentReplies")
+
+  @@index([parentId])
 }

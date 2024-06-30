@@ -9018,26 +9018,6 @@ a.bg-slack:focus,a.bg-slack:hover,button.bg-slack:focus,button.bg-slack:hover {
     background-color: transparent!important
 }
 
-.border {
-    border: .0625rem solid #fafbfe!important
-}
-
-.border-top {
-    border-top: .0625rem solid #fafbfe!important
-}
-
-.border-right {
-    border-right: .0625rem solid #fafbfe!important
-}
-
-.border-bottom {
-    border-bottom: .0625rem solid #fafbfe!important
-}
-
-.border-left {
-    border-left: .0625rem solid #fafbfe!important
-}
-
 .border-0 {
     border: 0!important
 }

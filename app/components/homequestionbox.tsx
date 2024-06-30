@@ -84,7 +84,7 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
   };
 
   return (
-    <form className="w-[90%] mx-auto" onSubmit={handleSubmit}>
+    <form className="lg:w-[100%] w-[93%] mx-auto" onSubmit={handleSubmit}>
       <div className="mb-4">
         <textarea
           id="questionMain"

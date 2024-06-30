@@ -3,7 +3,8 @@ import prisma from '@/app/lib/prisma';
 export enum QuestionCategory {
   General = 'General',
   Topic = 'Topic',
-  Palta = 'Palta'
+  Palta = 'Palta',
+  PaltaPalta = 'PaltaPalta',
 }
 
 export async function submitQuestionToDatabase(userId: string, question: string, score: number, category: QuestionCategory, topicId: string, classId: string, isAnonymous: boolean, foundKeywords: { [key: string]: boolean }, from: string = "general"): Promise<void> {
@@ -90,30 +91,61 @@ export async function submitQuestionToDatabase(userId: string, question: string,
   }
 }
 
-export async function submitPaltaQToDatabase(userId: string, question: string, questionId: string, classId: string, score: number, isAnonymous: boolean, foundKeywords: { [key: string]: boolean }, from: string = "general"): Promise<void> {
+export async function submitPaltaQToDatabase(userId: string, question: string, questionId: string, paltaQId: string = '', classId: string, score: number, isAnonymous: boolean, foundKeywords: { [key: string]: boolean }, from: string = "general"): Promise<void> {
   try {
-    // Insert the question into the database using Prisma
-    const createdQuestion = await prisma.paltaQ.create({
-      data: {
-        userId: userId,
-        paltaQ: question,
-        questionId: questionId,
-        score: score,
-        isAnonymous: isAnonymous,
-      },
-    });
 
-    // Increment the palta question count in the question record
-    await prisma.question.update({
-      where: {
-        id: questionId as string,
-      },
-      data: {
-        paltaQ: {
-          increment: 1, // Increment the paltaQ count by 1
+    // Insert the question into the database using Prisma
+    let createdQuestion;
+
+    if (from === "paltapalta") {
+
+      createdQuestion = await prisma.paltaQ.create({
+        data: {
+          userId: userId,
+          paltaQ: question,
+          parentId: questionId,
+          score: score,
+          isAnonymous: isAnonymous,
         },
-      },
-    });
+      });
+
+      // Increment the palta question count in the question record
+      await prisma.question.update({
+        where: {
+          id: paltaQId as string,
+        },
+        data: {
+          paltaQ: {
+            increment: 1, // Increment the paltaQ count by 1
+          },
+        },
+      });
+
+    } else {
+
+      createdQuestion = await prisma.paltaQ.create({
+        data: {
+          userId: userId,
+          paltaQ: question,
+          questionId: questionId,
+          score: score,
+          isAnonymous: isAnonymous,
+        },
+      });
+
+      // Increment the palta question count in the question record
+      await prisma.question.update({
+        where: {
+          id: questionId as string,
+        },
+        data: {
+          paltaQ: {
+            increment: 1, // Increment the paltaQ count by 1
+          },
+        },
+      });
+
+    }
 
     // Create QuestionType entry based on foundKeywords
     await prisma.questionType.create({
@@ -130,17 +162,6 @@ export async function submitPaltaQToDatabase(userId: string, question: string, q
 
     let scoreToUpdate = 0;
 
-    // if (from === "general") {
-    //   if (score <= 50) {
-    //     scoreToUpdate = 5;
-    //   } else if (score <= 100) {
-    //     scoreToUpdate = 10;
-    //   } else if (score <= 150) {
-    //     scoreToUpdate = 15;
-    //   }
-    // } else {
-    //   scoreToUpdate = score + (0.1 * score);
-    // }
     scoreToUpdate = score + (0.1 * score);
 
     await prisma.userDetails.update({
@@ -157,7 +178,7 @@ export async function submitPaltaQToDatabase(userId: string, question: string, q
       },
     });
 
-    if (from !== "general") {
+    if (from !== "general" && from !== "paltapalta") {
       await prisma.classEnrollment.update({
         where: {
           userId_classId: {

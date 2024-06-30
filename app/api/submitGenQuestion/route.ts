@@ -22,7 +22,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const token = await getToken({ req: req as any, secret });
 
       // Extract question data from the request body
-      const { question, category, quesID } = await req.json();
+      const { question, category, quesID, paltaQuesID } = await req.json();
 
       let userId = "";
 
@@ -78,6 +78,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
             uid,
             question,
             quesID,
+            '',
             cid,
             score,
             true,
@@ -88,10 +89,37 @@ async function postHandler(req: Request, res: NextApiResponse) {
             userId,
             question,
             quesID,
+            '',
             cid,
             score,
             false,
             foundKeywords
+          );
+        }
+      } else if (category === QuestionCategory.PaltaPalta) {
+        if (userId === "" && paltaQuesID) {
+          await submitPaltaQToDatabase(
+            uid,
+            question,
+            quesID,
+            paltaQuesID,
+            cid,
+            score,
+            true,
+            foundKeywords,
+            'paltapalta'
+          );
+        } else {
+          await submitPaltaQToDatabase(
+            userId,
+            question,
+            quesID,
+            paltaQuesID,
+            cid,
+            score,
+            false,
+            foundKeywords,
+            'paltapalta'
           );
         }
       }

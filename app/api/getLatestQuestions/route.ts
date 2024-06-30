@@ -45,6 +45,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
               user: true,
               paltaQ: true,
               questionId: true,
+              parentId: true,
               score: true,
               likes: true,
               dislikes: true,
@@ -52,9 +53,19 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
               dislikedBy: true,
               isAnonymous: true,
               createdAt: true,
+              parent: true,
+              replies: true,
             },
           }
         },
+      });
+
+      // Calculate replies length for each paltaQBy and set replies to undefined
+      questions.forEach(question => {
+        question.paltaQBy.forEach(paltaQBy => {
+          (paltaQBy as any).repliesLength = paltaQBy.replies.length;
+          (paltaQBy as any).replies = undefined; // Set replies to undefined
+        });
       });
 
       return new Response(JSON.stringify(questions), {
