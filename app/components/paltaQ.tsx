@@ -53,12 +53,12 @@ interface PaltaQProps {
     userId: string;
     index: number;
     visibleInputBox: { [key: string]: boolean };
-    toggleInputBox: (questionId: string) => void;
+    toggleInputBox: (questionId: string, alternate?: boolean) => void;
     visibleTextBoxes: { [key: string]: boolean };
     handleButtonClick: (questionId: string, position: any, userName: string) => void;
     textBoxPosition: string;
     userName: string;
-    resetClick: (questionId: string) => void;
+    resetClick: () => void;
 }
 
 const PaltaQComponent: React.FC<PaltaQProps> = ({
@@ -78,7 +78,6 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
     const { data: session, status } = useSession();
     const [questions, setQuestions] = useState<PaltaQ[]>([]);
     const [loading, setLoading] = useState(false);
-    const [refresh, setRefresh] = useState(false);
 
     const [paltaQInputs, setPaltaQInputs] = useState<{ [key: string]: any }>({});
 
@@ -87,7 +86,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
         setPaltaQInputs(prev => ({ ...prev, [questionId]: value }));
     };
 
-    const handleLike = async (questionId: string, userId: string, type: string) => {
+    const handleLike = async (questionId: string, userId: string) => {
         try {
             if (loading) return; // Prevent if already loading
             setLoading(true);
@@ -98,22 +97,11 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                 setLoading(false);
                 return;
             }
-
-            if (type === 'question') {
-                const question = questions.find(q => q.id === questionId);
-                if (question?.dislikedBy?.some(dislike => dislike.userId === userId)) {
-                    toast.info('You have already disliked this question');
-                    setLoading(false);
-                    return;
-                }
-            } else if (type === 'palta') {
-                const question = questions.find(q => q.paltaQBy.some(p => p.id === questionId));
-                const paltaQ = question?.paltaQBy.find(p => p.id === questionId);
-                if (paltaQ?.dislikedBy.some(dislike => dislike.userId === userId)) {
-                    toast.info('You have already disliked this comment');
-                    setLoading(false);
-                    return;
-                }
+            const paltaQ = questions.find(p => p.id === questionId);
+            if (paltaQ?.dislikedBy.some(dislike => dislike.userId === userId)) {
+                toast.info('You have already disliked this comment');
+                setLoading(false);
+                return;
             }
 
             const response = await fetch(`/api/likeQuestion`, {
@@ -121,7 +109,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ userId: userId, questionId: questionId, type: type })
+                body: JSON.stringify({ userId: userId, questionId: questionId, type: 'palta' })
             });
 
             if (!response.ok) {
@@ -133,24 +121,12 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
             // Update the local state based on the response
             setQuestions(prevQuestions => {
                 return prevQuestions.map(q => {
-                    if (type === 'question' && q.id === questionId) {
+                    if (q.id === questionId) {
                         const updatedLikes = result === "+1" ? q.likes + 1 : q.likes - 1;
                         const updatedLikedBy = result === "+1"
                             ? [...q.likedBy, { id: Date.now().toString(), userId, questionId }]
                             : q.likedBy.filter(like => like.userId !== userId);
                         return { ...q, likes: updatedLikes, likedBy: updatedLikedBy };
-                    } else if (type === 'palta') {
-                        const updatedPaltaQBy = q.paltaQBy.map(p => {
-                            if (p.id === questionId) {
-                                const updatedLikes = result === "+1" ? p.likes + 1 : p.likes - 1;
-                                const updatedLikedBy = result === "+1"
-                                    ? [...p.likedBy, { id: Date.now().toString(), userId, questionId }]
-                                    : p.likedBy.filter(like => like.userId !== userId);
-                                return { ...p, likes: updatedLikes, likedBy: updatedLikedBy };
-                            }
-                            return p;
-                        });
-                        return { ...q, paltaQBy: updatedPaltaQBy };
                     }
                     return q;
                 });
@@ -163,7 +139,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
         }
     };
 
-    const handleDislike = async (questionId: string, userId: string, type: string) => {
+    const handleDislike = async (questionId: string, userId: string) => {
         try {
             if (loading) return; // Prevent if already loading
             setLoading(true);
@@ -175,21 +151,11 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                 return;
             }
 
-            if (type === 'question') {
-                const question = questions.find(q => q.id === questionId);
-                if (question?.likedBy.some(like => like.userId === userId)) {
-                    toast.info('You have already liked this question');
-                    setLoading(false);
-                    return;
-                }
-            } else if (type === 'palta') {
-                const question = questions.find(q => q.paltaQBy.some(p => p.id === questionId));
-                const paltaQ = question?.paltaQBy.find(p => p.id === questionId);
-                if (paltaQ?.likedBy.some(like => like.userId === userId)) {
-                    toast.info('You have already liked this comment');
-                    setLoading(false);
-                    return;
-                }
+            const paltaQ = questions.find(p => p.id === questionId);
+            if (paltaQ?.likedBy.some(like => like.userId === userId)) {
+                toast.info('You have already liked this comment');
+                setLoading(false);
+                return;
             }
 
             const response = await fetch(`/api/dislikeQuestion`, {
@@ -197,7 +163,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ userId: userId, questionId: questionId, type: type })
+                body: JSON.stringify({ userId: userId, questionId: questionId, type: 'palta' })
             });
 
             if (!response.ok) {
@@ -209,24 +175,12 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
             // Update the local state based on the response
             setQuestions(prevQuestions => {
                 return prevQuestions.map(q => {
-                    if (type === 'question' && q.id === questionId) {
+                    if (q.id === questionId) {
                         const updatedDislikes = result === "+1" ? q.dislikes + 1 : q.dislikes - 1;
                         const updatedDislikedBy = result === "+1"
                             ? [...q.dislikedBy, { id: Date.now().toString(), userId, questionId }]
                             : q.dislikedBy.filter(dislike => dislike.userId !== userId);
                         return { ...q, dislikes: updatedDislikes, dislikedBy: updatedDislikedBy };
-                    } else if (type === 'palta') {
-                        const updatedPaltaQBy = q.paltaQBy.map(p => {
-                            if (p.id === questionId) {
-                                const updatedDislikes = result === "+1" ? p.dislikes + 1 : p.dislikes - 1;
-                                const updatedDislikedBy = result === "+1"
-                                    ? [...p.dislikedBy, { id: Date.now().toString(), userId, questionId }]
-                                    : p.dislikedBy.filter(dislike => dislike.userId !== userId);
-                                return { ...p, dislikes: updatedDislikes, dislikedBy: updatedDislikedBy };
-                            }
-                            return p;
-                        });
-                        return { ...q, paltaQBy: updatedPaltaQBy };
                     }
                     return q;
                 });
@@ -246,27 +200,27 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
 
         const pQuestion = paltaQInputs[questionId] || '';
 
+        // Handle validation 
+        if (pQuestion.length < 10) {
+            toast.error('Question too short!');
+            setLoading(false);
+            return;
+        } else if (pQuestion.length > 300) {
+            toast.error('Question too long!');
+            setLoading(false);
+            return;
+        }
+
+        // Show loading toast
+        const loadingToastId = toast.loading('Submitting your question...');
+
         try {
-            // Handle validation  
-            if (pQuestion.length < 10) {
-                toast.error('Question too short!');
-                setLoading(false);
-                return;
-            } else if (pQuestion.length > 300) {
-                toast.error('Question too long!');
-                setLoading(false);
-                return;
-            }
-
-            // Show loading toast
-            const loadingToastId = toast.loading('Submitting your question...');
-
             const response = await fetch('/api/submitGenQuestion', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ question: pQuestion, category: QuestionCategory.PaltaPalta, quesID: questionId, paltaQuesID: quesPaltaQId }),
+                body: JSON.stringify({ question: pQuestion, category: QuestionCategory.PaltaPalta, quesID: questionId, paltaQuesID: quesPaltaQId, mainQuesID: mainQuestionId }),
             });
 
             const responseData = await response.json();
@@ -274,10 +228,8 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
             if (response.ok) {
                 // Handle successful submission
                 setPaltaQInputs(prev => ({ ...prev, [questionId]: '' }));
-
                 const responseText = responseData.message;
-                const updateText = responseText.split('|')[1];
-                const mainText = responseText.split('|')[0];
+                const [mainText, updateText] = responseText.split('|');
 
                 if (updateText && updateText !== "Rank unchanged") {
                     toast.dark(updateText);
@@ -287,22 +239,10 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                     render: mainText,
                     type: 'success',
                     isLoading: false,
-                    autoClose: 5000,
+                    autoClose: 4000,
                 });
 
-            } else {
-                // Handle error
-                console.error('Failed to submit palta question');
-                toast.update(loadingToastId, {
-                    render: responseData.message || 'PaltaQ submission failed',
-                    type: 'error',
-                    isLoading: false,
-                    autoClose: 5000,
-                });
-            }
-
-            // Fetching the latest paltaQ
-            try {
+                // Fetching the latest paltaQ
                 const response = await fetch(`/api/getPaltaQ?pqid=${paltaQId}`, {
                     method: 'GET',
                     headers: {
@@ -317,22 +257,25 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                     cache: 'no-store'
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Error: Failed to get latest paltaQ`);
-                }
-
+                if (!response.ok) throw new Error('Failed to get latest paltaQ');
                 const data = await response.json();
                 setQuestions(data);
-            } catch (error) {
-                console.error('Error fetching paltaQ:', error);
+            } else {
+                // Handle error
+                console.error('Failed to submit palta question');
+                toast.update(loadingToastId, {
+                    render: responseData.message || 'PaltaQ submission failed',
+                    type: 'error',
+                    isLoading: false,
+                    autoClose: 4000,
+                });
             }
-
-            resetClick(questionId);
-            setRefresh(!refresh);
-            setLoading(false);
+            resetClick();
+            toggleInputBox(questionId, false);
         } catch (error) {
             console.error('Failed to submit palta question:', error);
             toast.error('Failed to submit PaltaQ');
+        } finally {
             setLoading(false);
         }
     };
@@ -366,7 +309,13 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
         };
 
         fetchPaltaQ();
-    }, [userId, refresh]);
+
+        const intervalId = setInterval(fetchPaltaQ, 5000); // Fetch every 5 seconds
+        return () => clearInterval(intervalId); // Cleanup function to clear interval
+
+    }, [userId, loading]);
+
+    const sortedQuestions = questions.slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
     return (
         <div className="mt-2">
@@ -374,9 +323,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                 <h6 className='text-zinc-400 text-sm'>PaltaQ Depth: {index + 1}</h6>
             )}
             <div>
-                {questions
-                    .slice() // Create a copy of the array to avoid mutating the original
-                    .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                {sortedQuestions
                     .map((paltaQ: any) => (
 
                         <div
@@ -452,9 +399,9 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                     </div>
 
                                     {/* PaltaQ Like/Dislike/PaltaQ */}
-                                    <div className="flex flex-row items-start mt-2 lg:ml-5 ml-0 pt-2 pb-3">
+                                    <div className="flex flex-row items-start mt-2 pt-1">
                                         {/* Like */}
-                                        <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading}>
+                                        <button onClick={() => handleLike(paltaQ.id, userId)} disabled={loading}>
                                             <FontAwesomeIcon
                                                 icon={faThumbsUp}
                                                 className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${paltaQ.likedBy && paltaQ.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
@@ -463,7 +410,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                         <span className="small ml-1 mr-2">{paltaQ.likes}</span>
                                         <span className="small mr-2">|</span>
                                         {/* Dislike */}
-                                        <button onClick={() => handleDislike(paltaQ.id, userId, 'palta')} disabled={loading}>
+                                        <button onClick={() => handleDislike(paltaQ.id, userId)} disabled={loading}>
                                             <FontAwesomeIcon
                                                 icon={faThumbsDown}
                                                 className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${paltaQ.dislikedBy && paltaQ.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
@@ -486,7 +433,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                         {index < 3 && (
                                             <div className='flex flex-row'>
                                                 <span className="small mr-2">|</span>
-                                                <button onClick={() => handleButtonClick(paltaQ.id, `paltaQ${index+1}`, paltaQ.user.name)}>
+                                                <button onClick={() => handleButtonClick(paltaQ.id, `paltaQ${index + 1}`, paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name)}>
                                                     <h5
                                                         className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'paltaQ1' ? 'text-emerald-700' : ''}`}>
                                                         PaltaQ
@@ -498,33 +445,35 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
 
                                 </div>
 
-                            </div>
-
-                            {/* Conditional PaltaQ2 Text Area */}
-                            <div>
-                                {visibleTextBoxes[paltaQ.id] && textBoxPosition === `paltaQ${index+1}` && (
-                                    <div className='pb-4'>
-                                        <h6 className='text-zinc-400 text-sm pl-3'>Depth:{index+2} | Responding to {userName}</h6>
-                                        <form className="lg:mx-4 mx-2" onSubmit={handlePaltaQ(paltaQ.id, mainQuestionId)}>
-                                            <textarea
-                                                id="paltaQuestion"
-                                                className="form-control pr-5o5 resize-none py-3 pl-3"
-                                                placeholder='Type a creative palta question here . . .'
-                                                onChange={handleInputChange(paltaQ.id)}
-                                                value={paltaQInputs[paltaQ.id] || ''}
-                                            />
-                                            <button
-                                                type="submit"
-                                                className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
-                                            >
-                                                <FontAwesomeIcon
-                                                    icon={faPaperPlane}
-                                                    className="w-[1.5rem] text-[#31344b]"
+                                {/* Conditional PaltaQ2 Text Area */}
+                                <div>
+                                    {visibleTextBoxes[paltaQ.id] && textBoxPosition === `paltaQ${index + 1}` && (
+                                        <div className=''>
+                                            <h6 className='text-zinc-400 text-sm pl-1 pt-2'>Depth:{index + 2} | Responding to {userName}</h6>
+                                            <form className="" onSubmit={handlePaltaQ(paltaQ.id, mainQuestionId)}>
+                                                <textarea
+                                                    id="paltaQuestion"
+                                                    className="form-control pr-5o5 resize-none py-3 pl-3"
+                                                    placeholder='Type a creative palta question here . . .'
+                                                    onChange={handleInputChange(paltaQ.id)}
+                                                    value={paltaQInputs[paltaQ.id] || ''}
                                                 />
-                                            </button>
-                                        </form>
-                                    </div>
-                                )}
+                                                <button
+                                                    type="submit"
+                                                    className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
+                                                >
+                                                    <FontAwesomeIcon
+                                                        icon={faPaperPlane}
+                                                        className="w-[1.5rem] text-[#31344b]"
+                                                    />
+                                                </button>
+                                            </form>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <hr className=' border-b border-gray-400 my-3 mr-4'></hr>
+
                             </div>
 
                             {/* Nested PaltaQ */}
@@ -550,7 +499,6 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                         </div>
                     )
                     )}
-                <hr className='border-b border-gray-400 my-3 mr-4'></hr>
             </div>
 
         </div>

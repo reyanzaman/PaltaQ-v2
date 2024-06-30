@@ -80,37 +80,65 @@ export default function RecentQuestions() {
 
     const [visibleInputBox, setVisibleInputBox] = useState<{ [key: string]: boolean }>({});
 
-    const toggleInputBox = (questionId: string) => {
-        setVisibleInputBox(prevState => ({
-            ...prevState,
-            [questionId]: !prevState[questionId]
-        }));
-    };
-
-    const handleButtonClick = (questionId: string, position: any, userName: string) => {
-        if (textBoxPosition === position) {
-            setTextBoxPosition('');
-            setUserName('');
-            setVisibleTextBoxes((prevState) => ({
+    const toggleInputBox = (questionId: string, alternate = true) => {
+        if (alternate){
+            setVisibleInputBox(prevState => ({
                 ...prevState,
-                [questionId]: false,
+                [questionId]: !prevState[questionId]
             }));
-            return;
+        } else {
+            setVisibleInputBox(prevState => ({
+                ...prevState,
+                [questionId]: true
+            }));
         }
-        setTextBoxPosition(position);
-        setUserName(userName);
-        setVisibleTextBoxes((prevState) => ({
-            ...prevState,
-            [questionId]: !prevState[questionId],
-        }));
     };
 
-    const resetClick = (questionId: string) => {
-        setVisibleInputBox(prevState => ({
-            ...prevState,
-            [questionId]: true
-        }));
+    const handleButtonClick = (questionId: string, position: any, username: string) => {
+        try {
+            if (visibleTextBoxes[questionId]) {
+                setTextBoxPosition('');
+                setUserName('');
+                setVisibleTextBoxes((prevState) => {
+                    const newState = Object.keys(prevState).reduce<{ [key: string]: boolean }>((acc, key) => {
+                        acc[key] = false;
+                        return acc;
+                    }, {});
+                    return newState;
+                });
+                return;
+            }
+            setTextBoxPosition(position);
+            setUserName(username);
+            setVisibleTextBoxes((prevState) => {
+                // Create a new object with all values set to false
+                const newState = Object.keys(prevState).reduce<{ [key: string]: boolean }>((acc, key) => {
+                    acc[key] = false;
+                    return acc;
+                }, {});
+                
+                // Set the current questionId to true
+                newState[questionId] = true;
+                
+                return newState;
+            });
+        } catch (error) {
+            console.error('Error in handleButtonClick', error)
+        } finally {
+            console.log('TextBoxPosition:', textBoxPosition, 'UserName:', userName, 'VisibleTextBox', visibleTextBoxes[questionId]?.toString(), "InputBox", visibleInputBox[questionId]?.toString())
+        }
+    };
+
+    const resetClick = () => {
+        setVisibleTextBoxes((prevState) => {
+            const newState = Object.keys(prevState).reduce<{ [key: string]: boolean }>((acc, key) => {
+                acc[key] = false;
+                return acc;
+            }, {});
+            return newState;
+        });
         setTextBoxPosition('');
+        setUserName('');
     }
 
     const handleInputChange = (questionId: string) => (event: any) => {
@@ -324,8 +352,7 @@ export default function RecentQuestions() {
                 setPaltaQInputs(prev => ({ ...prev, [questionId]: '' }));
 
                 const responseText = responseData.message;
-                const updateText = responseText.split('|')[1];
-                const mainText = responseText.split('|')[0];
+                const [mainText, updateText] = responseText.split('|');
 
                 if (updateText && updateText !== "Rank unchanged") {
                     toast.dark(updateText);
@@ -335,7 +362,7 @@ export default function RecentQuestions() {
                     render: mainText,
                     type: 'success',
                     isLoading: false,
-                    autoClose: 5000,
+                    autoClose: 4000,
                 });
 
             } else {
@@ -345,31 +372,26 @@ export default function RecentQuestions() {
                     render: responseData.message || 'PaltaQ submission failed',
                     type: 'error',
                     isLoading: false,
-                    autoClose: 5000,
+                    autoClose: 4000,
                 });
             }
 
-            try {
-                const response = await fetch('/api/getLatestQuestions', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error: Failed to get latest questions`);
+            const response2 = await fetch('/api/getLatestQuestions', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
                 }
+            });
 
-                const data = await response.json();
-                setQuestions(data);
-            } catch (error) {
-                console.error('Error fetching questions:', error);
-                setLoading(false);
+            if (!response2.ok) {
+                throw new Error(`Error: Failed to get latest questions`);
             }
 
-            resetClick(questionId);
+            const data = await response2.json();
+            setQuestions(data);
 
+            resetClick();
+            toggleInputBox(questionId, false);
             setLoading(false);
         } catch (error) {
             console.error('Failed to submit palta question:', error);
@@ -454,7 +476,7 @@ export default function RecentQuestions() {
                     .map((question: any) => (
                         <div key={question.id} className="card bg-primary shadow-sm border-light w-[100%] mx-auto mb-4">
                             {/* Main Question Top Part */}
-                            <div className="px-4 pt-4 pb-2">
+                            <div className="px-4 pt-3 pb-2">
 
                                 {/* Main Question User Details */}
                                 <div className="flex flex-row justify-between mb-2">
@@ -505,7 +527,7 @@ export default function RecentQuestions() {
 
                             <div className=''>
                                 {/* Main Question Badges */}
-                                <div className='pb-2 -translate-x-0.5'>
+                                <div className='pb-2 -translate-x-1'>
                                     <div className={`ml-4 badge  ${question.score >= 100
                                         ? "text-danger"
                                         : question.score >= 50
@@ -526,7 +548,7 @@ export default function RecentQuestions() {
                                 </div>
 
                                 {/* Main Question Like/Dislike/PaltaQ */}
-                                <div className="flex flex-row items-start mt-2 ml-4 pl-2 pt-2 pb-2">
+                                <div className="flex flex-row items-start mt-2 ml-3 pl-2 pt-1 pb-2">
                                     {/* Like */}
                                     <button onClick={() => handleLike(question.id, userId, 'question')} disabled={loading}>
                                         <FontAwesomeIcon
@@ -552,7 +574,7 @@ export default function RecentQuestions() {
                                     <span className="small ml-1 mr-2">{question.paltaQ}</span>
                                     <span className="small mr-2">|</span>
                                     {/* PaltaQ */}
-                                    <button onClick={() => handleButtonClick(question.id, 'mainQ', question.user.name)}>
+                                    <button onClick={() => handleButtonClick(question.id, 'mainQ', question.isAnonymous ? 'Anonymous User' : question.user.name)}>
                                         <h5
                                             className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'mainQ' ? 'text-emerald-700' : ''}`}>
                                             PaltaQ
@@ -591,9 +613,13 @@ export default function RecentQuestions() {
 
                                 {/* Palta Questions Options */}
                                 {visibleInputBox[question.id] && (
-                                    <div className="mt-2">
-                                        <h5 className='text-sm text-zinc-400 ml-2'>PaltaQ Depth: 1</h5>
-                                        <div className='pb-4'>
+                                    <div className="">
+                                        {question.paltaQBy.length==0 ? (
+                                            <h5 className='text-sm text-zinc-400 ml-2'>No palta questions have been asked yet for this question</h5>
+                                        ) : (
+                                            <h5 className='text-sm text-zinc-400 ml-2'>PaltaQ Depth: 1</h5>
+                                        )}
+                                        <div className='mb-2'>
                                             {question.paltaQBy
                                                 .slice() // Create a copy of the array to avoid mutating the original
                                                 .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
@@ -665,7 +691,7 @@ export default function RecentQuestions() {
                                                                 </div>
 
                                                                 {/* PaltaQ Like/Dislike/PaltaQ */}
-                                                                <div className="flex flex-row items-start mt-2 lg:ml-5 ml-0 pt-2">
+                                                                <div className="flex flex-row items-start mt-2 pt-1">
                                                                     {/* Like */}
                                                                     <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading}>
                                                                         <FontAwesomeIcon
@@ -691,7 +717,7 @@ export default function RecentQuestions() {
                                                                     <span className="small ml-1 mr-2">{paltaQ.repliesLength}</span>
                                                                     <span className="small mr-2">|</span>
                                                                     {/* PaltaQ */}
-                                                                    <button onClick={() => handleButtonClick(paltaQ.id, 'paltaQ1', paltaQ.user.name)}>
+                                                                    <button onClick={() => handleButtonClick(paltaQ.id, 'paltaQ1', paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name)}>
                                                                         <h5
                                                                             className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'paltaQ1' ? 'text-emerald-700' : ''}`}>
                                                                             PaltaQ
@@ -704,9 +730,9 @@ export default function RecentQuestions() {
                                                             {/* Conditional PaltaQ2 Text Area */}
                                                             <div>
                                                                 {visibleTextBoxes[paltaQ.id] && textBoxPosition === 'paltaQ1' && (
-                                                                    <div className='pb-4'>
-                                                                        <h6 className='text-zinc-400 text-sm pl-3'>Depth:2 | Responding to {userName}</h6>
-                                                                        <form className="lg:mx-4 mx-2" onSubmit={handlePaltaQ(paltaQ.id, question.id, true)}>
+                                                                    <div className='pb-2'>
+                                                                        <h6 className='text-zinc-400 text-sm pl-1'>Depth:2 | Responding to {userName}</h6>
+                                                                        <form className="mr-1" onSubmit={handlePaltaQ(paltaQ.id, question.id, true)}>
                                                                             <textarea
                                                                                 id="paltaQuestion"
                                                                                 className="form-control pr-5o5 resize-none py-3 pl-3"
@@ -728,9 +754,7 @@ export default function RecentQuestions() {
                                                                 )}
                                                             </div>
 
-                                                        </div>
-
-                                                        <div>
+                                                            <hr className=' border-b border-gray-400 my-3 mr-4'></hr>
 
                                                         </div>
 

@@ -128,6 +128,7 @@ model Question {
   likedBy       Likes[]      @relation("QuestionLikes")
   dislikedBy    Dislikes[]   @relation("QuestionDislikes")
   paltaQBy      PaltaQ[]     @relation("QuestionPaltaQ")
+  subPaltaQ     PaltaQ[]     @relation("ParentQuestion")
   class         Classes      @relation(fields: [classId], references: [id], onDelete: Cascade)
 }
 
@@ -189,8 +190,9 @@ model Dislikes {
 model PaltaQ {
   id            String   @id @default(uuid())
   userId        String
-  questionId    String?
-  parentId      String?      // Foreign key to another PaltaQ
+  questionId    String?     // Foreign key to Question
+  parentId      String?     // Foreign key to PaltaQ
+  mainQuestionID String?    // Foreign key to Question
   paltaQ        String
   score         Int          @default(0)
   likes         Int          @default(0)
@@ -209,6 +211,7 @@ model PaltaQ {
 
   user        User     @relation(fields: [userId], references: [id], name: "UserPaltaQ")
   question    Question? @relation(fields: [questionId], references: [id], name: "QuestionPaltaQ", onDelete: Cascade)
+  parentMQ    Question? @relation("ParentQuestion", fields: [mainQuestionID], references: [id])
   parent      PaltaQ?  @relation("CommentReplies", fields: [parentId], references: [id])
   replies     PaltaQ[] @relation("CommentReplies")
 

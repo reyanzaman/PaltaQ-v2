@@ -1,4 +1,5 @@
 import prisma from '@/app/lib/prisma';
+import { uid, cid } from '@/app/api/submitGenQuestion/route';
 
 export enum QuestionCategory {
   General = 'General',
@@ -104,6 +105,7 @@ export async function submitPaltaQToDatabase(userId: string, question: string, q
           userId: userId,
           paltaQ: question,
           parentId: questionId,
+          mainQuestionID: paltaQId,
           score: score,
           isAnonymous: isAnonymous,
         },
@@ -184,6 +186,25 @@ export async function submitPaltaQToDatabase(userId: string, question: string, q
           userId_classId: {
             userId: userId,
             classId: classId,
+          },
+        },
+        data: {
+          paltaQCount: {
+            increment: 1,
+          },
+          score: {
+            increment: scoreToUpdate,
+          },
+        },
+      });
+    }
+
+    if (from === "general") {
+      await prisma.classEnrollment.update({
+        where: {
+          userId_classId: {
+            userId: uid,
+            classId: cid,
           },
         },
         data: {

@@ -56,7 +56,6 @@ export async function getHandler(req: Request, res: NextApiResponse) {
 export async function postHandler(req: Request, res: NextApiResponse) {
     if (req.method === 'POST') {
         const { classId, topicName } = await req.json();
-        console.log('name:', classId, 'facultyId:', topicName);
 
         try {
             await prisma.topic.create({

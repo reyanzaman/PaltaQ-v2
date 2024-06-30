@@ -110,8 +110,6 @@ export default function QuestionsList({ classId }: { classId: string }) {
 
     currentQuestions = currentQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
 
-    console.log(currentQuestions);
-
     const handlePageChange = (pageNumber: any, event: any) => {
         event.preventDefault(); // Prevent the default anchor behavior
         if (pageNumber > 0 && pageNumber <= totalPages) {

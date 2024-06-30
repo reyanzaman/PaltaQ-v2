@@ -53,10 +53,20 @@ export async function validateQuestion(question: string, category: QuestionCateg
 
     const existingPaltaQs = await prisma.paltaQ.findMany({
       where: {
-        question: {
-          topicId: topicID,
-          classId: classID,
-        }
+        OR: [
+          {
+            question: {
+              topicId: topicID,
+              classId: classID,
+            }
+          },
+          {
+            parentMQ: {
+              topicId: topicID,
+              classId: classID,
+            }
+          }
+        ]
       }
     });
 
