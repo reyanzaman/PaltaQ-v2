@@ -124,8 +124,6 @@ export default function RecentQuestions() {
             });
         } catch (error) {
             console.error('Error in handleButtonClick', error)
-        } finally {
-            console.log('TextBoxPosition:', textBoxPosition, 'UserName:', userName, 'VisibleTextBox', visibleTextBoxes[questionId]?.toString(), "InputBox", visibleInputBox[questionId]?.toString())
         }
     };
 
@@ -548,7 +546,7 @@ export default function RecentQuestions() {
                                 </div>
 
                                 {/* Main Question Like/Dislike/PaltaQ */}
-                                <div className="flex flex-row items-start mt-2 ml-3 pl-2 pt-1 pb-2">
+                                <div className="flex flex-row items-start mt-2 ml-3 pl-2 pt-1 pb-2 translate-x-[0.1em]">
                                     {/* Like */}
                                     <button onClick={() => handleLike(question.id, userId, 'question')} disabled={loading}>
                                         <FontAwesomeIcon
@@ -615,10 +613,12 @@ export default function RecentQuestions() {
                                 {visibleInputBox[question.id] && (
                                     <div className="">
                                         {question.paltaQBy.length==0 ? (
-                                            <h5 className='text-sm text-zinc-400 ml-2'>No palta questions have been asked yet for this question</h5>
+                                            <h5 className='text-sm text-zinc-400 ml-2 pb-2'>No palta questions have been asked yet for this question</h5>
                                         ) : (
                                             <h5 className='text-sm text-zinc-400 ml-2'>PaltaQ Depth: 1</h5>
                                         )}
+
+                                        {/* PaltaQ Card */}
                                         <div className='mb-2'>
                                             {question.paltaQBy
                                                 .slice() // Create a copy of the array to avoid mutating the original
@@ -669,7 +669,7 @@ export default function RecentQuestions() {
                                                             </div>
 
                                                             {/* PaltaQ Question */}
-                                                            <div className='lg:mt-0 mt-2'>{paltaQ.paltaQ}</div>
+                                                            <div className='mt-2'>{paltaQ.paltaQ}</div>
 
                                                             {/* Bottom Part */}
                                                             <div className='flex flex-col'>
@@ -730,7 +730,7 @@ export default function RecentQuestions() {
                                                             {/* Conditional PaltaQ2 Text Area */}
                                                             <div>
                                                                 {visibleTextBoxes[paltaQ.id] && textBoxPosition === 'paltaQ1' && (
-                                                                    <div className='pb-2'>
+                                                                    <div className='pb-2 pt-1'>
                                                                         <h6 className='text-zinc-400 text-sm pl-1'>Depth:2 | Responding to {userName}</h6>
                                                                         <form className="mr-1" onSubmit={handlePaltaQ(paltaQ.id, question.id, true)}>
                                                                             <textarea
@@ -774,6 +774,9 @@ export default function RecentQuestions() {
                                                                     textBoxPosition={textBoxPosition}
                                                                     userName={userName}
                                                                     resetClick={resetClick}
+                                                                    from="general"
+                                                                    classId=''
+                                                                    topicId=''
                                                                 />
                                                             </div>
                                                         )}

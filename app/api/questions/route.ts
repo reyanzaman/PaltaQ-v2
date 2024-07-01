@@ -17,7 +17,7 @@ export async function getHandler(req: Request, res: NextApiResponse) {
 
     try {
       if (cid && tid) {
-        const question = await prisma.question.findMany({
+        const questions = await prisma.question.findMany({
           where: {
             classId: cid,
             topicId: tid,
@@ -27,19 +27,38 @@ export async function getHandler(req: Request, res: NextApiResponse) {
             likedBy: true,
             dislikedBy: true,
             paltaQBy: {
-              include: {
+              select: {
+                id: true,
+                userId: true,
                 user: true,
+                paltaQ: true,
+                questionId: true,
+                parentId: true,
+                score: true,
+                likes: true,
+                dislikes: true,
                 likedBy: true,
                 dislikedBy: true,
+                isAnonymous: true,
+                createdAt: true,
+                parent: true,
+                replies: true,
               }
             }
           }
         });
-        return new Response(JSON.stringify(question), {
+        // Calculate replies length for each paltaQBy and set replies to undefined
+        questions.forEach(question => {
+          question.paltaQBy.forEach(paltaQBy => {
+            (paltaQBy as any).repliesLength = paltaQBy.replies.length;
+            (paltaQBy as any).replies = undefined; // Set replies to undefined
+          });
+        });
+        return new Response(JSON.stringify(questions), {
           status: 200,
         })
       } else if (cid) {
-        const question = await prisma.question.findMany({
+        const questions = await prisma.question.findMany({
           where: {
             classId: cid,
           },
@@ -49,17 +68,36 @@ export async function getHandler(req: Request, res: NextApiResponse) {
             likedBy: true,
             dislikedBy: true,
             paltaQBy: {
-              include: {
+              select: {
+                id: true,
+                userId: true,
                 user: true,
+                paltaQ: true,
+                questionId: true,
+                parentId: true,
+                score: true,
+                likes: true,
+                dislikes: true,
                 likedBy: true,
                 dislikedBy: true,
+                isAnonymous: true,
+                createdAt: true,
+                parent: true,
+                replies: true,
               }
             },
             questionType: true
           }
         }
         );
-        return new Response(JSON.stringify(question), {
+        // Calculate replies length for each paltaQBy and set replies to undefined
+        questions.forEach(question => {
+          question.paltaQBy.forEach(paltaQBy => {
+            (paltaQBy as any).repliesLength = paltaQBy.replies.length;
+            (paltaQBy as any).replies = undefined; // Set replies to undefined
+          });
+        });
+        return new Response(JSON.stringify(questions), {
           status: 200,
         })
       }
@@ -96,6 +134,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const tid = url?.searchParams.get('tid') || '';
       const question = url?.searchParams.get('question') || '';
       const qid = url?.searchParams.get('qid') || '';
+      const Mqid = url?.searchParams.get('Mqid') || '';
 
       let userId = "";
 
@@ -138,11 +177,24 @@ async function postHandler(req: Request, res: NextApiResponse) {
           userId,
           question,
           qid,
+          '',
           cid,
           score,
           isAnonymous,
           foundKeywords,
           'topic'
+        );
+      } else if (category === QuestionCategory.PaltaPalta) {
+        await submitPaltaQToDatabase(
+          userId,
+          question,
+          qid,
+          Mqid,
+          cid,
+          score,
+          isAnonymous,
+          foundKeywords,
+          'paltapalta'
         );
       }
 

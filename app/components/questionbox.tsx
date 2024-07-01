@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane, faAngleDown } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faAngleDown, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 
@@ -64,7 +64,7 @@ export default function QuestionBox({ classId }: { classId: string }) {
                     'Content-Type': 'application/json',
                 },
             });
-    
+
             if (response.ok) {
                 // Handle successful submission
                 setTopics(await response.json())
@@ -140,14 +140,14 @@ export default function QuestionBox({ classId }: { classId: string }) {
         if (response.ok) {
             // Handle successful submission
             setQuestion('');
-            
+
             const responseText = responseData.message;
             const updateText = responseText.split('|')[1];
             const mainText = responseText.split('|')[0];
 
             if (updateText && updateText !== "Rank unchanged") {
                 toast.dark(updateText);
-            }      
+            }
 
             toast.update(loadingToastId, {
                 render: mainText,
@@ -205,7 +205,7 @@ export default function QuestionBox({ classId }: { classId: string }) {
 
         let progressNum
 
-        if(score == undefined){
+        if (score == undefined) {
             progressNum = "Loading";
         } else {
             progressNum = `${score}/${maxScore}`;
@@ -215,7 +215,7 @@ export default function QuestionBox({ classId }: { classId: string }) {
             // Handle the case where maxScore equals minScore (score > 50000)
             return { progress: 100, progressNum }; // Assuming 100% progress as score is greater than 50000
         } else {
-            if (score == undefined){
+            if (score == undefined) {
                 const progress = 0;
                 return { progress, progressNum };
             } else {
@@ -238,12 +238,23 @@ export default function QuestionBox({ classId }: { classId: string }) {
             {/* Topic, Anonymity */}
             <div className='lg:pt-2 pl-2 mb-4'>
                 <div className='flex lg:flex-row flex-col lg:gap-x-12 gap-y-3 lg:pt-0 pt-2 items-start'>
-                    
+
                     {/* Anonymity */}
                     <label className='inline-flex items-center cursor-pointer order-last'>
                         <input type="checkbox" value={isAnonymous.toString()} className="sr-only peer" onChange={() => setIsAnonymous(!isAnonymous)} />
                         <div className="relative w-16 h-6 bg-zinc-800 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-5 after:w-7 after:transition-all peer-checked:bg-zinc-500-800"></div>
-                        <span className="ms-3 text-lg font-bold">Toggle Anonymity ({isAnonymous==false ? "Off" : "On"})</span>
+                        {isAnonymous ? (
+                            <FontAwesomeIcon
+                                icon={faEyeSlash}
+                                className={`ml-3 lg:hidden text-lg text-[#31344b]`}
+                            />
+                        ) : (
+                            <FontAwesomeIcon
+                                icon={faEye}
+                                className={`ml-3 lg:hidden text-lg text-[#31344b]`}
+                            />
+                        )}
+                        <span className="ms-2 text-lg font-bold">Toggle Anonymity ({isAnonymous == false ? "Off" : "On"})</span>
                     </label>
 
                     {/* DropDown */}
@@ -269,25 +280,25 @@ export default function QuestionBox({ classId }: { classId: string }) {
 
                                 <div className={`dropdown-menu ${showDropdown ? 'show' : ''}`} id='dropdown' x-placement="bottom-start" style={{ position: 'absolute', willChange: 'transform', top: '0px', left: '0px', transform: 'translate3d(0px,40px,0px)' }}>
                                     {topics?.map((topic: Topic, index: any) => (
-                                    <a
-                                        key={index}
-                                        className='dropdown-item' 
-                                        href="#" 
-                                        onClick={(e) => { 
-                                            e.preventDefault(); 
-                                            setSelectedTopic(topic.name); 
-                                            setSelectedTopicId(topic.id);
-                                            setShowDropdown(false); 
-                                        }}
-                                    >
-                                        {topic.name}
-                                    </a>
+                                        <a
+                                            key={index}
+                                            className='dropdown-item'
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                setSelectedTopic(topic.name);
+                                                setSelectedTopicId(topic.id);
+                                                setShowDropdown(false);
+                                            }}
+                                        >
+                                            {topic.name}
+                                        </a>
                                     ), [])}
                                 </div>
                             </div>
                         </span>
                     </div>
-                    
+
                 </div>
             </div>
 
@@ -317,9 +328,9 @@ export default function QuestionBox({ classId }: { classId: string }) {
                 {loading ? (
                     <h1 className="text-2xl font-bold">Loading...</h1>
                 ) : (
-                <div>
-                    <h5>Your progress for next ranking: {Math.round(progress) ? Math.round(progress): "Loading"}% &nbsp;({progressNum ? progressNum : ""})</h5>
-                    <div className="progress progress-xl lg:w-[96%]" style={{ height: '1.5em' }}>
+                    <div>
+                        <h5>Your progress for next ranking: {Math.round(progress) ? Math.round(progress) : "Loading"}% &nbsp;({progressNum ? progressNum : ""})</h5>
+                        <div className="progress progress-xl lg:w-[96%]" style={{ height: '1.5em' }}>
                             <div
                                 className="progress-bar progress-bar-striped bg-info"
                                 role="progressbar"
@@ -333,8 +344,8 @@ export default function QuestionBox({ classId }: { classId: string }) {
                                 }}
                             >
                             </div>
+                        </div>
                     </div>
-                </div>
                 )}
             </div>
         </form>

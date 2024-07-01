@@ -1,6 +1,6 @@
 "use client";
 
-import { faPaperPlane, faFlag, faThumbsUp, faThumbsDown, faComment } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faFlag, faThumbsUp, faThumbsDown, faComment, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
 import Image from 'next/image';
@@ -59,6 +59,9 @@ interface PaltaQProps {
     textBoxPosition: string;
     userName: string;
     resetClick: () => void;
+    from: string;
+    classId: string;
+    topicId: string;
 }
 
 const PaltaQComponent: React.FC<PaltaQProps> = ({
@@ -72,11 +75,15 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
     handleButtonClick,
     textBoxPosition,
     userName,
-    resetClick
+    resetClick,
+    from,
+    classId,
+    topicId
 }) => {
 
     const { data: session, status } = useSession();
     const [questions, setQuestions] = useState<PaltaQ[]>([]);
+    const [isAnonymous, setIsAnonymous] = useState<{ [key: string]: boolean }>({});
     const [loading, setLoading] = useState(false);
 
     const [paltaQInputs, setPaltaQInputs] = useState<{ [key: string]: any }>({});
@@ -215,17 +222,35 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
         const loadingToastId = toast.loading('Submitting your question...');
 
         try {
-            const response = await fetch('/api/submitGenQuestion', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ question: pQuestion, category: QuestionCategory.PaltaPalta, quesID: questionId, paltaQuesID: quesPaltaQId, mainQuesID: mainQuestionId }),
-            });
+            let response;
+            if (from=="topic") {
+                response = await fetch(`/api/questions?question=${pQuestion}&qid=${questionId}&cid=${classId}&tid=${topicId}&Mqid=${mainQuestionId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ isAnonymous: isAnonymous[questionId], category: QuestionCategory.PaltaPalta }),
+                });
+            } else if (from=="general") {
+                response = await fetch('/api/submitGenQuestion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: pQuestion, category: QuestionCategory.PaltaPalta, quesID: questionId, paltaQuesID: quesPaltaQId, mainQuesID: mainQuestionId }),
+                });
+            } else {
+                toast.update(loadingToastId, {
+                    render: 'Invalid request!',
+                    type: 'error',
+                    isLoading: false,
+                    autoClose: 4000,
+                });
+            }
 
-            const responseData = await response.json();
+            const responseData = await response?.json();
 
-            if (response.ok) {
+            if (response && response.ok) {
                 // Handle successful submission
                 setPaltaQInputs(prev => ({ ...prev, [questionId]: '' }));
                 const responseText = responseData.message;
@@ -270,14 +295,23 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                     autoClose: 4000,
                 });
             }
+
             resetClick();
             toggleInputBox(questionId, false);
+            toggleAnonymity(questionId);
         } catch (error) {
             console.error('Failed to submit palta question:', error);
             toast.error('Failed to submit PaltaQ');
         } finally {
             setLoading(false);
         }
+    };
+
+    const toggleAnonymity = (questionId: string) => {
+        setIsAnonymous(prev => ({
+            ...prev,
+            [questionId]: !prev[questionId]
+        }));
     };
 
     useEffect(() => {
@@ -449,7 +483,36 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                 <div>
                                     {visibleTextBoxes[paltaQ.id] && textBoxPosition === `paltaQ${index + 1}` && (
                                         <div className=''>
-                                            <h6 className='text-zinc-400 text-sm pl-1 pt-2'>Depth:{index + 2} | Responding to {userName}</h6>
+                                            {from=="topic" ? (
+                                                // Anonymity
+                                                <div className='flex flex-row items-end justify-between'>
+                                                    <h6 className='text-zinc-400 lg:text-sm text-xs'>Depth:2 | Responding to {userName}</h6>
+                                                    <label className='inline-flex items-center cursor-pointer'>
+                                                        <input
+                                                            type="checkbox"
+                                                            value={(isAnonymous[paltaQ.id] || false).toString()}
+                                                            className="sr-only peer"
+                                                            onChange={() => toggleAnonymity(paltaQ.id)}
+                                                        />
+                                                        <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
+                                                        {isAnonymous[paltaQ.id] ? (
+                                                            <FontAwesomeIcon
+                                                                icon={faEyeSlash}
+                                                                className={`w-[1.5rem] lg:hidden text-red-900`}
+                                                            />
+                                                        ) : (
+                                                            <FontAwesomeIcon
+                                                                icon={faEye}
+                                                                className={`w-[1.5rem] lg:hidden text-[#31344b]`}
+                                                            />
+                                                        )}
+                                                        <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[paltaQ.id] ? "On" : "Off"})</span>
+                                                    </label>
+                                                </div>
+                                            ) : (
+                                                <h6 className='text-zinc-400 text-sm pl-1 pt-2'>Depth:{index + 2} | Responding to {userName}</h6>
+                                            )}
+                                            
                                             <form className="" onSubmit={handlePaltaQ(paltaQ.id, mainQuestionId)}>
                                                 <textarea
                                                     id="paltaQuestion"
@@ -492,6 +555,9 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                             textBoxPosition={textBoxPosition}
                                             userName={userName}
                                             resetClick={resetClick}
+                                            from={from}
+                                            classId={classId}
+                                            topicId={topicId}
                                         />
                                     ) : null
                                 )}

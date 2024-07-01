@@ -5,7 +5,7 @@ import { nunito } from "@/app/ui/fonts";
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
-import { Question, QuestionType, User, UserDetails, ClassFaculty, Topic } from '@prisma/client';
+import { Question, ClassFaculty, Topic } from '@prisma/client';
 import QuestionBox from "@/app/components/questionbox";
 import QuestionsList from "@/app/components/questionslist";
 
@@ -29,6 +29,27 @@ interface Class {
     faculties: ClassFaculty[]
     topics: Topic[]
     questions: Question[]
+}
+
+interface User {
+    id: string;
+    name: string;
+    image: string;
+    email: String;
+    is_Admin: boolean;
+    is_Faculty: boolean;
+    createdAt: string;
+    updatedAt: string;
+    userDetails: UserDetails;
+}
+
+interface UserDetails {
+    userId: string;
+    score: number;
+    rank: string;
+    questionsAsked: number;
+    paltaQAsked: number;
+    successfulReports: number;
 }
 
 export default function QuestionComponent({ user }: { user: User }) {
@@ -126,7 +147,7 @@ export default function QuestionComponent({ user }: { user: User }) {
     };
 
     if (loading) {
-        return <div className="pl-2"><h1 className="ml-3 text-2xl font-bold">Loading...</h1></div>;
+        return <div className="pl-2"><h1 className="ml-2 text-2xl font-bold lg:translate-x-0 translate-x-[0.68em] lg:-translate-y-4 -translate-y-[1.3em]">Loading...</h1></div>;
     }
 
     return (
