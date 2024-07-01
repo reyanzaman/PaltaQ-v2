@@ -17,20 +17,30 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                         _count: {
                             select: { questions: true }
                         },
+                        questions: {
+                            select: {
+                                _count: {
+                                    select: { paltaQBy: true }
+                                }
+                            }
+                        }
                     },
                     orderBy: {
                         createdAt: 'asc'
                     }
-                }
-                );
+                });
 
                 // Transform the data to include only the count of questions
-                const topicsWithQuestionCount = topics.map(topic => ({
-                    ...topic,
-                    questions: topic._count.questions
-                }));
+                const topicsWithCount = topics.map(topic => {
+                    const totalPaltaQByCount = topic.questions.reduce((sum, question) => sum + question._count.paltaQBy, 0);
+                    return {
+                        ...topic,
+                        questions: topic._count.questions,
+                        paltaQBy: totalPaltaQByCount
+                    }
+                });
 
-                return new Response(JSON.stringify(topicsWithQuestionCount), {
+                return new Response(JSON.stringify(topicsWithCount), {
                     status: 200,
                 })
             }
@@ -65,7 +75,7 @@ export async function postHandler(req: Request, res: NextApiResponse) {
                 }
             });
 
-            return new Response(JSON.stringify({ message: 'Topic created'}), {
+            return new Response(JSON.stringify({ message: 'Topic created' }), {
                 status: 200,
             })
         } catch (error: any) {
@@ -73,7 +83,7 @@ export async function postHandler(req: Request, res: NextApiResponse) {
                 // Unique constraint error
                 console.error('Failed to create topic due to unique constraint:', error.meta.target);
 
-                return new Response(JSON.stringify({ error: `Topic with this ${error.meta.target} already exists` , message: 'Topic name must be unique within a class'}), {
+                return new Response(JSON.stringify({ error: `Topic with this ${error.meta.target} already exists`, message: 'Topic name must be unique within a class' }), {
                     status: 409,
                     headers: {
                         'Content-Type': 'application/json'
@@ -105,13 +115,13 @@ export async function deleteHandler(req: Request, res: NextApiResponse) {
         const id = url?.searchParams.get('id');
 
         try {
-            if(id) {
+            if (id) {
                 await prisma.topic.delete({
                     where: {
                         id: id,
                     }
                 });
-                return new Response(JSON.stringify({ message: 'Topic deleted'}), {
+                return new Response(JSON.stringify({ message: 'Topic deleted' }), {
                     status: 200,
                 })
             }
@@ -193,4 +203,4 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
 export { getHandler as GET };
 export { postHandler as POST };
 export { deleteHandler as DELETE };
-export { patchHandler as PATCH};
+export { patchHandler as PATCH };

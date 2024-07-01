@@ -353,6 +353,10 @@ export default function FacultyClass({ user }: { user: User }) {
         setSelectedClass(undefined);
     };
 
+    const updateEndDate = async (index: any) => {
+
+    }
+
     const displayStudents = () => {
         if (selectedClass) {
             if (selectedClass.enrollments.length <= 1) {
@@ -465,7 +469,8 @@ export default function FacultyClass({ user }: { user: User }) {
                                 <table className="table table-hover table-responsive-sm">
                                     <tr>
                                         <th className="border-0" scope="col" id="className">Topic Name</th>
-                                        <th className="border-0" scope="col" id="classCode">Associated Questions</th>
+                                        <th className="border-0" scope="col" id="classCode">Questions</th>
+                                        <th className="border-0" scope="col" id="classCode">PaltaQ</th>
                                         <th className="border-0" scope="col" id="classCode">Actions</th>
                                     </tr>
 
@@ -483,8 +488,13 @@ export default function FacultyClass({ user }: { user: User }) {
                                                     topic.name
                                                 )}
                                             </td>
+
                                             <td>
                                                 {topic.questions}
+                                            </td>
+
+                                            <td>
+                                                {topic.paltaQBy}
                                             </td>
 
                                             <td className="flex lg:flex-row flex-col items-center">
@@ -631,6 +641,7 @@ export default function FacultyClass({ user }: { user: User }) {
                                 <tr>
                                     <th className="border-0" scope="col" id="className">Class Name</th>
                                     <th className="border-0" scope="col" id="classCode">Class Code</th>
+                                    <th className="border-0" scope="col" id="classCode">Semester End</th>
                                     <th className="border-0" scope="col" id="classCode">Actions</th>
                                 </tr>
 
@@ -642,50 +653,72 @@ export default function FacultyClass({ user }: { user: User }) {
                                         <td>
                                             {classItem.class.code}
                                         </td>
-                                        <td className="flex lg:flex-row flex-col items-center">
-
-                                            <button
-                                                className="hover:text-blue-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
-                                                onClick={() => { selectClass(index); setRefresh(!refresh); }}>
-                                                View
-                                            </button>
-                                            <button
-                                                className="hover:text-blue-800 transition-colors duration-500 lg:hidden block mb-2"
-                                                onClick={() => { selectClass(index); setRefresh(!refresh); }}>
-                                                View
-                                            </button>
-
-                                            <p className="lg:block hidden mx-2">|</p>
-
-                                            {user.id === classItem.class.creatorId ? (
-                                                <div>
-                                                    <div
-                                                        className="hover:text-red-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
-                                                        onClick={() => setToggleDelete(index)}>
-                                                        Delete
-                                                    </div>
-
-                                                    <button
-                                                        className="hover:text-red-800 transition-colors duration-500 lg:hidden block"
-                                                        onClick={() => setToggleDelete(index)}>
-                                                        Delete
-                                                    </button>
-                                                </div>
+                                        <td>
+                                            {classItem.class.endsAt ? (
+                                                <>
+                                                    {new Date(classItem.class.endsAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                </>
                                             ) : (
-                                                <div>
-                                                    <div
-                                                        className="hover:text-red-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
-                                                        onClick={() => setToggleDelete(index)}>
-                                                        Unenroll
-                                                    </div>
-
-                                                    <button
-                                                        className="hover:text-red-800 transition-colors duration-500 lg:hidden block"
-                                                        onClick={() => setToggleDelete(index)}>
-                                                        Unenroll
-                                                    </button>
-                                                </div>
+                                                "No end date specified"
                                             )}
+                                        </td>
+                                        <td className="">
+
+                                            <div className="flex lg:flex-row flex-col items-center">
+                                                <button
+                                                    className="hover:text-blue-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
+                                                    onClick={() => { selectClass(index); setRefresh(!refresh); }}>
+                                                    View
+                                                </button>
+                                                <button
+                                                    className="hover:text-blue-800 transition-colors duration-500 lg:hidden block mb-2"
+                                                    onClick={() => { selectClass(index); setRefresh(!refresh); }}>
+                                                    View
+                                                </button>
+
+                                                <p className="lg:block hidden mx-2">|</p>
+
+                                                {user.id === classItem.class.creatorId ? (
+                                                    <div>
+                                                        <div
+                                                            className="hover:text-red-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
+                                                            onClick={() => setToggleDelete(index)}>
+                                                            Delete
+                                                        </div>
+
+                                                        <button
+                                                            className="hover:text-red-800 transition-colors duration-500 lg:hidden block"
+                                                            onClick={() => setToggleDelete(index)}>
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <div
+                                                            className="hover:text-red-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
+                                                            onClick={() => setToggleDelete(index)}>
+                                                            Unenroll
+                                                        </div>
+
+                                                        <button
+                                                            className="hover:text-red-800 transition-colors duration-500 lg:hidden block"
+                                                            onClick={() => setToggleDelete(index)}>
+                                                            Unenroll
+                                                        </button>
+                                                    </div>
+                                                )}
+
+                                                {classItem.class.endsAt && (
+                                                    <div className="flex flex-row items-center">
+                                                        <p className="lg:block hidden mx-2">|</p>
+                                                        <button
+                                                            className="hover:text-lime-800 transition-colors duration-500 lg:-translate-y-2 translate-y-2"
+                                                            onClick={() => updateEndDate(index)}>
+                                                            Edit
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
 
                                         </td>
                                         {user.id !== classItem.class.creatorId ? (
@@ -694,7 +727,7 @@ export default function FacultyClass({ user }: { user: User }) {
                                                     <td className="w-full flex gap-x-4">
                                                         <button
                                                             className="hover:text-red-800 transition-colors duration-500"
-                                                            onClick={() => {unenroll(index); setToggleDelete(null)}}>
+                                                            onClick={() => { unenroll(index); setToggleDelete(null) }}>
                                                             Confirm
                                                         </button>
                                                         <button
@@ -711,7 +744,7 @@ export default function FacultyClass({ user }: { user: User }) {
                                                     <td className="w-full flex gap-x-4">
                                                         <button
                                                             className="hover:text-red-800 transition-colors duration-500"
-                                                            onClick={() => {deleteClass(index); setToggleDelete(null)}}>
+                                                            onClick={() => { deleteClass(index); setToggleDelete(null) }}>
                                                             Confirm
                                                         </button>
                                                         <button

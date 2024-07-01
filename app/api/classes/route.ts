@@ -18,12 +18,16 @@ export async function postHandler(req: Request, res: NextApiResponse) {
 
         const { className, facultyId } = await req.json();
 
+        const currentDate = new Date();
+        const endsAtDate = new Date(currentDate.setDate(currentDate.getDate() + 100));
+
         try {
             const newClass = await prisma.classes.create({
                 data: {
                     name: className,
                     code: code,
-                    creatorId: facultyId
+                    creatorId: facultyId,
+                    endsAt: endsAtDate
                 }
             });
 

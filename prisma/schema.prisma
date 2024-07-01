@@ -44,6 +44,7 @@ model Classes {
   creatorId   String
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+  endsAt      DateTime?
 
   faculties   ClassFaculty[]  // Many-to-many relationship with Users for faculty members
   enrollments ClassEnrollment[] // Many-to-many relationship with Users
