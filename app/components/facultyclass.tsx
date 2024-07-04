@@ -115,6 +115,11 @@ export default function FacultyClass({ user }: { user: User }) {
         e.preventDefault();
         setLoading(true);
 
+        if (className == '') {
+            toast.error('Please enter a class name');
+            return;
+        }
+
         try {
             const response = await fetch('/api/classes', {
                 method: 'POST',
@@ -210,6 +215,11 @@ export default function FacultyClass({ user }: { user: User }) {
 
     const createTopic = async (e: any) => {
         e.preventDefault();
+
+        if (classTopic == '') {
+            toast.error('Please enter a topic name');
+            return;
+        }
 
         try {
             const response = await fetch('/api/topics', {
