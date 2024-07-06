@@ -32,7 +32,7 @@ export const authOptions = {
             session.user.image = token.image;
             return session;
         },
-        async signIn({ user }: { user: any }) {
+        async signIn({ user, account }: { user: any, account: any }) {
             const { email, name, image } = user;
 
             // Check if the user already exists in the database
