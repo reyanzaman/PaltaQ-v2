@@ -53,6 +53,7 @@ interface PaltaQ {
 
 interface User {
     id: string;
+    email: string;
     name: string;
     image: string;
     is_Faculty: boolean;
@@ -666,11 +667,17 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                         {question.user.is_Faculty ? (
                                                             <div>
                                                                 <span className="font-bold text-lg ml-2">{question.isAnonymous ? "Anonymous User" : question.user.name}</span>
-                                                                <span className='font-bold text-lg ml-2 text-sky-800'>(Faculty)</span>
+                                                                <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                {question.isAnonymous &&  (
+                                                                    <span className='font-bold text-lg ml-1'>{session?.user?.email == question.user.email ? "(You)" : ""}</span>
+                                                                )}
                                                             </div>
                                                         ) : (
                                                             <div>
                                                                 <span className="font-bold text-lg ml-2">{question.isAnonymous ? "Anonymous User" : question.user.name}</span>
+                                                                {question.isAnonymous &&  (
+                                                                    <span className='font-bold text-lg ml-1'>{session?.user?.email == question.user.email ? "(You)" : ""}</span>
+                                                                )}
                                                             </div>
                                                         )}
                                                         <span className="small ml-2">

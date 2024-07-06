@@ -10,8 +10,6 @@ const UserImage = () => {
 
     const image = session?.user?.image ?? '';
 
-    console.log(session);
-
     return (
         <div className="lg:block hidden absolute right-4 top-4">
             {isLoggedIn ?

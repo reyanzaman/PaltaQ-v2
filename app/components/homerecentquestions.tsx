@@ -500,7 +500,12 @@ export default function RecentQuestions() {
                                         </div>
 
                                         <div className='flex flex-col ml-1'>
-                                            <span className="font-bold text-lg ml-2">{question.isAnonymous ? "Anonymous User" : question.user.name}</span>
+                                            <div>
+                                                <span className="font-bold text-lg ml-2">{question.isAnonymous ? "Anonymous User" : question.user.name}</span>
+                                                {question.isAnonymous && session && (
+                                                    <span className='font-bold text-lg ml-1'>{session?.user?.email == question.user.email ? "(You)" : ""}</span>
+                                                )}
+                                            </div>
                                             <span className="small ml-2">
                                                 {new Date(question.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
                                             </span>

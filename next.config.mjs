@@ -12,15 +12,6 @@ const nextConfig = {
     typescript: {
         ignoreBuildErrors: true,
     },
-    redirects: async () => {
-        return [
-            {
-                source: "/api/sso/logout",
-                destination: `https://accounts.google.com/Logout`,
-                permanent: false,
-            },
-        ];
-    },
 };
 
 export default nextConfig;

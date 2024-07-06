@@ -17,7 +17,6 @@ import {
 import { Tooltip } from "react-tooltip";
 import { signIn, signOut, useSession } from "next-auth/react";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 interface SideNavProps {
   isMobile: boolean;
@@ -31,7 +30,6 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
 
   const { data: session } = useSession();
   const isLoggedIn = !!session;
-  const router = useRouter();
 
   const [IsAdmin, setIsAdmin] = useState(false);
 
@@ -80,7 +78,13 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
 
   const handleLogout = () => {
     if (logoutGoogle) {
-      signOut({ callbackUrl: "/api/sso/logout" })
+      var newWindow = window.open('https://mail.google.com/mail/?logout&hl=fr','Disconnect from Google','width=100,height=50,menubar=no,status=no,location=no,toolbar=no,scrollbars=no,top=200,left=200');
+      setTimeout(function(){
+          if (newWindow) newWindow.close();
+          signOut({redirect: false}).then(() => {
+            window.location.href="/";
+          });
+      },3000);
     } else {
       signOut();
     }
@@ -397,6 +401,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
                     <span className="modal-icon display-1-lg"><span className="far fa-envelope-open"></span></span>
                     <h2 className="h4 my-3">Are you sure you want to logout?</h2>
                     <p>Always make sure to logout from both the <b>PaltaQ app</b> and <b>Google</b> if you are using a public computer in a public place.</p>
+                    <p className="text-xs text-zinc-500">Note: Logging out of Google will logout all the Google accounts in this browser</p>
                   </div>
                 </div>
                 <div className="modal-footer">
