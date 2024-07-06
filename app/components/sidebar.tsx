@@ -78,7 +78,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
 
   const handleLogout = () => {
     if (logoutGoogle) {
-      signOut();
+      signOut({ callbackUrl: "/" });
     } else {
       signOut();
     }
