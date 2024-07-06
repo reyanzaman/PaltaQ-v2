@@ -17,6 +17,7 @@ import {
 import { Tooltip } from "react-tooltip";
 import { signIn, signOut, useSession } from "next-auth/react";
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 interface SideNavProps {
   isMobile: boolean;
@@ -30,6 +31,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
 
   const { data: session } = useSession();
   const isLoggedIn = !!session;
+  const router = useRouter();
 
   const [IsAdmin, setIsAdmin] = useState(false);
 
@@ -78,7 +80,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
 
   const handleLogout = () => {
     if (logoutGoogle) {
-      signOut({ callbackUrl: "/" });
+      signOut({ callbackUrl: "/api/sso/logout" })
     } else {
       signOut();
     }
