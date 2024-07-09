@@ -157,7 +157,7 @@ export default function StudentDashboard({ user }: { user: User }) {
             });
             
             user.paltaQuestions.forEach(paltaQ => {
-                if (paltaQ.question.classId === selectedClassId) {
+                if (paltaQ.question && paltaQ.question.classId === selectedClassId) {
                     const createdAt = new Date(paltaQ.createdAt).toISOString().split('T')[0];
                     if (paltaQData[createdAt] !== undefined) {
                         paltaQData[createdAt] += 1;
@@ -202,7 +202,7 @@ export default function StudentDashboard({ user }: { user: User }) {
             });
             
             user.paltaQuestions.forEach(paltaQ => {
-                if (paltaQ.question.classId === selectedClassId) {
+                if (paltaQ.question && paltaQ.question.classId === selectedClassId) {
                     const createdAt = new Date(paltaQ.createdAt).toISOString().split('T')[0];
                     const { questionType } = paltaQ;
             
@@ -693,7 +693,7 @@ export default function StudentDashboard({ user }: { user: User }) {
                                                     return (
                                                         <tr key={student.user.id}>
                                                             <td>{crownIcon} {index + 1}</td>
-                                                            <td>{student.user.name}</td>
+                                                            <td>{student.user.is_Faculty ? `${student.user.name} (Faculty)` : student.user.name}</td>
                                                             <td>{student.score}</td>
                                                             <td>{student.rank}</td>
                                                             <td>{student.questionCount}</td>

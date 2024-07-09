@@ -38,8 +38,9 @@ export async function validateQuestion(question: string, category: QuestionCateg
       return "Invalid characters in question";
     }
 
-    // Check for more than one question mark
-    if ((question.match(/\?/g) || []).length > 1) {
+    // Check for compound questions
+    const segments = question.split('?').filter(segment => segment.trim().length > 0);
+    if (segments.length > 1) {
       return "Compound questions not allowed";
     }
 

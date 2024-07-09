@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import NotFound from "@/app/components/not-found";
 
 export const metadata: Metadata = {
-  title: "ERROR :(",
+  title: "Page Not Found",
 };
 
 export default function Home() {

@@ -113,8 +113,6 @@ export default function FacultyClass({ user }: { user: User }) {
 
     const createClass = async (e: any) => {
         e.preventDefault();
-        setLoading(true);
-
         if (className == '') {
             toast.error('Please enter a class name');
             return;
@@ -139,17 +137,18 @@ export default function FacultyClass({ user }: { user: User }) {
                 // Handle error
                 console.error('Failed to submit class details');
                 toast.error(responseText.message);
-                setLoading(false);
             }
         } catch (error) {
             console.error('Error creating class:', error);
-            setLoading(false);
         }
-        setLoading(false);
     };
 
     const joinClass = async (e: any) => {
         e.preventDefault()
+        if (classCode == '') {
+            toast.error('Please enter a class code');
+            return;
+        }
         setLoading(true);
 
         try {
@@ -187,7 +186,6 @@ export default function FacultyClass({ user }: { user: User }) {
     };
 
     const deleteClass = async (index: any) => {
-        setLoading(true);
         try {
             const response = await fetch(`/api/classes?id=${classes[index].class.id}`, {
                 method: 'DELETE',
@@ -203,15 +201,16 @@ export default function FacultyClass({ user }: { user: User }) {
                 // Handle error
                 console.error('Failed to delete class');
                 toast.error('Failed to delete class');
-                setLoading(false);
             }
         } catch (error) {
             console.error('Error deleting class:', error);
-            setLoading(false);
         }
-        setLoading(false);
         setToggleDelete(null);
     };
+
+    const updateClass = async (index: any) => {
+
+    }
 
     const createTopic = async (e: any) => {
         e.preventDefault();
@@ -247,7 +246,6 @@ export default function FacultyClass({ user }: { user: User }) {
     };
 
     const deleteTopic = async (index: any) => {
-        setLoading(true);
         try {
             const response = await fetch(`/api/topics?id=${topics[index].id}`, {
                 method: 'DELETE',
@@ -263,13 +261,10 @@ export default function FacultyClass({ user }: { user: User }) {
                 // Handle error
                 console.error('Failed to delete topic');
                 toast.error('Failed to delete topic');
-                setLoading(false);
             }
         } catch (error) {
             console.error('Error deleting topic:', error);
-            setLoading(false);
         }
-        setLoading(false);
         setToggleTopicDelete(null);
     };
 
@@ -669,103 +664,107 @@ export default function FacultyClass({ user }: { user: User }) {
                                                     {new Date(classItem.class.endsAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                                                 </>
                                             ) : (
-                                                "No end date specified"
+                                                <div className="text-rose-800">N/A</div>
                                             )}
                                         </td>
                                         <td className="">
 
-                                            <div className="flex lg:flex-row flex-col items-center">
-                                                <button
-                                                    className="hover:text-blue-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
-                                                    onClick={() => { selectClass(index); setRefresh(!refresh); }}>
-                                                    View
-                                                </button>
-                                                <button
-                                                    className="hover:text-blue-800 transition-colors duration-500 lg:hidden block mb-2"
-                                                    onClick={() => { selectClass(index); setRefresh(!refresh); }}>
-                                                    View
-                                                </button>
+                                            <div className="flex-col">
+                                                <div className="flex lg:flex-row flex-col items-center">
+                                                    <button
+                                                        className="hover:text-blue-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
+                                                        onClick={() => { selectClass(index); setRefresh(!refresh); }}>
+                                                        View
+                                                    </button>
+                                                    <button
+                                                        className="hover:text-blue-800 transition-colors duration-500 lg:hidden block mb-2"
+                                                        onClick={() => { selectClass(index); setRefresh(!refresh); }}>
+                                                        View
+                                                    </button>
 
-                                                <p className="lg:block hidden mx-2">|</p>
+                                                    <p className="lg:block hidden mx-2">|</p>
 
-                                                {user.id === classItem.class.creatorId ? (
-                                                    <div>
-                                                        <div
-                                                            className="hover:text-red-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
-                                                            onClick={() => setToggleDelete(index)}>
-                                                            Delete
+                                                    {user.id === classItem.class.creatorId ? (
+                                                        <div>
+                                                            <div
+                                                                className="hover:text-red-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
+                                                                onClick={() => setToggleDelete(index)}>
+                                                                Delete
+                                                            </div>
+
+                                                            <button
+                                                                className="hover:text-red-800 transition-colors duration-500 lg:hidden block"
+                                                                onClick={() => setToggleDelete(index)}>
+                                                                Delete
+                                                            </button>
                                                         </div>
+                                                    ) : (
+                                                        <div>
+                                                            <div
+                                                                className="hover:text-red-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
+                                                                onClick={() => setToggleDelete(index)}>
+                                                                Unenroll
+                                                            </div>
 
-                                                        <button
-                                                            className="hover:text-red-800 transition-colors duration-500 lg:hidden block"
-                                                            onClick={() => setToggleDelete(index)}>
-                                                            Delete
-                                                        </button>
+                                                            <button
+                                                                className="hover:text-red-800 transition-colors duration-500 lg:hidden block"
+                                                                onClick={() => setToggleDelete(index)}>
+                                                                Unenroll
+                                                            </button>
+                                                        </div>
+                                                    )}
+
+                                                    {classItem.class.endsAt && (
+                                                        <div className="flex flex-row items-center">
+                                                            <p className="lg:block hidden mx-2">|</p>
+                                                            <button
+                                                                className="hover:text-lime-800 transition-colors duration-500 lg:-translate-y-2 translate-y-2"
+                                                                onClick={() => updateEndDate(index)}>
+                                                                Edit
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {user.id !== classItem.class.creatorId ? (
+                                                    <div>
+                                                        {toggleDelete === index && (
+                                                            <td className="w-full flex gap-x-4">
+                                                                <button
+                                                                    className="hover:text-red-800 transition-colors duration-500"
+                                                                    onClick={() => { unenroll(index); setToggleDelete(null) }}>
+                                                                    Confirm
+                                                                </button>
+                                                                <button
+                                                                    className="hover:text-red-800 transition-colors duration-500"
+                                                                    onClick={() => setToggleDelete(null)}>
+                                                                    Cancel
+                                                                </button>
+                                                            </td>
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <div>
-                                                        <div
-                                                            className="hover:text-red-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
-                                                            onClick={() => setToggleDelete(index)}>
-                                                            Unenroll
-                                                        </div>
-
-                                                        <button
-                                                            className="hover:text-red-800 transition-colors duration-500 lg:hidden block"
-                                                            onClick={() => setToggleDelete(index)}>
-                                                            Unenroll
-                                                        </button>
-                                                    </div>
-                                                )}
-
-                                                {classItem.class.endsAt && (
-                                                    <div className="flex flex-row items-center">
-                                                        <p className="lg:block hidden mx-2">|</p>
-                                                        <button
-                                                            className="hover:text-lime-800 transition-colors duration-500 lg:-translate-y-2 translate-y-2"
-                                                            onClick={() => updateEndDate(index)}>
-                                                            Edit
-                                                        </button>
+                                                        {toggleDelete === index && (
+                                                            <td className="w-full flex gap-x-4">
+                                                                <button
+                                                                    className="hover:text-red-800 transition-colors duration-500"
+                                                                    onClick={() => { deleteClass(index); setToggleDelete(null) }}>
+                                                                    Confirm
+                                                                </button>
+                                                                <button
+                                                                    className="hover:text-red-800 transition-colors duration-500"
+                                                                    onClick={() => setToggleDelete(null)}>
+                                                                    Cancel
+                                                                </button>
+                                                            </td>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
 
                                         </td>
-                                        {user.id !== classItem.class.creatorId ? (
-                                            <div>
-                                                {toggleDelete === index && (
-                                                    <td className="w-full flex gap-x-4">
-                                                        <button
-                                                            className="hover:text-red-800 transition-colors duration-500"
-                                                            onClick={() => { unenroll(index); setToggleDelete(null) }}>
-                                                            Confirm
-                                                        </button>
-                                                        <button
-                                                            className="hover:text-red-800 transition-colors duration-500"
-                                                            onClick={() => setToggleDelete(null)}>
-                                                            Cancel
-                                                        </button>
-                                                    </td>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <div>
-                                                {toggleDelete === index && (
-                                                    <td className="w-full flex gap-x-4">
-                                                        <button
-                                                            className="hover:text-red-800 transition-colors duration-500"
-                                                            onClick={() => { deleteClass(index); setToggleDelete(null) }}>
-                                                            Confirm
-                                                        </button>
-                                                        <button
-                                                            className="hover:text-red-800 transition-colors duration-500"
-                                                            onClick={() => setToggleDelete(null)}>
-                                                            Cancel
-                                                        </button>
-                                                    </td>
-                                                )}
-                                            </div>
-                                        )}
+
                                     </tr>
                                 ))}
                             </table>

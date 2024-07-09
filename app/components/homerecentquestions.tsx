@@ -1,6 +1,6 @@
 "use client";
 
-import { faPaperPlane, faFlag, faThumbsUp, faThumbsDown, faComment } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faFlag, faThumbsUp, faThumbsDown, faComment, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
 import Image from 'next/image';
@@ -77,11 +77,26 @@ export default function RecentQuestions() {
     const [visibleTextBoxes, setVisibleTextBoxes] = useState<{ [key: string]: boolean }>({});
     const [textBoxPosition, setTextBoxPosition] = useState('');
     const [userName, setUserName] = useState('');
+    const [isAnonymous, setIsAnonymous] = useState<{ [key: string]: boolean }>({});
 
     const [visibleInputBox, setVisibleInputBox] = useState<{ [key: string]: boolean }>({});
 
+    const toggleAnonymity = (questionId: string, alternate = true) => {
+        if (alternate) {
+            setIsAnonymous(prev => ({
+                ...prev,
+                [questionId]: !prev[questionId]
+            }));
+        } else {
+            setIsAnonymous(prev => ({
+                ...prev,
+                [questionId]: false
+            }));
+        }
+    };
+
     const toggleInputBox = (questionId: string, alternate = true) => {
-        if (alternate){
+        if (alternate) {
             setVisibleInputBox(prevState => ({
                 ...prevState,
                 [questionId]: !prevState[questionId]
@@ -116,12 +131,13 @@ export default function RecentQuestions() {
                     acc[key] = false;
                     return acc;
                 }, {});
-                
+
                 // Set the current questionId to true
                 newState[questionId] = true;
-                
+
                 return newState;
             });
+            toggleAnonymity(questionId, false);
         } catch (error) {
             console.error('Error in handleButtonClick', error)
         }
@@ -330,7 +346,7 @@ export default function RecentQuestions() {
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ question: pQuestion, category: QuestionCategory.PaltaPalta, quesID: questionId, paltaQuesID: quesPaltaQId }),
+                        body: JSON.stringify({ question: pQuestion, category: QuestionCategory.PaltaPalta, quesID: questionId, paltaQuesID: quesPaltaQId, anonymity: isAnonymous[questionId] }),
                     });
                 }
             } else {
@@ -339,7 +355,7 @@ export default function RecentQuestions() {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ question: pQuestion, category: QuestionCategory.Palta, quesID: questionId }),
+                    body: JSON.stringify({ question: pQuestion, category: QuestionCategory.Palta, quesID: questionId, anonymity: isAnonymous[questionId] }),
                 });
             }
 
@@ -501,7 +517,11 @@ export default function RecentQuestions() {
 
                                         <div className='flex flex-col ml-1'>
                                             <div>
-                                                <span className="font-bold text-lg ml-2">{question.isAnonymous ? "Anonymous User" : question.user.name}</span>
+                                                {question.user.id == userId ? (
+                                                    <span className="font-bold text-lg ml-2">{question.isAnonymous ? "Anonymous User (You)" : question.user.name}</span>
+                                                ) : (
+                                                    <span className="font-bold text-lg ml-2">{question.isAnonymous ? "Anonymous User" : question.user.name}</span>
+                                                )}
                                                 {question.isAnonymous && session && (
                                                     <span className='font-bold text-lg ml-1'>{session?.user?.email == question.user.email ? "(You)" : ""}</span>
                                                 )}
@@ -591,7 +611,34 @@ export default function RecentQuestions() {
                                 <div>
                                     {visibleTextBoxes[question.id] && textBoxPosition === 'mainQ' && (
                                         <div className='pb-4'>
-                                            <h6 className='text-zinc-400 text-sm pl-3'>Depth:1 | Responding to {userName}</h6>
+
+                                            {/* Responding To/ Anonymity */}
+                                            <div className='flex flex-row items-end justify-between mr-3'>
+                                                <h6 className='text-zinc-400 text-sm pl-3'>Depth:1 | Responding to {userName}</h6>
+
+                                                <label className='inline-flex items-center cursor-pointer'>
+                                                    <input
+                                                        type="checkbox"
+                                                        value={(isAnonymous[question.id] || false).toString()}
+                                                        className="sr-only peer"
+                                                        onChange={() => toggleAnonymity(question.id)}
+                                                    />
+                                                    <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
+                                                    {isAnonymous[question.id] ? (
+                                                        <FontAwesomeIcon
+                                                            icon={faEyeSlash}
+                                                            className={`w-[1.5rem] lg:hidden text-red-900`}
+                                                        />
+                                                    ) : (
+                                                        <FontAwesomeIcon
+                                                            icon={faEye}
+                                                            className={`w-[1.5rem] lg:hidden text-[#31344b]`}
+                                                        />
+                                                    )}
+                                                    <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[question.id] ? "On" : "Off"})</span>
+                                                </label>
+                                            </div>
+
                                             <form className="lg:mx-4 mx-2" onSubmit={handlePaltaQ(question.id)}>
                                                 <textarea
                                                     id="paltaQuestion"
@@ -617,7 +664,7 @@ export default function RecentQuestions() {
                                 {/* Palta Questions Options */}
                                 {visibleInputBox[question.id] && (
                                     <div className="">
-                                        {question.paltaQBy.length==0 ? (
+                                        {question.paltaQBy.length == 0 ? (
                                             <h5 className='text-sm text-zinc-400 ml-2 pb-2'>No palta questions have been asked yet for this question</h5>
                                         ) : (
                                             <h5 className='text-sm text-zinc-400 ml-2'>PaltaQ Depth: 1</h5>
@@ -736,7 +783,35 @@ export default function RecentQuestions() {
                                                             <div>
                                                                 {visibleTextBoxes[paltaQ.id] && textBoxPosition === 'paltaQ1' && (
                                                                     <div className='pb-2 pt-1'>
-                                                                        <h6 className='text-zinc-400 text-sm pl-1'>Depth:2 | Responding to {userName}</h6>
+
+                                                                        {/* Responding To / Anonymity */}
+                                                                        <div className='flex flex-row items-end justify-between'>
+                                                                            <h6 className='text-zinc-400 text-sm pl-1'>Depth:2 | Responding to {userName}</h6>
+
+                                                                            <label className='inline-flex items-center cursor-pointer'>
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    value={(isAnonymous[paltaQ.id] || false).toString()}
+                                                                                    className="sr-only peer"
+                                                                                    onChange={() => toggleAnonymity(paltaQ.id)}
+                                                                                />
+                                                                                <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
+                                                                                {isAnonymous[question.id] ? (
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={faEyeSlash}
+                                                                                        className={`w-[1.5rem] lg:hidden text-red-900`}
+                                                                                    />
+                                                                                ) : (
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={faEye}
+                                                                                        className={`w-[1.5rem] lg:hidden text-[#31344b]`}
+                                                                                    />
+                                                                                )}
+                                                                                <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[paltaQ.id] ? "On" : "Off"})</span>
+                                                                            </label>
+
+                                                                        </div>
+
                                                                         <form className="mr-1" onSubmit={handlePaltaQ(paltaQ.id, question.id, true)}>
                                                                             <textarea
                                                                                 id="paltaQuestion"

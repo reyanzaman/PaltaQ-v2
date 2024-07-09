@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faEye, faEyeSlash, faE } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 
 export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitted: any }) {
   const [question, setQuestion] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
   useEffect(() => {
   }, [question]);
@@ -33,7 +34,7 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ question: question, category: QuestionCategory.General }),
+        body: JSON.stringify({ question: question, category: QuestionCategory.General, anonymity: isAnonymous }),
       });
 
       const responseData = await response.json();
@@ -83,6 +84,10 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
     }
   };
 
+  const toggleAnonymity: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    setIsAnonymous(!isAnonymous);
+  };
+
   return (
     <form className="lg:w-[100%] w-[93%] mx-auto" onSubmit={handleSubmit}>
       <div className="mb-4">
@@ -94,15 +99,28 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
         />
-        <button
-          type="submit"
-          className="float-end -translate-y-[3.7em] -translate-x-5 scale-[1.4]"
-        >
-          <FontAwesomeIcon
-            icon={faPaperPlane}
-            className="w-[1.5rem] text-[#31344b]"
-          />
-        </button>
+        <div className='flex flex-row float-end -translate-y-[3.7em] -translate-x-6 scale-[1.4]'>
+          <button
+            type="button"
+            onClick={toggleAnonymity}
+            className=""
+          >
+            <FontAwesomeIcon
+              icon={isAnonymous ? faEyeSlash : faEye}
+              className={`w-[1.5rem] ${isAnonymous ? 'text-rose-700' : 'text-zinc-500'} mr-1`}
+            />
+          </button>
+
+          <button
+            type="submit"
+            className=""
+          >
+            <FontAwesomeIcon
+              icon={faPaperPlane}
+              className="w-[1.5rem] text-[#31344b]"
+            />
+          </button>
+        </div>
       </div>
     </form>
   );

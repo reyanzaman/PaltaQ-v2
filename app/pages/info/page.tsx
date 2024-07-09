@@ -1,6 +1,14 @@
-import { nunito } from "@/app/ui/fonts";
+"use client"
 
+import { nunito } from "@/app/ui/fonts";
+import { useEffect } from 'react';
+
+//@ts-ignore
 export default function Info(props) {
+
+    useEffect(() => {
+        document.title = "Information";
+    }, []);
   
     return (
         <div className={`${nunito.className} antialiased flex flex-row`}>

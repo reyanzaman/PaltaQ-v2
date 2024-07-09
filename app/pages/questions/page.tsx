@@ -29,6 +29,7 @@ interface UserDetails {
     successfulReports: number;
 }
 
+//@ts-ignore
 export default function Questions(props) {
 
     const { data: session, status } = useSession();
@@ -69,6 +70,10 @@ export default function Questions(props) {
             fetchUser();
         }
     }, [session, status]);
+
+    useEffect(() => {
+        document.title = "Questions";
+    }, []);
 
     if (status === 'loading' || loadingUser) {
         return <div className="lg:pl-[8em] pl-[2em] pt-[3em] text-left"><h1 className="text-2xl font-bold">Loading...</h1></div>;

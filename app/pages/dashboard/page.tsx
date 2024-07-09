@@ -90,6 +90,7 @@ interface ClassEnrollment {
     paltaQCount: number;
 }
 
+// @ts-ignore
 export default function Dashboard(props) {
 
     const { data: session, status } = useSession();
@@ -97,6 +98,7 @@ export default function Dashboard(props) {
 
     const [user, setUser] = useState<User>();
     const [loadingUser, setLoadingUser] = useState(true);
+    const [userStatus, setUserStatus] = useState('student');
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -131,6 +133,14 @@ export default function Dashboard(props) {
         }
     }, [session, status]);
 
+    useEffect(() => {
+        document.title = "Dashboard";
+    }, []);
+
+    useEffect(() => {
+        setUserStatus(user?.is_Faculty ? 'faculty' : 'student');
+    }, [user]);
+
     if (status === 'loading' || loadingUser) {
         return <div className="pl-[10em] pt-[3em]"><h1 className="text-2xl font-bold">Loading...</h1></div>;
     }
@@ -139,15 +149,37 @@ export default function Dashboard(props) {
         <div className={`${nunito.className} antialiased flex flex-row`}>
             <UserImage />
 
-            {user?.is_Faculty ? (
+            {userStatus==="faculty" ? (
                 <div className="lg:ml-[7em] pl-4 pr-4 lg:mt-[4em] mt-[5em] lg:w-[80em] w-full">
-                    <h1 className="text-2xl font-bold">Faculty Dashboard</h1>
+                    <div className="flex flex-row gap-x-4">
+                        <h1 className="text-2xl font-bold">Faculty Dashboard</h1>
+                        <button
+                            type="button" 
+                            className="btn btn-sm btn-primary px-3 lg:-translate-y-1 translate-y-5"
+                            onClick={() => setUserStatus('student')}
+                        >
+                            Switch to Student
+                        </button>
+                    </div>
+                    {/* @ts-ignore */}
                     <FacultyClass user={user} />
                 </div>
             ) : (
                 <div className="lg:ml-[7em] pl-4 pr-4 lg:mt-[4em] mt-[5em] lg:w-[80em] w-full">
-                    <h1 className="text-2xl font-bold">Student Dashboard</h1>
+                    <div className="flex flex-row gap-x-4">
+                        <h1 className="text-2xl font-bold">Student Dashboard</h1>
+                        {user?.is_Faculty && (
+                        <button
+                            type="button" 
+                            className="btn btn-sm btn-primary px-3 lg:-translate-y-1 translate-y-5"
+                            onClick={() => setUserStatus('faculty')}
+                        >
+                            Switch to Faculty
+                        </button>
+                        )}
+                    </div>
                     {user && (
+                        // @ts-ignore
                         <StudentDashboard user={user} />
                     )}
                 </div>

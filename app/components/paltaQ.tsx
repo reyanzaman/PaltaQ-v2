@@ -237,7 +237,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ question: pQuestion, category: QuestionCategory.PaltaPalta, quesID: questionId, paltaQuesID: quesPaltaQId, mainQuesID: mainQuestionId }),
+                    body: JSON.stringify({ question: pQuestion, category: QuestionCategory.PaltaPalta, quesID: questionId, paltaQuesID: quesPaltaQId, mainQuesID: mainQuestionId, anonymity: isAnonymous[questionId] }),
                 });
             } else {
                 toast.update(loadingToastId, {
@@ -483,8 +483,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                 <div>
                                     {visibleTextBoxes[paltaQ.id] && textBoxPosition === `paltaQ${index + 1}` && (
                                         <div className=''>
-                                            {from=="topic" ? (
-                                                // Anonymity
+                                                {/* Anonymity */}
                                                 <div className='flex flex-row items-end justify-between'>
                                                     <h6 className='text-zinc-400 lg:text-sm text-xs'>Depth:2 | Responding to {userName}</h6>
                                                     <label className='inline-flex items-center cursor-pointer'>
@@ -509,9 +508,6 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                                         <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[paltaQ.id] ? "On" : "Off"})</span>
                                                     </label>
                                                 </div>
-                                            ) : (
-                                                <h6 className='text-zinc-400 text-sm pl-1 pt-2'>Depth:{index + 2} | Responding to {userName}</h6>
-                                            )}
                                             
                                             <form className="" onSubmit={handlePaltaQ(paltaQ.id, mainQuestionId)}>
                                                 <textarea

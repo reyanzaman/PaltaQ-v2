@@ -132,9 +132,12 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const url = req?.url ? new URL(req.url) : null;
       const cid = url?.searchParams.get('cid') || '';
       const tid = url?.searchParams.get('tid') || '';
-      const question = url?.searchParams.get('question') || '';
+      let question = url?.searchParams.get('question') || '';
       const qid = url?.searchParams.get('qid') || '';
       const Mqid = url?.searchParams.get('Mqid') || '';
+
+      question = question.trim();
+      question = question.charAt(0).toUpperCase() + question.slice(1);
 
       let userId = "";
 

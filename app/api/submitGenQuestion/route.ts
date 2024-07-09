@@ -22,7 +22,10 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const token = await getToken({ req: req as any, secret });
 
       // Extract question data from the request body
-      const { question, category, quesID, paltaQuesID } = await req.json();
+      const { question, category, quesID, paltaQuesID, anonymity } = await req.json();
+
+      let processed_question = question.trim();
+      processed_question = processed_question.charAt(0).toUpperCase() + processed_question.slice(1);
 
       let userId = "";
 
@@ -36,7 +39,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       }
 
       // Validate the question
-      const validText = await validateQuestion(question, category, tid, cid);
+      const validText = await validateQuestion(processed_question, category, tid, cid);
 
       if (validText !== "Question validated") {
         return new Response(JSON.stringify({ message: `${validText}` }), {
@@ -45,14 +48,14 @@ async function postHandler(req: Request, res: NextApiResponse) {
       }
 
       // Score the question
-      const { score, foundKeywords } = await scoreQuestion(question);
+      const { score, foundKeywords } = await scoreQuestion(processed_question);
 
       // Submit the question to the database
       if (category === QuestionCategory.General) {
         if (userId === "") {
           await submitQuestionToDatabase(
             uid,
-            question,
+            processed_question,
             score,
             category,
             tid,
@@ -63,12 +66,12 @@ async function postHandler(req: Request, res: NextApiResponse) {
         } else {
           await submitQuestionToDatabase(
             userId,
-            question,
+            processed_question,
             score,
             category,
             tid,
             cid,
-            false,
+            anonymity,
             foundKeywords
           );
         }
@@ -76,7 +79,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
         if (userId === "") {
           await submitPaltaQToDatabase(
             uid,
-            question,
+            processed_question,
             quesID,
             '',
             cid,
@@ -87,12 +90,12 @@ async function postHandler(req: Request, res: NextApiResponse) {
         } else {
           await submitPaltaQToDatabase(
             userId,
-            question,
+            processed_question,
             quesID,
             '',
             cid,
             score,
-            false,
+            anonymity,
             foundKeywords
           );
         }
@@ -100,7 +103,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
         if (userId === "" && paltaQuesID) {
           await submitPaltaQToDatabase(
             uid,
-            question,
+            processed_question,
             quesID,
             paltaQuesID,
             cid,
@@ -112,12 +115,12 @@ async function postHandler(req: Request, res: NextApiResponse) {
         } else {
           await submitPaltaQToDatabase(
             userId,
-            question,
+            processed_question,
             quesID,
             paltaQuesID,
             cid,
             score,
-            false,
+            anonymity,
             foundKeywords,
             'paltapalta'
           );
