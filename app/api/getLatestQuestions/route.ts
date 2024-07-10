@@ -7,23 +7,22 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     revalidateTag('questions');
     try {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 14);
+
       const questions = await prisma.question.findMany({
         where: {
           classId: cid,
           topicId: tid,
+          createdAt: {
+            gte: sevenDaysAgo,
+          },
         },
         orderBy: {
           createdAt: 'desc',
         },
-        take: 6,
         include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-            },
-          },
+          user: true,
           likedBy: {
             select: {
               id: true,
@@ -56,7 +55,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
               parent: true,
               replies: true,
             },
-          }
+          },
         },
       });
 
@@ -71,25 +70,25 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       return new Response(JSON.stringify(questions), {
         status: 200,
         headers: {
-            'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
     } catch (error) {
       console.error('Failed to fetch questions:', error);
       return new Response(JSON.stringify({ error: 'Failed to fetch questions' }), {
         status: 500,
         headers: {
-            'Content-Type': 'application/json'
-        }
-    });
+          'Content-Type': 'application/json',
+        },
+      });
     }
   } else {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
       headers: {
-          'Content-Type': 'application/json'
-      }
-  });
+        'Content-Type': 'application/json',
+      },
+    });
   }
 }
 

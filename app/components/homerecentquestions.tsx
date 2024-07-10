@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
 import Image from 'next/image';
 
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { useSession } from "next-auth/react";
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
@@ -63,6 +63,7 @@ interface User {
     id: string;
     name: string;
     image: string;
+    is_Faculty: boolean;
 }
 
 export default function RecentQuestions() {
@@ -71,6 +72,7 @@ export default function RecentQuestions() {
     const [userId, setUserId] = useState<string>('');
     const [questions, setQuestions] = useState<Question[]>([]);
     const [loading, setLoading] = useState(false);
+    const [loadingQ, setLoadingQ] = useState(true);
 
     const [paltaQInputs, setPaltaQInputs] = useState<{ [key: string]: any }>({});
 
@@ -80,6 +82,42 @@ export default function RecentQuestions() {
     const [isAnonymous, setIsAnonymous] = useState<{ [key: string]: boolean }>({});
 
     const [visibleInputBox, setVisibleInputBox] = useState<{ [key: string]: boolean }>({});
+
+    const itemsPerPage = 10;
+    const [currentPage, setCurrentPage] = useState(1);
+    const totalPages = Math.ceil(questions.length / itemsPerPage);
+
+    // Sort questions by createdAt in descending order
+    const sortedQuestions = questions.slice().sort((b, a) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+    // Pagination indices for sorted questions
+    const indexOfLastQuestion = currentPage * itemsPerPage;
+    const indexOfFirstQuestion = indexOfLastQuestion - itemsPerPage;
+
+    // Separate faculty and non-faculty questions
+    const facultyQuestions = sortedQuestions.filter(question => question.user.is_Faculty);
+    const nonFacultyQuestions = sortedQuestions.filter(question => !question.user.is_Faculty);
+
+    // Sort faculty and non-faculty questions by createdAt descending
+    facultyQuestions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    nonFacultyQuestions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    // Combine sorted faculty questions with non-faculty questions
+    let currentQuestions = [
+        ...facultyQuestions,
+        ...nonFacultyQuestions
+    ];
+
+    currentQuestions = currentQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
+
+    const handlePageChange = (pageNumber: any, event: any) => {
+        event.preventDefault(); // Prevent the default anchor behavior
+        if (pageNumber > 0 && pageNumber <= totalPages) {
+            setCurrentPage(pageNumber);
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        event.currentTarget.blur();
+    };
 
     const toggleAnonymity = (questionId: string, alternate = true) => {
         if (alternate) {
@@ -433,11 +471,12 @@ export default function RecentQuestions() {
             if (!response.ok) {
                 throw new Error(`Error: Failed to get latest questions`);
             }
-
             const data = await response.json();
             setQuestions(data);
         } catch (error) {
             console.error('Error fetching questions:', error);
+        } finally {
+            setLoadingQ(false);
         }
     };
 
@@ -479,12 +518,30 @@ export default function RecentQuestions() {
     }
 
     return (
+
         <div>
+
             <QuestionBox onQuestionSubmitted={fetchQuestions} />
+
+            {loadingQ ? (
+                <div className='flex items-center justify-center text-center'>
+                    <div className='h-[64vh] pt-[15em] w-full text-xl font-bold text-zinc-500 mt-4 lg:block hidden'>Loading Questions . . .</div>
+                    <div className='h-[58vh] pt-[10em] w-full text-xl font-bold text-zinc-500 mt-3 mx-3 rounded-lg lg:hidden block'>Loading Questions . . .</div>
+                </div>
+            ) : (
+                <div>
+                    {currentQuestions.length === 0 && (
+                        <div className='flex items-center justify-center text-center'>
+                            <div className='h-[64vh] pt-[15em] w-full text-xl font-bold text-zinc-500 mt-4 lg:block hidden'>No questions asked in the last 7 days</div>
+                            <div className='h-[58vh] pt-[10em] w-full text-xl font-bold text-zinc-500 mt-3 mx-3 rounded-lg lg:hidden block'>No questions asked in the last 7 days</div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div className='pt-4'>
                 {/* Question Card */}
-                {questions
+                {currentQuestions
                     .slice()
                     .sort((b, a) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
                     .map((question: any) => (
@@ -517,13 +574,25 @@ export default function RecentQuestions() {
 
                                         <div className='flex flex-col ml-1'>
                                             <div>
-                                                {question.user.id == userId ? (
-                                                    <span className="font-bold text-lg ml-2">{question.isAnonymous ? "Anonymous User (You)" : question.user.name}</span>
+                                                {question.user.is_Faculty ? (
+                                                    <div>
+                                                        {question.user.id == userId ? (
+                                                            <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                        ) : (
+                                                            <div>
+                                                                <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                                <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 ) : (
-                                                    <span className="font-bold text-lg ml-2">{question.isAnonymous ? "Anonymous User" : question.user.name}</span>
-                                                )}
-                                                {question.isAnonymous && session && (
-                                                    <span className='font-bold text-lg ml-1'>{session?.user?.email == question.user.email ? "(You)" : ""}</span>
+                                                    <div>
+                                                        {question.user.id == userId ? (
+                                                            <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                        ) : (
+                                                            <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </div>
                                             <span className="small ml-2">
@@ -704,7 +773,26 @@ export default function RecentQuestions() {
                                                                     </div>
 
                                                                     <div className='flex flex-col'>
-                                                                        <span className="font-bold text-base ml-2">{paltaQ.isAnonymous ? "Anonymous User" : paltaQ.user.name}</span>
+                                                                        {paltaQ.user.is_Faculty ? (
+                                                                            <div>
+                                                                                {paltaQ.user.id == userId ? (
+                                                                                    <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
+                                                                                ) : (
+                                                                                    <div>
+                                                                                        <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
+                                                                                        <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div>
+                                                                                {paltaQ.user.id == userId ? (
+                                                                                    <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
+                                                                                ) : (
+                                                                                    <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
                                                                         {/* Date */}
                                                                         <span className="small ml-2">
                                                                             {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(paltaQ.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
@@ -871,6 +959,31 @@ export default function RecentQuestions() {
                         </div>
                     ))}
             </div>
+
+            {/* Pagination-bottom */}
+            <div className='flex justify-center items-center mx-auto'>
+                {questions.length > 0 && (
+                    <div className='py-4'>
+                        <nav aria-label="Questions page navigation">
+                            <ul className="pagination">
+                                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                                    <a className="page-link" href="#" onClick={(e) => handlePageChange(currentPage - 1, e)}>Previous</a>
+                                </li>
+                                {[...Array(totalPages)].map((_, i) => (
+                                    <li key={i} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                                        <a className="page-link" href="#" onClick={(e) => handlePageChange(i + 1, e)}>{i + 1}</a>
+                                    </li>
+                                ))}
+                                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                                    <a className="page-link" href="#" onClick={(e) => handlePageChange(currentPage + 1, e)}>Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                )}
+            </div>
+
         </div>
+
     );
 }

@@ -134,6 +134,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
         if (pageNumber > 0 && pageNumber <= totalPages) {
             setCurrentPage(pageNumber);
         }
+        event.currentTarget.blur();
     };
 
     const handleInputChange = (questionId: string) => (event: any) => {
@@ -468,7 +469,6 @@ export default function QuestionsList({ classId }: { classId: string }) {
     }
 
     useEffect(() => {
-        setLoadingQ(true);
 
         const fetchTopics = async () => {
             const response = await fetch(`/api/topics?cid=${classId}`, {
@@ -489,6 +489,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
 
         const fetchQuestions = async () => {
             try {
+                setLoadingQ(true);
                 const response = await fetch(`/api/questions?cid=${classId}&tid=${selectedTopicId}`);
                 if (response.ok) {
                     const data = await response.json();
@@ -497,10 +498,8 @@ export default function QuestionsList({ classId }: { classId: string }) {
                     // Handle error
                     console.error('Failed to fetch classes');
                 }
-                setLoadingQ(false);
             } catch (error) {
                 console.error('Error fetching classes:', error);
-                setLoadingQ(false);
             }
         };
 
@@ -528,7 +527,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
 
         fetchUserID();
         fetchTopics();
-        fetchQuestions();
+        fetchQuestions().then(() => setLoadingQ(false));
 
     }, [refresh]);
 
@@ -666,17 +665,21 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                     <div className='flex flex-col ml-1'>
                                                         {question.user.is_Faculty ? (
                                                             <div>
-                                                                <span className="font-bold text-lg ml-2">{question.isAnonymous ? "Anonymous User" : question.user.name}</span>
-                                                                <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                {question.isAnonymous &&  (
-                                                                    <span className='font-bold text-lg ml-1'>{session?.user?.email == question.user.email ? "(You)" : ""}</span>
+                                                                {question.user.id == userId ? (
+                                                                    <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0,8)} (You)` : question.user.name}</span>
+                                                                ) : (
+                                                                    <div>
+                                                                        <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0,8)}`  : question.user.name}</span>
+                                                                        <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                    </div>
                                                                 )}
                                                             </div>
                                                         ) : (
                                                             <div>
-                                                                <span className="font-bold text-lg ml-2">{question.isAnonymous ? "Anonymous User" : question.user.name}</span>
-                                                                {question.isAnonymous &&  (
-                                                                    <span className='font-bold text-lg ml-1'>{session?.user?.email == question.user.email ? "(You)" : ""}</span>
+                                                                {question.user.id == userId ? (
+                                                                    <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0,8)} (You)` : question.user.name}</span>
+                                                                ) : (
+                                                                    <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0,8)}`  : question.user.name}</span>
                                                                 )}
                                                             </div>
                                                         )}
@@ -860,7 +863,26 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                                                 </div>
 
                                                                                 <div className='flex flex-col'>
-                                                                                    <span className="font-bold text-base ml-2">{paltaQ.isAnonymous ? "Anonymous User" : paltaQ.user.name}</span>
+                                                                                    {paltaQ.user.is_Faculty ? (
+                                                                                        <div>
+                                                                                            {paltaQ.user.id == userId ? (
+                                                                                                <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0,8)} (You)` : paltaQ.user.name}</span>
+                                                                                            ) : (
+                                                                                                <div>
+                                                                                                    <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0,8)}`  : paltaQ.user.name}</span>
+                                                                                                    <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div>
+                                                                                            {paltaQ.user.id == userId ? (
+                                                                                                <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0,8)} (You)` : paltaQ.user.name}</span>
+                                                                                            ) : (
+                                                                                                <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0,8)}`  : paltaQ.user.name}</span>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    )}
                                                                                     {/* Date */}
                                                                                     <span className="small ml-2">
                                                                                         {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
@@ -1109,7 +1131,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
 
                             ) : (
                                 <div>
-                                    {questions.length === 0 && (
+                                    {questions.length === 0  && (
                                         <p className='mb-5'>No quesions have been registered yet for this classroom</p>
                                     )}
                                 </div>

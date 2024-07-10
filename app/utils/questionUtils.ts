@@ -258,7 +258,8 @@ export async function updateRank(userId: string, classId: string): Promise<strin
         }
       },
       data: {
-        rank: rank
+        rank: rank,
+        colorCode: colorCode
       }
     });
 

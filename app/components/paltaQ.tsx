@@ -223,7 +223,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
 
         try {
             let response;
-            if (from=="topic") {
+            if (from == "topic") {
                 response = await fetch(`/api/questions?question=${pQuestion}&qid=${questionId}&cid=${classId}&tid=${topicId}&Mqid=${mainQuestionId}`, {
                     method: 'POST',
                     headers: {
@@ -231,7 +231,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                     },
                     body: JSON.stringify({ isAnonymous: isAnonymous[questionId], category: QuestionCategory.PaltaPalta }),
                 });
-            } else if (from=="general") {
+            } else if (from == "general") {
                 response = await fetch('/api/submitGenQuestion', {
                     method: 'POST',
                     headers: {
@@ -393,7 +393,26 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                         </div>
 
                                         <div className='flex flex-col'>
-                                            <span className="font-bold text-base ml-2">{paltaQ.isAnonymous ? "Anonymous User" : paltaQ.user.name}</span>
+                                            {paltaQ.user.is_Faculty ? (
+                                                <div>
+                                                    {paltaQ.user.id == userId ? (
+                                                        <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
+                                                    ) : (
+                                                        <div>
+                                                            <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
+                                                            <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    {paltaQ.user.id == userId ? (
+                                                        <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
+                                                    ) : (
+                                                        <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
+                                                    )}
+                                                </div>
+                                            )}
                                             {/* Date */}
                                             <span className="small ml-2">
                                                 {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(paltaQ.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
@@ -483,32 +502,32 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                 <div>
                                     {visibleTextBoxes[paltaQ.id] && textBoxPosition === `paltaQ${index + 1}` && (
                                         <div className=''>
-                                                {/* Anonymity */}
-                                                <div className='flex flex-row items-end justify-between'>
-                                                    <h6 className='text-zinc-400 lg:text-sm text-xs'>Depth:2 | Responding to {userName}</h6>
-                                                    <label className='inline-flex items-center cursor-pointer'>
-                                                        <input
-                                                            type="checkbox"
-                                                            value={(isAnonymous[paltaQ.id] || false).toString()}
-                                                            className="sr-only peer"
-                                                            onChange={() => toggleAnonymity(paltaQ.id)}
+                                            {/* Anonymity */}
+                                            <div className='flex flex-row items-end justify-between'>
+                                                <h6 className='text-zinc-400 lg:text-sm text-xs'>Depth:2 | Responding to {userName}</h6>
+                                                <label className='inline-flex items-center cursor-pointer'>
+                                                    <input
+                                                        type="checkbox"
+                                                        value={(isAnonymous[paltaQ.id] || false).toString()}
+                                                        className="sr-only peer"
+                                                        onChange={() => toggleAnonymity(paltaQ.id)}
+                                                    />
+                                                    <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
+                                                    {isAnonymous[paltaQ.id] ? (
+                                                        <FontAwesomeIcon
+                                                            icon={faEyeSlash}
+                                                            className={`w-[1.5rem] lg:hidden text-red-900`}
                                                         />
-                                                        <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
-                                                        {isAnonymous[paltaQ.id] ? (
-                                                            <FontAwesomeIcon
-                                                                icon={faEyeSlash}
-                                                                className={`w-[1.5rem] lg:hidden text-red-900`}
-                                                            />
-                                                        ) : (
-                                                            <FontAwesomeIcon
-                                                                icon={faEye}
-                                                                className={`w-[1.5rem] lg:hidden text-[#31344b]`}
-                                                            />
-                                                        )}
-                                                        <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[paltaQ.id] ? "On" : "Off"})</span>
-                                                    </label>
-                                                </div>
-                                            
+                                                    ) : (
+                                                        <FontAwesomeIcon
+                                                            icon={faEye}
+                                                            className={`w-[1.5rem] lg:hidden text-[#31344b]`}
+                                                        />
+                                                    )}
+                                                    <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[paltaQ.id] ? "On" : "Off"})</span>
+                                                </label>
+                                            </div>
+
                                             <form className="" onSubmit={handlePaltaQ(paltaQ.id, mainQuestionId)}>
                                                 <textarea
                                                     id="paltaQuestion"
