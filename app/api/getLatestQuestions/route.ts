@@ -7,15 +7,16 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     revalidateTag('questions');
     try {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 14);
+      const DaysAgo = new Date();
+      DaysAgo.setDate(DaysAgo.getDate()-7);
+      DaysAgo.setHours(0, 0, 0, 0);
 
       const questions = await prisma.question.findMany({
         where: {
           classId: cid,
           topicId: tid,
           createdAt: {
-            gte: sevenDaysAgo,
+            gte: DaysAgo.toISOString(),
           },
         },
         orderBy: {
