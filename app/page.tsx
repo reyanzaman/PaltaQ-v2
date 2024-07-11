@@ -28,7 +28,7 @@ export default function Home() {
           <RecentQuestions />
 
           <div className="relative mx-auto w-fit bottom-0 pb-1">
-            <p className="text-sm">PaltaQ Version 2.00</p>
+            <p className="text-sm">PaltaQ Version 2.01</p>
           </div>
         </div>
       </div>

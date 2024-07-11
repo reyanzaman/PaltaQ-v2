@@ -12,6 +12,12 @@ import { QuestionCategory } from '@/app/utils/postUtils';
 
 import QuestionBox from "@/app/components/homequestionbox";
 import PaltaQComponent from "@/app/components/paltaQ";
+import { getRankDetails } from '@/app/utils/rankings';
+
+interface RankDetails {
+    colorCode: string;
+    icon: string;
+}
 
 interface Likes {
     id: string;
@@ -73,6 +79,7 @@ export default function RecentQuestions() {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [loading, setLoading] = useState(false);
     const [loadingQ, setLoadingQ] = useState(true);
+    const [rank, setRank] = useState<{ [key: string]: RankDetails }>({});
 
     const [paltaQInputs, setPaltaQInputs] = useState<{ [key: string]: any }>({});
 
@@ -94,18 +101,9 @@ export default function RecentQuestions() {
     const indexOfLastQuestion = currentPage * itemsPerPage;
     const indexOfFirstQuestion = indexOfLastQuestion - itemsPerPage;
 
-    // Separate faculty and non-faculty questions
-    const facultyQuestions = sortedQuestions.filter(question => question.user.is_Faculty);
-    const nonFacultyQuestions = sortedQuestions.filter(question => !question.user.is_Faculty);
-
-    // Sort faculty and non-faculty questions by createdAt descending
-    facultyQuestions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    nonFacultyQuestions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
     // Combine sorted faculty questions with non-faculty questions
     let currentQuestions = [
-        ...facultyQuestions,
-        ...nonFacultyQuestions
+        ...sortedQuestions,
     ];
 
     currentQuestions = currentQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
@@ -507,11 +505,74 @@ export default function RecentQuestions() {
         fetchUserID();
         fetchQuestions();
 
-        const intervalId = setInterval(fetchQuestions, 5000); // Fetch every 5 seconds
+        const intervalId = setInterval(fetchQuestions, 100000); // Fetch every minute
 
         return () => clearInterval(intervalId); // Cleanup function to clear interval
 
     }, [session?.user?.email]);
+
+    useEffect(() => {
+        if(currentQuestions.length === 0) return;
+
+        let timeoutId: NodeJS.Timeout | null = null;
+
+        const fetchHighestScores = async () => {
+            // Gather user IDs from Questions and associated PaltaQs
+            const userIds: string[] = [];
+            
+            currentQuestions.forEach(question => {
+                // Add Question user ID
+                if (!userIds.includes(question.user.id)) {
+                    userIds.push(question.user.id);
+                }
+                
+                // Add PaltaQ user IDs
+                question.paltaQBy.forEach(paltaQ => {
+                    if (!userIds.includes(paltaQ.userId)) {
+                        userIds.push(paltaQ.userId);
+                    }
+                });
+            });
+            const response = await fetch(`/api/highestScore?uids=${userIds.join(',')}`);
+            const data = await response.json();
+
+            // Now set the rank details for each question based on highestScores
+            const ranks: { [key: string]: RankDetails } = {};
+
+            for (const userId in data) {
+                const userScore = data[userId];
+                
+                // Assuming 'ranks' is where you store results
+                if (userScore !== undefined || userScore !== null) {
+                    ranks[userId] = getRankDetails(userScore);  // Using userId as key
+                } else {
+                    ranks[userId] = { colorCode: '', icon: '' };  // Default values if score is undefined
+                }
+            }
+            console.log(ranks);
+            setRank(ranks);
+        };
+
+        const debouncedFetch = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+    
+            timeoutId = setTimeout(() => {
+                fetchHighestScores();
+                timeoutId = null;
+            }, 500); // Adjust the debounce time as needed (e.g., 500ms)
+        };
+    
+        debouncedFetch();
+
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
+        
+    }, [questions]);
 
     if (status === 'loading') {
         return <div className="mx-auto text-center py-8"><h1 className="text-2xl font-bold">Loading...</h1></div>;
@@ -546,6 +607,7 @@ export default function RecentQuestions() {
                     .sort((b, a) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
                     .map((question: any) => (
                         <div key={question.id} className="card bg-primary shadow-sm border-light w-[100%] mx-auto mb-4">
+                            
                             {/* Main Question Top Part */}
                             <div className="px-4 pt-3 pb-2">
 
@@ -574,26 +636,36 @@ export default function RecentQuestions() {
 
                                         <div className='flex flex-col ml-1'>
                                             <div>
-                                                {question.user.is_Faculty ? (
-                                                    <div>
-                                                        {question.user.id == userId ? (
-                                                            <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
-                                                        ) : (
-                                                            <div>
-                                                                <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
-                                                                <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <div>
-                                                        {question.user.id == userId ? (
-                                                            <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
-                                                        ) : (
-                                                            <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
-                                                        )}
-                                                    </div>
-                                                )}
+                                                <div className='flex flex-row gap-x-2'>
+                                                    {question.user.is_Faculty ? (
+                                                        <div>
+                                                            {question.user.id == userId ? (
+                                                                <div>
+                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                                    <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                </div>
+                                                            ) : (
+                                                                <div>
+                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                                    <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <div>
+                                                            {question.user.id == userId ? (
+                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                            ) : (
+                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    {rank[question.user.id] && (
+                                                        <div>
+                                                            <Image src={`/${rank[question.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <span className="small ml-2">
                                                 {new Date(question.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
@@ -744,9 +816,9 @@ export default function RecentQuestions() {
                                             {question.paltaQBy
                                                 .slice() // Create a copy of the array to avoid mutating the original
                                                 .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-                                                .map((paltaQ: any) => (
+                                                .map((paltaQ: any, idx: number) => (
 
-                                                    <div key={paltaQ.id} className="flex flex-col justify-between ml-2 px-3 py-2 w-full border-l-2 border-gray-500">
+                                                    <div key={paltaQ.id} className="flex flex-col justify-between ml-2 px-3 pt-2 pb-0 w-full border-l-2 border-gray-500">
 
                                                         <div>
                                                             {/* PaltaQ User Details */}
@@ -773,26 +845,36 @@ export default function RecentQuestions() {
                                                                     </div>
 
                                                                     <div className='flex flex-col'>
-                                                                        {paltaQ.user.is_Faculty ? (
-                                                                            <div>
-                                                                                {paltaQ.user.id == userId ? (
-                                                                                    <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
-                                                                                ) : (
-                                                                                    <div>
-                                                                                        <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
-                                                                                        <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                        ) : (
-                                                                            <div>
-                                                                                {paltaQ.user.id == userId ? (
-                                                                                    <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
-                                                                                ) : (
-                                                                                    <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
-                                                                                )}
-                                                                            </div>
-                                                                        )}
+                                                                        <div className='flex flex-row gap-x-2'>
+                                                                            {paltaQ.user.is_Faculty ? (
+                                                                                <div>
+                                                                                    {paltaQ.user.id == userId ? (
+                                                                                        <div>
+                                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
+                                                                                            <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div>
+                                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
+                                                                                            <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            ) : (
+                                                                                <div>
+                                                                                    {paltaQ.user.id == userId ? (
+                                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
+                                                                                    ) : (
+                                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                            {rank[paltaQ.user.id] && (
+                                                                                <div>
+                                                                                    <Image src={`/${rank[paltaQ.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
                                                                         {/* Date */}
                                                                         <span className="small ml-2">
                                                                             {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(paltaQ.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
@@ -922,7 +1004,7 @@ export default function RecentQuestions() {
                                                                 )}
                                                             </div>
 
-                                                            <hr className=' border-b border-gray-400 my-3 mr-4'></hr>
+                                                            <hr className={`border-b border-gray-400 mr-4 ${idx === sortedQuestions.length - 1 ? 'mb-0 mt-3' : 'my-3'}`}></hr>
 
                                                         </div>
 
@@ -960,10 +1042,12 @@ export default function RecentQuestions() {
                     ))}
             </div>
 
+            <p className='text-zinc-500 -translate-y-2 text-center'>Showing the questions asked in last 7 days</p>
+
             {/* Pagination-bottom */}
             <div className='flex justify-center items-center mx-auto'>
                 {questions.length > 0 && (
-                    <div className='py-4'>
+                    <div className='py-3'>
                         <nav aria-label="Questions page navigation">
                             <ul className="pagination">
                                 <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>

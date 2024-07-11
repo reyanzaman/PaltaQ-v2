@@ -9,7 +9,12 @@ import React, { useEffect, useState } from 'react';
 import { useSession } from "next-auth/react";
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
+import { getRankDetails } from '../utils/rankings';
 
+interface RankDetails {
+    colorCode: string;
+    icon: string;
+}
 
 interface Likes {
     id: string;
@@ -87,6 +92,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
     const [loading, setLoading] = useState(false);
 
     const [paltaQInputs, setPaltaQInputs] = useState<{ [key: string]: any }>({});
+    const [rank, setRank] = useState<{ [key: string]: RankDetails }>({});
 
     const handleInputChange = (questionId: string) => (event: any) => {
         const value = event.target.value;
@@ -298,56 +304,122 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
 
             resetClick();
             toggleInputBox(questionId, false);
-            toggleAnonymity(questionId);
+            toggleAnonymity(questionId, true);
+            fetchPaltaQ();
         } catch (error) {
             console.error('Failed to submit palta question:', error);
             toast.error('Failed to submit PaltaQ');
-        } finally {
-            setLoading(false);
         }
     };
 
-    const toggleAnonymity = (questionId: string) => {
-        setIsAnonymous(prev => ({
-            ...prev,
-            [questionId]: !prev[questionId]
-        }));
+    const toggleAnonymity = (questionId: string, alternate = false) => {
+        if (alternate) {
+            setIsAnonymous(prev => ({
+                ...prev,
+                [questionId]: false
+            }));
+        } else {
+            setIsAnonymous(prev => ({
+                ...prev,
+                [questionId]: !prev[questionId]
+            }));
+        }
+    };
+
+    const fetchPaltaQ = async () => {
+        try {
+            const response = await fetch(`/api/getPaltaQ?pqid=${paltaQId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'public, no-cache',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                },
+                next: {
+                    tags: ['paltaQ']
+                },
+                cache: 'no-store'
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: Failed to get latest paltaQ`);
+            }
+
+            const data = await response.json();
+            setQuestions(data);
+        } catch (error) {
+            console.error('Error fetching paltaQ:', error);
+        }
     };
 
     useEffect(() => {
-        const fetchPaltaQ = async () => {
-            try {
-                const response = await fetch(`/api/getPaltaQ?pqid=${paltaQId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Cache-Control': 'public, no-cache',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
-                    },
-                    next: {
-                        tags: ['paltaQ']
-                    },
-                    cache: 'no-store'
-                });
+        fetchPaltaQ();
 
-                if (!response.ok) {
-                    throw new Error(`Error: Failed to get latest paltaQ`);
+        const intervalId = setInterval(fetchPaltaQ, 100000); // Fetch every minute
+        return () => clearInterval(intervalId); // Cleanup function to clear interval
+
+    }, [userId]);
+
+    useEffect(() => {
+        if (questions.length === 0) return;
+
+        let timeoutId: NodeJS.Timeout | null = null;
+
+        const fetchHighestScores = async () => {
+            // Gather user IDs from Questions and associated PaltaQs
+            const userIds: string[] = [];
+
+            questions.forEach(question => {
+                // Add Question user ID
+                if (!userIds.includes(question.user.id)) {
+                    userIds.push(question.user.id);
                 }
+            });
+            const response = await fetch(`/api/highestScore?uids=${userIds.join(',')}`);
+            const data = await response.json();
 
-                const data = await response.json();
-                setQuestions(data);
-            } catch (error) {
-                console.error('Error fetching paltaQ:', error);
+            // Now set the rank details for each question based on highestScores
+            const ranks: { [key: string]: RankDetails } = {};
+
+            for (const userId in data) {
+                const userScore = data[userId];
+
+                // Assuming 'ranks' is where you store results
+                if (userScore !== undefined || userScore !== null) {
+                    ranks[userId] = getRankDetails(userScore);  // Using userId as key
+                } else {
+                    ranks[userId] = { colorCode: '', icon: '' };  // Default values if score is undefined
+                }
+            }
+            console.log(ranks);
+            setRank(ranks);
+        };
+
+        const debouncedFetch = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+
+            timeoutId = setTimeout(() => {
+                fetchHighestScores();
+                timeoutId = null;
+            }, 500); // Adjust the debounce time as needed (e.g., 500ms)
+        };
+
+        if (from == "general") {
+            debouncedFetch();
+        } else {
+            // Needs work
+        }
+
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
             }
         };
 
-        fetchPaltaQ();
-
-        const intervalId = setInterval(fetchPaltaQ, 5000); // Fetch every 5 seconds
-        return () => clearInterval(intervalId); // Cleanup function to clear interval
-
-    }, [userId, loading]);
+    }, [questions]);
 
     const sortedQuestions = questions.slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
@@ -358,14 +430,14 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
             )}
             <div>
                 {sortedQuestions
-                    .map((paltaQ: any) => (
+                    .map((paltaQ: any, idx: number) => (
 
                         <div
                             key={paltaQ.id}
                             className="flex flex-col">
 
                             {/* PaltaQ Card */}
-                            <div className='flex flex-col justify-between py-2 px-3 w-full border-l-2 border-gray-500'>
+                            <div className={`flex flex-col justify-between pt-2 px-3 w-full border-l-2 border-gray-500 ${idx === sortedQuestions.length - 1 ? 'mb-3' : ''}`}>
                                 {/* PaltaQ User Details */}
                                 <div className='flex justify-between'>
 
@@ -393,26 +465,36 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                         </div>
 
                                         <div className='flex flex-col'>
-                                            {paltaQ.user.is_Faculty ? (
-                                                <div>
-                                                    {paltaQ.user.id == userId ? (
-                                                        <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
-                                                    ) : (
-                                                        <div>
-                                                            <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
-                                                            <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                <div>
-                                                    {paltaQ.user.id == userId ? (
-                                                        <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
-                                                    ) : (
-                                                        <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
-                                                    )}
-                                                </div>
-                                            )}
+                                            <div className='flex flex-row gap-x-2'>
+                                                {paltaQ.user.is_Faculty ? (
+                                                    <div>
+                                                        {paltaQ.user.id == userId ? (
+                                                            <div>
+                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
+                                                                <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div>
+                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
+                                                                <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        {paltaQ.user.id == userId ? (
+                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
+                                                        ) : (
+                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {rank[paltaQ.user.id] && (
+                                                    <div>
+                                                        <Image src={`/${rank[paltaQ.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                    </div>
+                                                )}
+                                            </div>
                                             {/* Date */}
                                             <span className="small ml-2">
                                                 {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(paltaQ.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
@@ -550,7 +632,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                     )}
                                 </div>
 
-                                <hr className=' border-b border-gray-400 my-3 mr-4'></hr>
+                                <hr className={`border-b border-gray-400 mr-4 ${idx === sortedQuestions.length - 1 ? 'my-0 mt-3' : 'my-3'}`}></hr>
 
                             </div>
 

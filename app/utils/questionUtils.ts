@@ -217,37 +217,27 @@ export async function updateRank(userId: string, classId: string): Promise<strin
 
     const currentRank = classEnrollment.rank;
     let rank = "Novice Inquirer";
-    let colorCode = '1f2937' // Default dark blue
 
     const score = classEnrollment.score;
     
     if (score >= 551 && score <= 1500) {
       rank = "Apprentice Inquirer";
-      colorCode = "22a4ef";  // Light blue
     } else if (score > 1500 && score <= 3000) {
       rank = "Adept Inquirer";
-      colorCode = "2ecc71";  // Green
     } else if (score > 3000 && score <= 5000) {
       rank = "Expert Inquirer";
-      colorCode = "9b59b6";  // Purple
     } else if (score > 5000 && score <= 7000) {
       rank = "Master Inquirer";
-      colorCode = "f39c12";  // Orange
     } else if (score > 7000 && score <= 15000) {
       rank = "Legendary Inquirer";
-      colorCode = "e67e22";  // Darker orange
     } else if (score > 15000 && score <= 25000) {
       rank = "Mythical Inquirer";
-      colorCode = "e74c3c";  // Red
     } else if (score > 25000 && score <= 35000) {
       rank = "Outstanding Inquirer";
-      colorCode = "3498db";  // Blue
     } else if (score > 35000 && score <= 50000) {
       rank = "Master of Queries";
-      colorCode = "1abc9c";  // Turquoise
     } else if (score > 50000) {
       rank = "Grand Inquisitor";
-      colorCode = "e74c3c";  // Red (final rank)
     }
 
     await prisma.classEnrollment.update({
@@ -259,7 +249,6 @@ export async function updateRank(userId: string, classId: string): Promise<strin
       },
       data: {
         rank: rank,
-        colorCode: colorCode
       }
     });
 

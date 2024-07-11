@@ -69,7 +69,6 @@ model ClassEnrollment {
   id            String    @id @default(uuid())
   userId        String
   classId       String
-  colorCode     String    @default("1f2937")
   score         Int       @default(0)
   rank          String    @default("Novice Inquirer")
   questionCount Int       @default(0)
