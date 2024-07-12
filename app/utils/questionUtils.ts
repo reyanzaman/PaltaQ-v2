@@ -148,9 +148,9 @@ function tokensToVector(tokens: string[]): { [key: string]: number } {
   return vector;
 }
 
-export async function scoreQuestion(question: string): Promise<{ score: number, foundKeywords: { [key: string]: boolean } }> {
+export async function scoreQuestion(question: string, llama_score: number): Promise<{ score: number, foundKeywords: { [key: string]: boolean } }> {
   try {
-    const calculatedScore = calculateScore(question);
+    const calculatedScore = calculateScore(question, llama_score);
     return calculatedScore;
   } catch (error) {
     // Handle database error
@@ -178,7 +178,7 @@ const bloomKeywords: string[][] = [
   bloom_creating
 ];
 
-function calculateScore(question: string): { score: number, foundKeywords: { [key: string]: boolean } } {
+function calculateScore(question: string, llama_score: number): { score: number, foundKeywords: { [key: string]: boolean } } {
   let totalScore = 0;
   let foundKeywords: { [key: string]: boolean } = {};
 
@@ -197,7 +197,11 @@ function calculateScore(question: string): { score: number, foundKeywords: { [ke
     }
   });
 
-  return { score: totalScore, foundKeywords };
+  const average_score = Math.round(totalScore + llama_score / 2);
+
+  console.log('Blooms score:', totalScore, 'Llama score:', llama_score, 'Average score:', average_score);
+
+  return { score: average_score, foundKeywords };
 }
 
 export async function updateRank(userId: string, classId: string): Promise<string> {

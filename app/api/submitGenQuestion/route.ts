@@ -47,8 +47,47 @@ async function postHandler(req: Request, res: NextApiResponse) {
         })
       }
 
+
+      // Llama-3
+      const baseUrl = process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000'
+      const llama_response = await fetch(`${baseUrl}/api/groq?question=${processed_question}&version=1`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+      });
+      const llama_response2 = await fetch(`${baseUrl}/api/groq?question=${processed_question}&version=2`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await llama_response.json();
+      let [is_valid_question, llama_score] = data.split('_');
+      is_valid_question = is_valid_question.toLowerCase();
+      llama_score = parseInt(llama_score, 10);
+
+      let improvement_suggestion = await llama_response2.json();
+
+      // Capitalize the first letter of improvement_suggestion
+      if (improvement_suggestion) {
+        improvement_suggestion = improvement_suggestion.charAt(0).toUpperCase() + improvement_suggestion.slice(1);
+      } else {
+        improvement_suggestion = ''; // Handle case where there's no improvement suggestion
+      }
+
+      console.log({ is_valid_question, llama_score, improvement_suggestion });
+
+      if (is_valid_question.includes("no")) {
+        return new Response(JSON.stringify({ message: `Invalid Question`, improvement_suggestion }), {
+          status: 400,
+        })
+      }
+
+
       // Score the question
-      const { score, foundKeywords } = await scoreQuestion(processed_question);
+      const { score, foundKeywords } = await scoreQuestion(processed_question, llama_score);
 
       // Submit the question to the database
       if (category === QuestionCategory.General) {
@@ -128,7 +167,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       }
 
       // Return success response
-      return new Response(JSON.stringify({ message: `${score} Points Awarded!` }), {
+      return new Response(JSON.stringify({ message: `${score} Points Awarded!`, improvement_suggestion }), {
         status: 200,
       })
 

@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
 import Image from 'next/image';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSession } from "next-auth/react";
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
@@ -549,7 +549,6 @@ export default function RecentQuestions() {
                     ranks[userId] = { colorCode: '', icon: '' };  // Default values if score is undefined
                 }
             }
-            console.log(ranks);
             setRank(ranks);
         };
 
