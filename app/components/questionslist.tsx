@@ -82,7 +82,7 @@ interface Question {
     createdAt: string;
 }
 
-export default function QuestionsList({ classId }: { classId: string }) {
+export default function QuestionsList({ classId, refresh, handleRefresh }: { classId: string, refresh: boolean, handleRefresh: any}) {
 
     const { data: session, status } = useSession();
     const [userId, setUserId] = useState<string>('');
@@ -106,7 +106,6 @@ export default function QuestionsList({ classId }: { classId: string }) {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [isAnonymous, setIsAnonymous] = useState<{ [key: string]: boolean }>({});
 
-    const [refresh, setRefresh] = useState(false);
     const questionsRef = useRef<HTMLDivElement>(null);
     const [rank, setRank] = useState<{ [key: string]: RankDetails }>({});
 
@@ -462,7 +461,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
 
             resetClick();
             toggleInputBox(questionId, false);
-            setRefresh(!refresh);
+            handleRefresh();
             toggleAnonymity(questionId);
         } catch (error) {
             console.error('Failed to submit palta question:', error);
@@ -1124,7 +1123,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
                             {currentQuestions.map((question: Question, index: number) => (
                                 <div key={question.id}>
                                     {/* Check if current question is non-faculty and student questions haven't started */}
-                                    <div className='pb-2'>
+                                    <div className='mb-2'>
                                         {!question.user.is_Faculty && !studentQuestionsStarted && (
                                             <h4 className="text-lg font-bold text-gray-800 mt-2 mb-3 ml-3 border-b-2 border-gray-600 w-fit pr-2">
                                                 Student Questions
@@ -1149,11 +1148,11 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                     {question.user.is_Faculty && viewFacultyQs ? (
                                         <QuestionSection {...question} />
                                     ) : (
-                                        <div>
+                                        <div className=''>
                                             {index==1 && currentPage==1 &&  (
                                                 <div>
-                                                    {facultyQuestions.length > 1 && (
-                                                        <h1 className='text-base ml-3 text-gray-800 mb-0'>Note: Faculty questions are hidden. There are {facultyQuestions.length ? facultyQuestions.length -1 : 0} faculty questions. Click the arrow above to show the hidden faculty questions.</h1>
+                                                    {facultyQuestions.length >= 1 && (
+                                                        <h1 className='text-base ml-3 text-gray-800 pb-4'>Note: Faculty questions are hidden. There are <b>{facultyQuestions.length ? facultyQuestions.length -1 : 0}</b> faculty questions. Click the arrow above to show the hidden faculty questions.</h1>
                                                     )}
                                                 </div>
                                             )}
@@ -1200,7 +1199,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                         setSelectedTopic('All Topics');
                                                         setSelectedTopicId('');
                                                         handlePageChange(1, e);
-                                                        setRefresh(!refresh);
+                                                        handleRefresh();
                                                         setShowDropdown(false);
                                                     }}
                                                 >
@@ -1216,7 +1215,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                                             setSelectedTopic(topic.name);
                                                             setSelectedTopicId(topic.id);
                                                             handlePageChange(1, e);
-                                                            setRefresh(!refresh);
+                                                            handleRefresh();
                                                             setShowDropdown(false);
                                                         }}
                                                     >
@@ -1230,10 +1229,10 @@ export default function QuestionsList({ classId }: { classId: string }) {
                             </div>
 
                             <div className='mr-4 ml-3 lg:block hidden'>
-                                <button onClick={() => setRefresh(!refresh)} className="btn btn-primary">Refresh</button>
+                                <button onClick={() => handleRefresh()} className="btn btn-primary">Refresh</button>
                             </div>
                             <div className='mr-4 ml-3 -translate-y-[0.2em] lg:hidden block'>
-                                <button onClick={() => setRefresh(!refresh)} className="btn btn-primary">
+                                <button onClick={() => handleRefresh()} className="btn btn-primary">
                                     <FontAwesomeIcon icon={faArrowsRotate} className="w-[1.5rem] text-[#31344b]" />
                                 </button>
                             </div>

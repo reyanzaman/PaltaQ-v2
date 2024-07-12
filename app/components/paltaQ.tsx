@@ -627,7 +627,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                         <div className=''>
                                             {/* Anonymity */}
                                             <div className='flex flex-row items-end justify-between'>
-                                                <h6 className='text-zinc-400 lg:text-sm text-xs'>Depth:2 | Responding to {userName}</h6>
+                                                <h6 className='text-zinc-400 lg:text-sm text-xs'>Depth:{index + 1} | Responding to {userName}</h6>
                                                 <label className='inline-flex items-center cursor-pointer'>
                                                     <input
                                                         type="checkbox"

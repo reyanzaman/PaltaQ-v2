@@ -505,7 +505,7 @@ export default function RecentQuestions() {
         fetchUserID();
         fetchQuestions();
 
-        const intervalId = setInterval(fetchQuestions, 30000); // Fetch every half minute
+        const intervalId = setInterval(fetchQuestions, 10000); // Fetch every ten seconds
 
         return () => clearInterval(intervalId); // Cleanup function to clear interval
 

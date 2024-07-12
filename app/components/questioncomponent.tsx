@@ -60,6 +60,11 @@ export default function QuestionComponent({ user }: { user: User }) {
     const [loading, setLoading] = useState(false);
 
     const [refresh, setRefresh] = useState(false);
+    const [refreshQuestions, setRefreshQuestions] = useState(false);
+
+    const handleRefreshQuestions = () => {
+        setRefreshQuestions(!refreshQuestions);
+    }
 
     useEffect(() => {
         const fetchClasses = async () => {
@@ -136,12 +141,12 @@ export default function QuestionComponent({ user }: { user: User }) {
                 <hr className="border-b border-gray-400 mb-3"></hr>
 
                 <div className="">
-                    <QuestionBox classId={selectedClass?.id || ''} />
+                    <QuestionBox classId={selectedClass?.id || ''} refreshQs={refreshQuestions} handleRefreshQs={handleRefreshQuestions}/>
                 </div>
 
                 <hr className="border-b border-gray-400 mt-5 mb-5"></hr>
 
-                <QuestionsList classId={selectedClass?.id || ''}/>
+                <QuestionsList classId={selectedClass?.id || ''} refresh={refreshQuestions} handleRefresh={handleRefreshQuestions}/>
             </div>
         );
     };

@@ -97,7 +97,9 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
           style={{ height: '6em' }}
           placeholder="Throw a question to your peers!"
           value={question}
-          onChange={(e) => setQuestion(e.target.value)}
+          onChange={(e) => {
+            setQuestion(e.target.value);
+          }}
         />
         <div className='flex flex-row float-end -translate-y-[3.7em] -translate-x-6 scale-[1.4]'>
           <button

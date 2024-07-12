@@ -41,7 +41,7 @@ interface UserDetails {
     successfulReports: number;
 }
 
-export default function QuestionBox({ classId }: { classId: string }) {
+export default function QuestionBox({ classId, refreshQs, handleRefreshQs}: { classId: string, refreshQs: boolean, handleRefreshQs: Function}) {
     const [question, setQuestion] = useState('');
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -161,6 +161,7 @@ export default function QuestionBox({ classId }: { classId: string }) {
             });
 
             setRefresh(!refresh);
+            handleRefreshQs();
         } else {
             // Handle error
             console.error('Failed to submit question');
@@ -319,7 +320,7 @@ export default function QuestionBox({ classId }: { classId: string }) {
                     style={{ height: '6em' }}
                     placeholder="Throw a question to your peers!"
                     value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
+                    onChange={(e) => {setQuestion(e.target.value);}}
                 />
                 <button
                     type="submit"
