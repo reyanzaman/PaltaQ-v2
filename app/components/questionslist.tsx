@@ -18,8 +18,14 @@ import { useSession } from "next-auth/react";
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 import PaltaQComponent from "@/app/components/paltaQ";
+import { getRankDetails } from '@/app/utils/rankings';
 
 import { Topic } from '@prisma/client';
+
+interface RankDetails {
+    colorCode: string;
+    icon: string;
+}
 
 interface Likes {
     id: string;
@@ -95,12 +101,14 @@ export default function QuestionsList({ classId }: { classId: string }) {
     const [selectedTopicId, setSelectedTopicId] = useState('' as string);
     const [topics, setTopics] = useState<Topic[]>();
     const [viewQuestions, setViewQuestions] = useState(true);
+    const [viewFacultyQs, setViewFacultyQs] = useState(true);
 
     const [questions, setQuestions] = useState<Question[]>([]);
     const [isAnonymous, setIsAnonymous] = useState<{ [key: string]: boolean }>({});
 
     const [refresh, setRefresh] = useState(false);
     const questionsRef = useRef<HTMLDivElement>(null);
+    const [rank, setRank] = useState<{ [key: string]: RankDetails }>({});
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 20;
@@ -202,7 +210,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
         setUserName('');
     }
 
-    const toggleAnonymity = (questionId: string, alternate=true) => {
+    const toggleAnonymity = (questionId: string, alternate = true) => {
         if (alternate) {
             setIsAnonymous(prev => ({
                 ...prev,
@@ -532,6 +540,69 @@ export default function QuestionsList({ classId }: { classId: string }) {
     }, [refresh]);
 
     useEffect(() => {
+        if (currentQuestions.length === 0) return;
+
+        let timeoutId: NodeJS.Timeout | null = null;
+
+        const fetchHighestScores = async () => {
+            // Gather user IDs from Questions and associated PaltaQs
+            const userIds: string[] = [];
+
+            currentQuestions.forEach(question => {
+                // Add Question user ID
+                if (!userIds.includes(question.user.id)) {
+                    userIds.push(question.user.id);
+                }
+
+                // Add PaltaQ user IDs
+                question.paltaQBy.forEach(paltaQ => {
+                    if (!userIds.includes(paltaQ.userId)) {
+                        userIds.push(paltaQ.userId);
+                    }
+                });
+            });
+            const response = await fetch(`/api/highestScore/classwise?cid=${classId}&uids=${userIds.join(',')}`);
+            const data = await response.json();
+
+            // Now set the rank details for each question based on highestScores
+            const ranks: { [key: string]: RankDetails } = {};
+
+            for (const userId in data) {
+                const userScore = data[userId];
+
+                // Assuming 'ranks' is where you store results
+                if (userScore !== undefined || userScore !== null) {
+                    ranks[userId] = getRankDetails(userScore);  // Using userId as key
+                } else {
+                    ranks[userId] = { colorCode: '', icon: '' };  // Default values if score is undefined
+                }
+            }
+            console.log(ranks);
+            setRank(ranks);
+        };
+
+        const debouncedFetch = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+
+            timeoutId = setTimeout(() => {
+                fetchHighestScores();
+                timeoutId = null;
+            }, 800);
+        };
+
+        debouncedFetch();
+
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
+
+    }, [questions]);
+
+    useEffect(() => {
         if (questionsRef.current) {
             questionsRef.current.scrollIntoView({ behavior: 'smooth' });
         }
@@ -545,11 +616,457 @@ export default function QuestionsList({ classId }: { classId: string }) {
     let studentQuestionsStarted = false;
     let facultyQuestionsStarted = false;
 
+    const QuestionSection = (question: any) => {
+        return (
+            <div
+                className={`card bg-primary shadow-sm ${question.user.is_Faculty == true ? 'shadow-secondary' : 'border-light'}  lg:w-fit w-full lg:mx-4 mb-4`}
+                style={{
+                    minWidth: '50vw',
+                    border: question.user.is_Faculty == true ? '1px solid rgba(233, 233, 233, 0.8)' : '2px solid rgba(54, 176, 233, 0.5)',
+                }}
+            >
+
+                {/* Question card top part */}
+                <div className="px-4 pt-3 pb-2">
+
+                    {/* Main Question User Details */}
+                    <div className="flex flex-row justify-between mb-2">
+                        <div className="flex items-center">
+
+                            {/* Image, Name, Date, Report */}
+                            <div className='icon shadow-inset border border-light rounded-circle p-1'>
+                                {question.isAnonymous ? (
+                                    <Image
+                                        src="/default_image.png"
+                                        alt="Anonymous Image"
+                                        width={30}
+                                        height={30}
+                                        className='rounded-full'
+                                    ></Image>
+                                ) : (
+                                    <Image
+                                        src={question.user.image}
+                                        alt="User Image"
+                                        width={30}
+                                        height={30}
+                                        className='rounded-full'
+                                    ></Image>
+                                )}
+                            </div>
+
+                            <div className='flex flex-col ml-1'>
+                                <div>
+                                    <div className='flex flex-row gap-x-2'>
+                                        {question.user.is_Faculty ? (
+                                            <div>
+                                                {question.user.id == userId ? (
+                                                    <div>
+                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                        <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                        <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                {question.user.id == userId ? (
+                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                ) : (
+                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                )}
+                                            </div>
+                                        )}
+                                        {rank[question.user.id] && (
+                                            <div>
+                                                <Image src={`/${rank[question.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <span className="small ml-2">
+                                    {new Date(question.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
+                            <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
+                            <span className="font-bold lg:block hidden">Report</span>
+                        </button>
+
+                    </div>
+
+                    {/* Main Question */}
+                    <div className="flex flex-row pt-2 pb-1">
+                        <h4 className="lg:text-lg text-base text-justify">
+                            {question.question}
+                        </h4>
+                    </div>
+
+                </div>
+
+                <div className=''>
+
+                    {/* Main Question Badges */}
+                    <div className='pb-2 -translate-x-1'>
+                        <div className={`ml-4 badge  ${question.score >= 100
+                            ? "text-danger"
+                            : question.score >= 50
+                                ? "text-secondary"
+                                : "text-success"
+                            }`}>
+                            {question.score >= 100
+                                ? <span className='font-bold text-sm px-1'>HIGH LEVEL QUESTION</span>
+                                : question.score >= 50
+                                    ? <span className='font-bold text-sm px-1'>MID LEVEL QUESTION</span>
+                                    : <span className='font-bold text-sm px-1'>LOW LEVEL QUESTION</span>}
+                        </div>
+                        <div className='badge ml-2 px-2'>
+                            <span className="font-bold text-sm items-end p-1">
+                                SCORE: {question.score}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Main Question Like/Dislike/PaltaQ */}
+                    <div className="flex flex-row items-start mt-2 ml-3 pl-2 pt-1 pb-2 translate-x-[0.1em]">
+                        {/* Like */}
+                        <button onClick={() => handleLike(question.id, userId, 'question')} disabled={loading}>
+                            <FontAwesomeIcon
+                                icon={faThumbsUp}
+                                className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${question.likedBy && question.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
+                            />
+                        </button>
+                        <span className="small ml-1 mr-2">{question.likes}</span>
+                        <span className="small mr-2">|</span>
+                        {/* Dislike */}
+                        <button onClick={() => handleDislike(question.id, userId, 'question')} disabled={loading}>
+                            <FontAwesomeIcon
+                                icon={faThumbsDown}
+                                className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${question.dislikedBy && question.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
+                            />
+                        </button>
+                        <span className="small ml-1 mr-2">{question.dislikes}</span>
+                        <span className="small mr-2">|</span>
+                        {/* Show PaltaQ */}
+                        <button onClick={() => toggleInputBox(question.id)}>
+                            <FontAwesomeIcon icon={faComment} className={`hover:text-indigo-500 active:text-indigo-600 duration-500 pb-1 ${visibleInputBox[question.id] ? 'text-indigo-500' : ''}`} />
+                        </button>
+                        <span className="small ml-1 mr-2">{question.paltaQ}</span>
+                        <span className="small mr-2">|</span>
+                        {/* PaltaQ */}
+                        <button onClick={() => handleButtonClick(question.id, 'mainQ', question.isAnonymous ? 'Anonymous User' : question.user.name)}>
+                            <h5
+                                className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'mainQ' ? 'text-emerald-700' : ''}`}>
+                                PaltaQ
+                            </h5>
+                        </button>
+                    </div>
+
+                    {visibleInputBox[question.id] && (<hr className='border-b border-gray-400 mt-0 mb-4'></hr>)}
+
+                    {/* Conditional PaltaQ1 Text Area */}
+                    <div>
+                        {visibleTextBoxes[question.id] && textBoxPosition === 'mainQ' && (
+                            <div className='pb-4'>
+                                <form className="lg:mx-4 mx-2" onSubmit={handlePaltaQ(question.id, question.topicId)}>
+                                    {/* Anonymity */}
+                                    <div className='flex flex-row items-end justify-between'>
+
+                                        <h6 className='text-zinc-400 lg:text-sm text-xs pl-1'>Depth:1 | Responding to {userName}</h6>
+
+                                        <label className='inline-flex items-center cursor-pointer'>
+                                            <input
+                                                type="checkbox"
+                                                value={(isAnonymous[question.id] || false).toString()}
+                                                className="sr-only peer"
+                                                onChange={() => toggleAnonymity(question.id)}
+                                            />
+                                            <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
+                                            {isAnonymous[question.id] ? (
+                                                <FontAwesomeIcon
+                                                    icon={faEyeSlash}
+                                                    className={`w-[1.5rem] lg:hidden text-red-900`}
+                                                />
+                                            ) : (
+                                                <FontAwesomeIcon
+                                                    icon={faEye}
+                                                    className={`w-[1.5rem] lg:hidden text-[#31344b]`}
+                                                />
+                                            )}
+                                            <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[question.id] ? "On" : "Off"})</span>
+                                        </label>
+
+                                    </div>
+
+                                    <textarea
+                                        id="paltaQuestion"
+                                        className="form-control pr-5o5 resize-none py-3 pl-3"
+                                        placeholder='Type a creative palta question here . . .'
+                                        onChange={handleInputChange(question.id)}
+                                        value={paltaQInputs[question.id] || ''}
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={faPaperPlane}
+                                            className="w-[1.5rem] text-[#31344b]"
+                                        />
+                                    </button>
+                                </form>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Palta Questions Options */}
+                    {visibleInputBox[question.id] && (
+                        <div className="">
+                            {question.paltaQBy.length == 0 ? (
+                                <h5 className='text-sm text-zinc-400 ml-2 pb-2'>No palta questions have been asked yet for this question</h5>
+                            ) : (
+                                <h5 className='text-sm text-zinc-400 ml-2'>PaltaQ Depth: 1</h5>
+                            )}
+
+                            {/* PaltaQ Card */}
+                            <div>
+                                {question.paltaQBy
+                                    .slice() // Create a copy of the array to avoid mutating the original
+                                    .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                                    .map((paltaQ: any) => (
+                                        <div key={paltaQ.id} className="flex flex-col justify-between ml-2 px-3 py-2 w-full border-l-2 border-gray-500">
+
+                                            <div>
+                                                {/* PaltaQ User Details */}
+                                                <div className='flex justify-between'>
+                                                    <div className="flex items-center">
+                                                        <div className='icon shadow-inset border border-light rounded-circle p-1'>
+                                                            {paltaQ.isAnonymous ? (
+                                                                <Image
+                                                                    src="/default_image.png"
+                                                                    alt="Anonymous Image"
+                                                                    width={30}
+                                                                    height={30}
+                                                                    className='rounded-full'
+                                                                ></Image>
+                                                            ) : (
+                                                                <Image
+                                                                    src={paltaQ.user.image}
+                                                                    alt="User Image"
+                                                                    width={30}
+                                                                    height={30}
+                                                                    className='rounded-full'
+                                                                ></Image>
+                                                            )}
+                                                        </div>
+
+                                                        <div className='flex flex-col'>
+                                                            <div className='flex flex-row gap-x-2'>
+                                                                {paltaQ.user.is_Faculty ? (
+                                                                    <div>
+                                                                        {paltaQ.user.id == userId ? (
+                                                                            <div>
+                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
+                                                                                <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div>
+                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
+                                                                                <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div>
+                                                                        {paltaQ.user.id == userId ? (
+                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
+                                                                        ) : (
+                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                                {rank[paltaQ.user.id] && (
+                                                                    <div>
+                                                                        <Image src={`/${rank[paltaQ.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            {/* Date */}
+                                                            <span className="small ml-2">
+                                                                {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
+                                                            <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
+                                                            <span className="font-bold lg:block hidden">Report</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* PaltaQ Question */}
+                                                <div className='mt-2'>{paltaQ.paltaQ}</div>
+
+                                                {/* Bottom Part */}
+                                                <div className='flex flex-col'>
+
+                                                    {/* PaltaQ Badge */}
+                                                    <div className="flex items-center mt-2 mb-1 -translate-x-2">
+                                                        <div className='badge mx-1'>
+                                                            {paltaQ.score >= 100
+                                                                ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-danger'>HIGH LEVEL</span>
+                                                                : paltaQ.score >= 50
+                                                                    ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-secondary'>MID LEVEL </span>
+                                                                    : <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-success'>LOW LEVEL</span>}
+                                                        </div>
+                                                        <div className='badge mx-1'>
+                                                            <span className="font-bold lg:text-sm text-xxs items-end lg:ml-2 ml-0">
+                                                                SCORE: {paltaQ.score}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* PaltaQ Like/Dislike/Show/PaltaQ */}
+                                                    <div className="flex flex-row items-start mt-2 pt-1">
+                                                        {/* Like */}
+                                                        <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading}>
+                                                            <FontAwesomeIcon
+                                                                icon={faThumbsUp}
+                                                                className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${paltaQ.likedBy && paltaQ.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
+                                                            />
+                                                        </button>
+                                                        <span className="small ml-1 mr-2">{paltaQ.likes}</span>
+                                                        <span className="small mr-2">|</span>
+                                                        {/* Dislike */}
+                                                        <button onClick={() => handleDislike(paltaQ.id, userId, 'palta')} disabled={loading}>
+                                                            <FontAwesomeIcon
+                                                                icon={faThumbsDown}
+                                                                className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${paltaQ.dislikedBy && paltaQ.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
+                                                            />
+                                                        </button>
+                                                        <span className="small ml-1 mr-2">{paltaQ.dislikes}</span>
+                                                        <span className="small mr-2">|</span>
+                                                        {/* Show PaltaQ */}
+                                                        <button onClick={() => toggleInputBox(paltaQ.id)}>
+                                                            <FontAwesomeIcon icon={faComment} className={`hover:text-indigo-500 active:text-indigo-600 duration-500 pb-1 ${visibleInputBox[paltaQ.id] ? 'text-indigo-500' : ''}`} />
+                                                        </button>
+                                                        <span className="small ml-1 mr-2">{paltaQ.repliesLength}</span>
+                                                        <span className="small mr-2">|</span>
+                                                        {/* PaltaQ */}
+                                                        <button onClick={() => handleButtonClick(paltaQ.id, 'paltaQ1', paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name)}>
+                                                            <h5
+                                                                className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'paltaQ1' ? 'text-emerald-700' : ''}`}>
+                                                                PaltaQ
+                                                            </h5>
+                                                        </button>
+                                                    </div>
+
+                                                </div>
+
+                                                {/* Conditional PaltaQ2 Text Area */}
+                                                <div>
+                                                    {visibleTextBoxes[paltaQ.id] && textBoxPosition === 'paltaQ1' && (
+                                                        <div className='pb-2 pt-1'>
+                                                            <form className="mr-1" onSubmit={handlePaltaQ(paltaQ.id, question.topicId, question.id, true)}>
+                                                                {/* Anonymity */}
+                                                                <div className='flex flex-row items-end justify-between'>
+
+                                                                    <h6 className='text-zinc-400 lg:text-sm text-xs'>Depth:2 | Responding to {userName}</h6>
+
+                                                                    <label className='inline-flex items-center cursor-pointer'>
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            value={(isAnonymous[paltaQ.id] || false).toString()}
+                                                                            className="sr-only peer"
+                                                                            onChange={() => toggleAnonymity(paltaQ.id)}
+                                                                        />
+                                                                        <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
+                                                                        {isAnonymous[question.id] ? (
+                                                                            <FontAwesomeIcon
+                                                                                icon={faEyeSlash}
+                                                                                className={`w-[1.5rem] lg:hidden text-red-900`}
+                                                                            />
+                                                                        ) : (
+                                                                            <FontAwesomeIcon
+                                                                                icon={faEye}
+                                                                                className={`w-[1.5rem] lg:hidden text-[#31344b]`}
+                                                                            />
+                                                                        )}
+                                                                        <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[paltaQ.id] ? "On" : "Off"})</span>
+                                                                    </label>
+
+                                                                </div>
+
+                                                                <textarea
+                                                                    id="paltaQuestion"
+                                                                    className="form-control pr-5o5 resize-none py-3 pl-3"
+                                                                    placeholder='Type a creative palta question here . . .'
+                                                                    onChange={handleInputChange(paltaQ.id)}
+                                                                    value={paltaQInputs[paltaQ.id] || ''}
+                                                                />
+                                                                <button
+                                                                    type="submit"
+                                                                    className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
+                                                                >
+                                                                    <FontAwesomeIcon
+                                                                        icon={faPaperPlane}
+                                                                        className="w-[1.5rem] text-[#31344b]"
+                                                                    />
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <hr className=' border-b border-gray-400 my-3 mr-4'></hr>
+                                            </div>
+
+                                            {/* PaltaQ Component */}
+                                            {visibleInputBox[paltaQ.id] && (
+                                                <div>
+                                                    {/* Replies */}
+                                                    <PaltaQComponent
+                                                        paltaQId={paltaQ.id}
+                                                        mainQuestionId={question.id}
+                                                        userId={userId}
+                                                        index={1}
+                                                        visibleInputBox={visibleInputBox}
+                                                        toggleInputBox={toggleInputBox}
+                                                        visibleTextBoxes={visibleTextBoxes}
+                                                        handleButtonClick={handleButtonClick}
+                                                        textBoxPosition={textBoxPosition}
+                                                        userName={userName}
+                                                        resetClick={resetClick}
+                                                        from="topic"
+                                                        classId={classId}
+                                                        topicId={question.topicId}
+                                                    />
+                                                </div>
+                                            )}
+
+                                        </div>
+                                    ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div ref={questionsRef}>
             <div onClick={() => setViewQuestions(!viewQuestions)} className='flex flex-row mb-5 ml-3 w-fit pb-1 pt-2 active:-translate-y-3 active:duration-500'>
                 <h5 className='text-gray-900'>Toggle Questions Section</h5>
-                {viewQuestions ? <FontAwesomeIcon icon={faAngleUp} className="w-[1.5rem] text-[#31344b] text-indigo-700 translate-y-1" /> : <FontAwesomeIcon icon={faAngleDown} className="w-[1.5rem] text-[#31344b] translate-y-1 text-indigo-700" />}
+                {viewQuestions ? <FontAwesomeIcon icon={faAngleUp} className="w-[1.5rem] text-zinc-800 translate-y-1" /> : <FontAwesomeIcon icon={faAngleDown} className="w-[1.5rem] translate-y-1 text-zinc-800" />}
             </div>
 
             {viewQuestions && (
@@ -604,7 +1121,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
 
                         {/* Questions List */}
                         <div className='order-4'>
-                            {currentQuestions.map((question: Question) => (
+                            {currentQuestions.map((question: Question, index: number) => (
                                 <div key={question.id}>
                                     {/* Check if current question is non-faculty and student questions haven't started */}
                                     <div className='pb-2'>
@@ -614,9 +1131,12 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                             </h4>
                                         )}
                                         {question.user.is_Faculty && !facultyQuestionsStarted && (
-                                            <h4 className="text-lg font-bold text-gray-800 mt-2 mb-3 ml-3 border-b-2 border-gray-600 w-fit pr-2">
-                                                Faculty Questions
-                                            </h4>
+                                            <span className='flex flex-row items-center' onClick={() => setViewFacultyQs(!viewFacultyQs)}>
+                                                <h4 className="text-lg font-bold text-gray-800 mt-2 mb-3 ml-3 border-b-2 border-gray-600 w-fit pr-2">
+                                                    Faculty Questions
+                                                </h4>
+                                                {viewFacultyQs ? <FontAwesomeIcon icon={faAngleUp} className="w-[1.5rem] text-gray-800 -translate-y-1" /> : <FontAwesomeIcon icon={faAngleDown} className="w-[1.5rem] -translate-y-1 text-gray-800" />}
+                                            </span>
                                         )}
                                     </div>
 
@@ -626,425 +1146,22 @@ export default function QuestionsList({ classId }: { classId: string }) {
                                     {/* Update the flag once student questions have started */}
                                     {question.user.is_Faculty && (facultyQuestionsStarted = true)}
 
-                                    <div
-                                        className={`card bg-primary shadow-sm ${question.user.is_Faculty == true ? 'shadow-secondary' : 'border-light'}  lg:w-fit w-full lg:mx-4 mb-4`}
-                                        style={{
-                                            minWidth: '50vw',
-                                            border: question.user.is_Faculty == true ? '1px solid rgba(233, 233, 233, 0.8)' : '2px solid rgba(54, 176, 233, 0.5)',
-                                        }}
-                                    >
-
-                                        {/* Question card top part */}
-                                        <div className="px-4 pt-3 pb-2">
-
-                                            {/* Main Question User Details */}
-                                            <div className="flex flex-row justify-between mb-2">
-                                                <div className="flex items-center">
-
-                                                    {/* Image, Name, Date, Report */}
-                                                    <div className='icon shadow-inset border border-light rounded-circle p-1'>
-                                                        {question.isAnonymous ? (
-                                                            <Image
-                                                                src="/default_image.png"
-                                                                alt="Anonymous Image"
-                                                                width={30}
-                                                                height={30}
-                                                                className='rounded-full'
-                                                            ></Image>
-                                                        ) : (
-                                                            <Image
-                                                                src={question.user.image}
-                                                                alt="User Image"
-                                                                width={30}
-                                                                height={30}
-                                                                className='rounded-full'
-                                                            ></Image>
-                                                        )}
-                                                    </div>
-
-                                                    <div className='flex flex-col ml-1'>
-                                                        {question.user.is_Faculty ? (
-                                                            <div>
-                                                                {question.user.id == userId ? (
-                                                                    <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0,8)} (You)` : question.user.name}</span>
-                                                                ) : (
-                                                                    <div>
-                                                                        <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0,8)}`  : question.user.name}</span>
-                                                                        <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            <div>
-                                                                {question.user.id == userId ? (
-                                                                    <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0,8)} (You)` : question.user.name}</span>
-                                                                ) : (
-                                                                    <span className="font-bold text-lg ml-2">{question.isAnonymous ? `User@${question.user.id.slice(0,8)}`  : question.user.name}</span>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                        <span className="small ml-2">
-                                                            {new Date(question.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
-                                                        </span>
-                                                    </div>
-
-                                                </div>
-
-                                                <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
-                                                    <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
-                                                    <span className="font-bold lg:block hidden">Report</span>
-                                                </button>
-
-                                            </div>
-
-                                            {/* Main Question */}
-                                            <div className="flex flex-row pt-2 pb-1">
-                                                <h4 className="lg:text-lg text-base text-justify">
-                                                    {question.question}
-                                                </h4>
-                                            </div>
-
-                                        </div>
-
-                                        <div className=''>
-
-                                            {/* Main Question Badges */}
-                                            <div className='pb-2 -translate-x-1'>
-                                                <div className={`ml-4 badge  ${question.score >= 100
-                                                    ? "text-danger"
-                                                    : question.score >= 50
-                                                        ? "text-secondary"
-                                                        : "text-success"
-                                                    }`}>
-                                                    {question.score >= 100
-                                                        ? <span className='font-bold text-sm px-1'>HIGH LEVEL QUESTION</span>
-                                                        : question.score >= 50
-                                                            ? <span className='font-bold text-sm px-1'>MID LEVEL QUESTION</span>
-                                                            : <span className='font-bold text-sm px-1'>LOW LEVEL QUESTION</span>}
-                                                </div>
-                                                <div className='badge ml-2 px-2'>
-                                                    <span className="font-bold text-sm items-end p-1">
-                                                        SCORE: {question.score}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Main Question Like/Dislike/PaltaQ */}
-                                            <div className="flex flex-row items-start mt-2 ml-3 pl-2 pt-1 pb-2 translate-x-[0.1em]">
-                                                {/* Like */}
-                                                <button onClick={() => handleLike(question.id, userId, 'question')} disabled={loading}>
-                                                    <FontAwesomeIcon
-                                                        icon={faThumbsUp}
-                                                        className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${question.likedBy && question.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
-                                                    />
-                                                </button>
-                                                <span className="small ml-1 mr-2">{question.likes}</span>
-                                                <span className="small mr-2">|</span>
-                                                {/* Dislike */}
-                                                <button onClick={() => handleDislike(question.id, userId, 'question')} disabled={loading}>
-                                                    <FontAwesomeIcon
-                                                        icon={faThumbsDown}
-                                                        className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${question.dislikedBy && question.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
-                                                    />
-                                                </button>
-                                                <span className="small ml-1 mr-2">{question.dislikes}</span>
-                                                <span className="small mr-2">|</span>
-                                                {/* Show PaltaQ */}
-                                                <button onClick={() => toggleInputBox(question.id)}>
-                                                    <FontAwesomeIcon icon={faComment} className={`hover:text-indigo-500 active:text-indigo-600 duration-500 pb-1 ${visibleInputBox[question.id] ? 'text-indigo-500' : ''}`} />
-                                                </button>
-                                                <span className="small ml-1 mr-2">{question.paltaQ}</span>
-                                                <span className="small mr-2">|</span>
-                                                {/* PaltaQ */}
-                                                <button onClick={() => handleButtonClick(question.id, 'mainQ', question.isAnonymous ? 'Anonymous User' : question.user.name)}>
-                                                    <h5
-                                                        className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'mainQ' ? 'text-emerald-700' : ''}`}>
-                                                        PaltaQ
-                                                    </h5>
-                                                </button>
-                                            </div>
-
-                                            {visibleInputBox[question.id] && (<hr className='border-b border-gray-400 mt-0 mb-4'></hr>)}
-
-                                            {/* Conditional PaltaQ1 Text Area */}
-                                            <div>
-                                                {visibleTextBoxes[question.id] && textBoxPosition === 'mainQ' && (
-                                                    <div className='pb-4'>
-                                                        <form className="lg:mx-4 mx-2" onSubmit={handlePaltaQ(question.id, question.topicId)}>
-                                                            {/* Anonymity */}
-                                                            <div className='flex flex-row items-end justify-between'>
-
-                                                                <h6 className='text-zinc-400 lg:text-sm text-xs pl-1'>Depth:1 | Responding to {userName}</h6>
-
-                                                                <label className='inline-flex items-center cursor-pointer'>
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        value={(isAnonymous[question.id] || false).toString()}
-                                                                        className="sr-only peer"
-                                                                        onChange={() => toggleAnonymity(question.id)}
-                                                                    />
-                                                                    <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
-                                                                    {isAnonymous[question.id] ? (
-                                                                        <FontAwesomeIcon
-                                                                            icon={faEyeSlash}
-                                                                            className={`w-[1.5rem] lg:hidden text-red-900`}
-                                                                        />
-                                                                    ) : (
-                                                                        <FontAwesomeIcon
-                                                                            icon={faEye}
-                                                                            className={`w-[1.5rem] lg:hidden text-[#31344b]`}
-                                                                        />
-                                                                    )}
-                                                                    <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[question.id] ? "On" : "Off"})</span>
-                                                                </label>
-
-                                                            </div>
-
-                                                            <textarea
-                                                                id="paltaQuestion"
-                                                                className="form-control pr-5o5 resize-none py-3 pl-3"
-                                                                placeholder='Type a creative palta question here . . .'
-                                                                onChange={handleInputChange(question.id)}
-                                                                value={paltaQInputs[question.id] || ''}
-                                                            />
-                                                            <button
-                                                                type="submit"
-                                                                className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
-                                                            >
-                                                                <FontAwesomeIcon
-                                                                    icon={faPaperPlane}
-                                                                    className="w-[1.5rem] text-[#31344b]"
-                                                                />
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Palta Questions Options */}
-                                            {visibleInputBox[question.id] && (
-                                                <div className="">
-                                                    {question.paltaQBy.length == 0 ? (
-                                                        <h5 className='text-sm text-zinc-400 ml-2 pb-2'>No palta questions have been asked yet for this question</h5>
-                                                    ) : (
-                                                        <h5 className='text-sm text-zinc-400 ml-2'>PaltaQ Depth: 1</h5>
+                                    {question.user.is_Faculty && viewFacultyQs ? (
+                                        <QuestionSection {...question} />
+                                    ) : (
+                                        <div>
+                                            {index==1 && currentPage==1 &&  (
+                                                <div>
+                                                    {facultyQuestions.length > 1 && (
+                                                        <h1 className='text-base ml-3 text-gray-800 mb-0'>Note: Faculty questions are hidden. There are {facultyQuestions.length ? facultyQuestions.length -1 : 0} faculty questions. Click the arrow above to show the hidden faculty questions.</h1>
                                                     )}
-
-                                                    {/* PaltaQ Card */}
-                                                    <div>
-                                                        {question.paltaQBy
-                                                            .slice() // Create a copy of the array to avoid mutating the original
-                                                            .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-                                                            .map((paltaQ: any) => (
-                                                                <div key={paltaQ.id} className="flex flex-col justify-between ml-2 px-3 py-2 w-full border-l-2 border-gray-500">
-
-                                                                    <div>
-                                                                        {/* PaltaQ User Details */}
-                                                                        <div className='flex justify-between'>
-                                                                            <div className="flex items-center">
-                                                                                <div className='icon shadow-inset border border-light rounded-circle p-1'>
-                                                                                    {paltaQ.isAnonymous ? (
-                                                                                        <Image
-                                                                                            src="/default_image.png"
-                                                                                            alt="Anonymous Image"
-                                                                                            width={30}
-                                                                                            height={30}
-                                                                                            className='rounded-full'
-                                                                                        ></Image>
-                                                                                    ) : (
-                                                                                        <Image
-                                                                                            src={paltaQ.user.image}
-                                                                                            alt="User Image"
-                                                                                            width={30}
-                                                                                            height={30}
-                                                                                            className='rounded-full'
-                                                                                        ></Image>
-                                                                                    )}
-                                                                                </div>
-
-                                                                                <div className='flex flex-col'>
-                                                                                    {paltaQ.user.is_Faculty ? (
-                                                                                        <div>
-                                                                                            {paltaQ.user.id == userId ? (
-                                                                                                <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0,8)} (You)` : paltaQ.user.name}</span>
-                                                                                            ) : (
-                                                                                                <div>
-                                                                                                    <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0,8)}`  : paltaQ.user.name}</span>
-                                                                                                    <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                                                </div>
-                                                                                            )}
-                                                                                        </div>
-                                                                                    ) : (
-                                                                                        <div>
-                                                                                            {paltaQ.user.id == userId ? (
-                                                                                                <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0,8)} (You)` : paltaQ.user.name}</span>
-                                                                                            ) : (
-                                                                                                <span className="font-bold text-lg ml-2">{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0,8)}`  : paltaQ.user.name}</span>
-                                                                                            )}
-                                                                                        </div>
-                                                                                    )}
-                                                                                    {/* Date */}
-                                                                                    <span className="small ml-2">
-                                                                                        {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
-                                                                                    </span>
-                                                                                </div>
-                                                                            </div>
-
-                                                                            <div>
-                                                                                <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
-                                                                                    <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
-                                                                                    <span className="font-bold lg:block hidden">Report</span>
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        {/* PaltaQ Question */}
-                                                                        <div className='mt-2'>{paltaQ.paltaQ}</div>
-
-                                                                        {/* Bottom Part */}
-                                                                        <div className='flex flex-col'>
-
-                                                                            {/* PaltaQ Badge */}
-                                                                            <div className="flex items-center mt-2 mb-1 -translate-x-2">
-                                                                                <div className='badge mx-1'>
-                                                                                    {paltaQ.score >= 100
-                                                                                        ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-danger'>HIGH LEVEL</span>
-                                                                                        : paltaQ.score >= 50
-                                                                                            ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-secondary'>MID LEVEL </span>
-                                                                                            : <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-success'>LOW LEVEL</span>}
-                                                                                </div>
-                                                                                <div className='badge mx-1'>
-                                                                                    <span className="font-bold lg:text-sm text-xxs items-end lg:ml-2 ml-0">
-                                                                                        SCORE: {paltaQ.score}
-                                                                                    </span>
-                                                                                </div>
-                                                                            </div>
-
-                                                                            {/* PaltaQ Like/Dislike/Show/PaltaQ */}
-                                                                            <div className="flex flex-row items-start mt-2 pt-1">
-                                                                                {/* Like */}
-                                                                                <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading}>
-                                                                                    <FontAwesomeIcon
-                                                                                        icon={faThumbsUp}
-                                                                                        className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${paltaQ.likedBy && paltaQ.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
-                                                                                    />
-                                                                                </button>
-                                                                                <span className="small ml-1 mr-2">{paltaQ.likes}</span>
-                                                                                <span className="small mr-2">|</span>
-                                                                                {/* Dislike */}
-                                                                                <button onClick={() => handleDislike(paltaQ.id, userId, 'palta')} disabled={loading}>
-                                                                                    <FontAwesomeIcon
-                                                                                        icon={faThumbsDown}
-                                                                                        className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${paltaQ.dislikedBy && paltaQ.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
-                                                                                    />
-                                                                                </button>
-                                                                                <span className="small ml-1 mr-2">{paltaQ.dislikes}</span>
-                                                                                <span className="small mr-2">|</span>
-                                                                                {/* Show PaltaQ */}
-                                                                                <button onClick={() => toggleInputBox(paltaQ.id)}>
-                                                                                    <FontAwesomeIcon icon={faComment} className={`hover:text-indigo-500 active:text-indigo-600 duration-500 pb-1 ${visibleInputBox[paltaQ.id] ? 'text-indigo-500' : ''}`} />
-                                                                                </button>
-                                                                                <span className="small ml-1 mr-2">{paltaQ.repliesLength}</span>
-                                                                                <span className="small mr-2">|</span>
-                                                                                {/* PaltaQ */}
-                                                                                <button onClick={() => handleButtonClick(paltaQ.id, 'paltaQ1', paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name)}>
-                                                                                    <h5
-                                                                                        className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'paltaQ1' ? 'text-emerald-700' : ''}`}>
-                                                                                        PaltaQ
-                                                                                    </h5>
-                                                                                </button>
-                                                                            </div>
-
-                                                                        </div>
-
-                                                                        {/* Conditional PaltaQ2 Text Area */}
-                                                                        <div>
-                                                                            {visibleTextBoxes[paltaQ.id] && textBoxPosition === 'paltaQ1' && (
-                                                                                <div className='pb-2 pt-1'>
-                                                                                    <form className="mr-1" onSubmit={handlePaltaQ(paltaQ.id, question.topicId, question.id, true)}>
-                                                                                        {/* Anonymity */}
-                                                                                        <div className='flex flex-row items-end justify-between'>
-
-                                                                                            <h6 className='text-zinc-400 lg:text-sm text-xs'>Depth:2 | Responding to {userName}</h6>
-
-                                                                                            <label className='inline-flex items-center cursor-pointer'>
-                                                                                                <input
-                                                                                                    type="checkbox"
-                                                                                                    value={(isAnonymous[paltaQ.id] || false).toString()}
-                                                                                                    className="sr-only peer"
-                                                                                                    onChange={() => toggleAnonymity(paltaQ.id)}
-                                                                                                />
-                                                                                                <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
-                                                                                                {isAnonymous[question.id] ? (
-                                                                                                    <FontAwesomeIcon
-                                                                                                        icon={faEyeSlash}
-                                                                                                        className={`w-[1.5rem] lg:hidden text-red-900`}
-                                                                                                    />
-                                                                                                ) : (
-                                                                                                    <FontAwesomeIcon
-                                                                                                        icon={faEye}
-                                                                                                        className={`w-[1.5rem] lg:hidden text-[#31344b]`}
-                                                                                                    />
-                                                                                                )}
-                                                                                                <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[paltaQ.id] ? "On" : "Off"})</span>
-                                                                                            </label>
-
-                                                                                        </div>
-
-                                                                                        <textarea
-                                                                                            id="paltaQuestion"
-                                                                                            className="form-control pr-5o5 resize-none py-3 pl-3"
-                                                                                            placeholder='Type a creative palta question here . . .'
-                                                                                            onChange={handleInputChange(paltaQ.id)}
-                                                                                            value={paltaQInputs[paltaQ.id] || ''}
-                                                                                        />
-                                                                                        <button
-                                                                                            type="submit"
-                                                                                            className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
-                                                                                        >
-                                                                                            <FontAwesomeIcon
-                                                                                                icon={faPaperPlane}
-                                                                                                className="w-[1.5rem] text-[#31344b]"
-                                                                                            />
-                                                                                        </button>
-                                                                                    </form>
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-
-                                                                        <hr className=' border-b border-gray-400 my-3 mr-4'></hr>
-                                                                    </div>
-
-                                                                    {/* PaltaQ Component */}
-                                                                    {visibleInputBox[paltaQ.id] && (
-                                                                        <div>
-                                                                            {/* Replies */}
-                                                                            <PaltaQComponent
-                                                                                paltaQId={paltaQ.id}
-                                                                                mainQuestionId={question.id}
-                                                                                userId={userId}
-                                                                                index={1}
-                                                                                visibleInputBox={visibleInputBox}
-                                                                                toggleInputBox={toggleInputBox}
-                                                                                visibleTextBoxes={visibleTextBoxes}
-                                                                                handleButtonClick={handleButtonClick}
-                                                                                textBoxPosition={textBoxPosition}
-                                                                                userName={userName}
-                                                                                resetClick={resetClick}
-                                                                                from="topic"
-                                                                                classId={classId}
-                                                                                topicId={question.topicId}
-                                                                            />
-                                                                        </div>
-                                                                    )}
-
-                                                                </div>
-                                                            ))}
-                                                    </div>
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
+                                    )}
+                                    {!question.user.is_Faculty && (
+                                        <QuestionSection {...question} />
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -1131,7 +1248,7 @@ export default function QuestionsList({ classId }: { classId: string }) {
 
                             ) : (
                                 <div>
-                                    {questions.length === 0  && (
+                                    {questions.length === 0 && (
                                         <p className='mb-5'>No quesions have been registered yet for this classroom</p>
                                     )}
                                 </div>

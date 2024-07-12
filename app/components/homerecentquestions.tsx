@@ -505,7 +505,7 @@ export default function RecentQuestions() {
         fetchUserID();
         fetchQuestions();
 
-        const intervalId = setInterval(fetchQuestions, 100000); // Fetch every minute
+        const intervalId = setInterval(fetchQuestions, 30000); // Fetch every half minute
 
         return () => clearInterval(intervalId); // Cleanup function to clear interval
 
@@ -820,7 +820,7 @@ export default function RecentQuestions() {
 
                                                     <div key={paltaQ.id} className="flex flex-col justify-between ml-2 px-3 pt-2 pb-0 w-full border-l-2 border-gray-500">
 
-                                                        <div>
+                                                        <div id={`ID-${idx}`}>
                                                             {/* PaltaQ User Details */}
                                                             <div className='flex justify-between'>
                                                                 <div className="flex items-center">

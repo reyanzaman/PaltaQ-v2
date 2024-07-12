@@ -53,6 +53,10 @@ export default function QuestionBox({ classId }: { classId: string }) {
     const [loading, setLoading] = useState(false);
 
     const [enrollment, setEnrollment] = useState<ClassEnrollment>();
+    const [refresh, setRefresh] = useState(false);
+
+    const [progress, setProgress] = useState(0);
+    const [progressNum, setProgressNum] = useState('');
 
     useEffect(() => {
         setLoading(true);
@@ -101,7 +105,7 @@ export default function QuestionBox({ classId }: { classId: string }) {
 
         fetchTopics();
         fetchProgressData();
-    }, []);
+    }, [refresh]);
 
     const handleDropdown = () => {
         setShowDropdown(!showDropdown);
@@ -156,6 +160,7 @@ export default function QuestionBox({ classId }: { classId: string }) {
                 autoClose: 5000,
             });
 
+            setRefresh(!refresh);
         } else {
             // Handle error
             console.error('Failed to submit question');
@@ -168,66 +173,70 @@ export default function QuestionBox({ classId }: { classId: string }) {
         }
     };
 
-    function calculateProgress(score: number) {
-        let minScore = 0, maxScore = 0;
+    useEffect(() => {
 
-        if (score >= 0 && score <= 550) {
-            minScore = 0;
-            maxScore = 550;
-        } else if (score >= 551 && score <= 1500) {
-            minScore = 551;
-            maxScore = 1500;
-        } else if (score > 1500 && score <= 3000) {
-            minScore = 1501;
-            maxScore = 3000;
-        } else if (score > 3000 && score <= 5000) {
-            minScore = 3001;
-            maxScore = 5000;
-        } else if (score > 5000 && score <= 7000) {
-            minScore = 5001;
-            maxScore = 7000;
-        } else if (score > 7000 && score <= 15000) {
-            minScore = 7001;
-            maxScore = 15000;
-        } else if (score > 15000 && score <= 25000) {
-            minScore = 15001;
-            maxScore = 25000;
-        } else if (score > 25000 && score <= 35000) {
-            minScore = 25001;
-            maxScore = 35000;
-        } else if (score > 35000 && score <= 50000) {
-            minScore = 35001;
-            maxScore = 50000;
-        } else if (score > 50000) {
-            minScore = 50001;
-            maxScore = 50001;
-        }
+        function calculateProgress(score: number) {
+            let minScore = 0, maxScore = 0;
 
-        let progressNum
+            if (score >= 0 && score <= 550) {
+                minScore = 0;
+                maxScore = 550;
+            } else if (score >= 551 && score <= 1500) {
+                minScore = 551;
+                maxScore = 1500;
+            } else if (score > 1500 && score <= 3000) {
+                minScore = 1501;
+                maxScore = 3000;
+            } else if (score > 3000 && score <= 5000) {
+                minScore = 3001;
+                maxScore = 5000;
+            } else if (score > 5000 && score <= 7000) {
+                minScore = 5001;
+                maxScore = 7000;
+            } else if (score > 7000 && score <= 15000) {
+                minScore = 7001;
+                maxScore = 15000;
+            } else if (score > 15000 && score <= 25000) {
+                minScore = 15001;
+                maxScore = 25000;
+            } else if (score > 25000 && score <= 35000) {
+                minScore = 25001;
+                maxScore = 35000;
+            } else if (score > 35000 && score <= 50000) {
+                minScore = 35001;
+                maxScore = 50000;
+            } else if (score > 50000) {
+                minScore = 50001;
+                maxScore = 50001;
+            }
 
-        if (score == undefined) {
-            progressNum = "Loading";
-        } else {
-            progressNum = `${score}/${maxScore}`;
-        }
+            let progressNum
 
-        if (maxScore === minScore) {
-            // Handle the case where maxScore equals minScore (score > 50000)
-            return { progress: 100, progressNum }; // Assuming 100% progress as score is greater than 50000
-        } else {
             if (score == undefined) {
-                const progress = 0;
-                return { progress, progressNum };
+                progressNum = "Loading";
             } else {
-                const progress = ((score - minScore) / (maxScore - minScore)) * 100;
-                return { progress, progressNum };
+                progressNum = `${score}/${maxScore}`;
+            }
+
+            if (maxScore === minScore) {
+                // Handle the case where maxScore equals minScore (score > 50000)
+                return { progress: 100, progressNum }; // Assuming 100% progress as score is greater than 50000
+            } else {
+                if (score == undefined) {
+                    const progress = 0;
+                    return { progress, progressNum };
+                } else {
+                    const progress = ((score - minScore) / (maxScore - minScore)) * 100;
+                    return { progress, progressNum };
+                }
             }
         }
-    }
 
-    // Assuming you have the user's score and rank
-    const userScore = enrollment?.score || 0;
-    const { progress, progressNum } = calculateProgress(userScore);
+        const userScore = enrollment?.score || 0;
+        const { progress, progressNum } = calculateProgress(userScore);
+        setProgress(progress);
+        setProgressNum(progressNum);
+    }, [enrollment]);
 
     return (
         <form className="lg:w-3/4 pl-3 pt-2 pr-3" onSubmit={handleSubmit}>

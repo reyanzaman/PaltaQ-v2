@@ -356,7 +356,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
     useEffect(() => {
         fetchPaltaQ();
 
-        const intervalId = setInterval(fetchPaltaQ, 100000); // Fetch every minute
+        const intervalId = setInterval(fetchPaltaQ, 30000); // Fetch every minute
         return () => clearInterval(intervalId); // Cleanup function to clear interval
 
     }, [userId]);
@@ -396,7 +396,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
             setRank(ranks);
         };
 
-        const debouncedFetch = () => {
+        const debouncedFetchHS = () => {
             if (timeoutId) {
                 clearTimeout(timeoutId);
             }
@@ -407,10 +407,51 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
             }, 500); // Adjust the debounce time as needed (e.g., 500ms)
         };
 
+        const fetchHighestClassScores = async () => {
+            // Gather user IDs from Questions and associated PaltaQs
+            const userIds: string[] = [];
+
+            questions.forEach((question: { user: { id: string; }; }) => {
+                // Add Question user ID
+                if (!userIds.includes(question.user.id)) {
+                    userIds.push(question.user.id);
+                }
+            });
+            const response = await fetch(`/api/highestScore/classwise?cid=${classId}&uids=${userIds.join(',')}`);
+            const data = await response.json();
+
+            // Now set the rank details for each question based on highestScores
+            const ranks: { [key: string]: RankDetails } = {};
+
+            for (const userId in data) {
+                const userScore = data[userId];
+
+                // Assuming 'ranks' is where you store results
+                if (userScore !== undefined || userScore !== null) {
+                    ranks[userId] = getRankDetails(userScore);  // Using userId as key
+                } else {
+                    ranks[userId] = { colorCode: '', icon: '' };  // Default values if score is undefined
+                }
+            }
+            console.log(ranks);
+            setRank(ranks);
+        };
+
+        const debouncedFetchHCS = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+
+            timeoutId = setTimeout(() => {
+                fetchHighestClassScores();
+                timeoutId = null;
+            }, 800);
+        };
+
         if (from == "general") {
-            debouncedFetch();
+            debouncedFetchHS();
         } else {
-            // Needs work
+            debouncedFetchHCS();
         }
 
         return () => {
