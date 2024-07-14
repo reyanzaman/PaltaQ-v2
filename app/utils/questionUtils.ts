@@ -77,7 +77,7 @@ export async function validateQuestion(question: string, category: QuestionCateg
     }
 
     // Check if a similar question exists in the same category using cosine similarity
-    const similarityThreshold = 0.7;
+    const similarityThreshold = 0.75;
 
     // Iterate through existing questions and calculate cosine similarity
     for (const existingQuestion of existingQuestions) {
@@ -181,6 +181,12 @@ const bloomKeywords: string[][] = [
 function calculateScore(question: string, llama_score: number): { score: number, foundKeywords: { [key: string]: boolean } } {
   let totalScore = 0;
   let foundKeywords: { [key: string]: boolean } = {};
+  
+  if (llama_score < 100 && llama_score >= 20) {
+    llama_score = llama_score - 20;
+  } else if (llama_score >= 100 && llama_score < 135) {
+    llama_score = llama_score - 25;
+  }
 
   bloomKeywords.forEach((levels, index) => {
     let found = false;
@@ -197,7 +203,7 @@ function calculateScore(question: string, llama_score: number): { score: number,
     }
   });
 
-  const average_score = Math.round(totalScore + llama_score / 2);
+  const average_score = Math.round((totalScore + llama_score) / 2);
 
   console.log('Blooms score:', totalScore, 'Llama score:', llama_score, 'Average score:', average_score);
 

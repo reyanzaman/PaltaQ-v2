@@ -33881,3 +33881,24 @@ article a:hover {
 .tooltip-inner {
     box-shadow: inset 2px 2px 5px #b8b9be, inset -3px -3px 7px #fff
 }
+
+/* Generated Text */
+
+.cursor {
+    display: inline-block;
+    width: 1ch;
+    animation: flicker 0.7s infinite;
+    margin-bottom: 4px;
+  }
+
+  @keyframes flicker {
+    0% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }

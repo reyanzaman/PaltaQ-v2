@@ -135,6 +135,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       let question = url?.searchParams.get('question') || '';
       const qid = url?.searchParams.get('qid') || '';
       const Mqid = url?.searchParams.get('Mqid') || '';
+      const tname = url?.searchParams.get('tname') || '';
 
       question = question.trim();
       question = question.charAt(0).toUpperCase() + question.slice(1);
@@ -159,8 +160,72 @@ async function postHandler(req: Request, res: NextApiResponse) {
         })
       }
 
+      // Llama-3
+      const baseUrl = process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000'
+
+      // Check if the question is valid
+      const llama_response = await fetch(`${baseUrl}/api/groq?question=${question}&version=1`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+      });
+
+      // Check if the question is off-topic
+      const llama_response4 = await fetch(`${baseUrl}/api/groq?question=${question}&version=4&topic=${tname}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await llama_response.json();
+      const is_valid_question = data.toLowerCase();
+      const is_validTopic = await llama_response4.json();
+
+      if (is_validTopic.includes("no")) {
+        return new Response(JSON.stringify({ message: `Question is off-topic`, improvement_suggestion: 'Our system has detected that your question does not match the selected classroom topic. Please try asking a question that is relevant to the topic.' }), {
+          status: 400,
+        })
+      }
+
+      // Generate improvement suggestion
+      const llama_response3 = await fetch(`${baseUrl}/api/groq?question=${question}&version=3`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+      });
+
+      let improvement_suggestion = await llama_response3.json();
+
+      // Capitalize the first letter of improvement_suggestion
+      if (improvement_suggestion) {
+        improvement_suggestion = improvement_suggestion.charAt(0).toUpperCase() + improvement_suggestion.slice(1);
+      } else {
+        improvement_suggestion = ''; // Handle case where there's no improvement suggestion
+      }
+
+      if (is_valid_question.includes("no")) {
+        return new Response(JSON.stringify({ message: `Try asking a better question`, improvement_suggestion }), {
+          status: 400,
+        })
+      }
+
+      // Score the question using Llama-3
+      const llama_response2 = await fetch(`${baseUrl}/api/groq?question=${question}&version=2`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+      });
+
+      const llama_score = parseInt(await llama_response2.json(), 10);
+
+      console.log({ is_valid_question, is_validTopic, llama_score, improvement_suggestion });
+
       // Score the question
-      const { score, foundKeywords } = await scoreQuestion(question);
+      const { score, foundKeywords } = await scoreQuestion(question, llama_score);
 
       // Submit the question to the database
       if (category === QuestionCategory.Topic) {
@@ -204,7 +269,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const status = await updateRank(userId, cid);
 
       // Return success response
-      return new Response(JSON.stringify({ message: `${score} Points Awarded!|${status}` }), {
+      return new Response(JSON.stringify({ message: `${score} Points Awarded!|${status}` , improvement_suggestion }), {
         status: 200,
       })
 

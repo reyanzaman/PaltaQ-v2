@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 
 import { Topic } from '@prisma/client';
+import GeneratedResponse from './generatedResponse';
 
 interface ClassEnrollment {
     id: string;
@@ -41,7 +42,7 @@ interface UserDetails {
     successfulReports: number;
 }
 
-export default function QuestionBox({ classId, refreshQs, handleRefreshQs}: { classId: string, refreshQs: boolean, handleRefreshQs: Function}) {
+export default function QuestionBox({ classId, handleRefreshQs}: { classId: string, handleRefreshQs: Function}) {
     const [question, setQuestion] = useState('');
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -57,6 +58,14 @@ export default function QuestionBox({ classId, refreshQs, handleRefreshQs}: { cl
 
     const [progress, setProgress] = useState(0);
     const [progressNum, setProgressNum] = useState('');
+
+    const [response, setResponse] = useState('');
+    const [lastQuestion, setLastQuestion] = useState('');
+    const [visibility, setVisibility] = useState(false);
+
+    const toggleVisibility = (state: boolean) => {
+        setVisibility(state);
+    }
 
     useEffect(() => {
         setLoading(true);
@@ -131,7 +140,7 @@ export default function QuestionBox({ classId, refreshQs, handleRefreshQs}: { cl
         // Show loading toast
         const loadingToastId = toast.loading('Submitting your question...');
 
-        const response = await fetch(`/api/questions?question=${question}&tid=${selectedTopicId}&cid=${classId}`, {
+        const response = await fetch(`/api/questions?question=${question}&tid=${selectedTopicId}&tname=${selectedTopic}&cid=${classId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -140,9 +149,12 @@ export default function QuestionBox({ classId, refreshQs, handleRefreshQs}: { cl
         });
 
         const responseData = await response.json();
+        setResponse(responseData.improvement_suggestion);
+        setLastQuestion(question);
 
         if (response.ok) {
             // Handle successful submission
+            setVisibility(true);
             setQuestion('');
 
             const responseText = responseData.message;
@@ -164,9 +176,9 @@ export default function QuestionBox({ classId, refreshQs, handleRefreshQs}: { cl
             handleRefreshQs();
         } else {
             // Handle error
-            console.error('Failed to submit question');
+            console.error('Failed to submit question (Frontend)');
             toast.update(loadingToastId, {
-                render: responseData.message || 'Question submission failed',
+                render: responseData.message || 'Question submission failed (Frontend)',
                 type: 'error',
                 isLoading: false,
                 autoClose: 5000,
@@ -357,6 +369,11 @@ export default function QuestionBox({ classId, refreshQs, handleRefreshQs}: { cl
                         </div>
                     </div>
                 )}
+            </div>
+
+            {/* AI Response */}
+            <div className='mt-5'>
+                <GeneratedResponse response={response} visibility={visibility} lastQuestion={lastQuestion} toggleVisibility={toggleVisibility}/>
             </div>
         </form>
     );

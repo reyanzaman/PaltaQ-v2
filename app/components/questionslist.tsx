@@ -101,7 +101,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
     const [selectedTopicId, setSelectedTopicId] = useState('' as string);
     const [topics, setTopics] = useState<Topic[]>();
     const [viewQuestions, setViewQuestions] = useState(true);
-    const [viewFacultyQs, setViewFacultyQs] = useState(true);
+    const [viewFacultyQs, setViewFacultyQs] = useState(false);
 
     const [questions, setQuestions] = useState<Question[]>([]);
     const [isAnonymous, setIsAnonymous] = useState<{ [key: string]: boolean }>({});

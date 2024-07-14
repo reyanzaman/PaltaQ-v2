@@ -62,13 +62,19 @@ async function postHandler(req: Request, res: NextApiResponse) {
             'Content-Type': 'application/json'
         }
       });
+      const llama_response3 = await fetch(`${baseUrl}/api/groq?question=${processed_question}&version=3`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+      });
 
       const data = await llama_response.json();
-      let [is_valid_question, llama_score] = data.split('_');
-      is_valid_question = is_valid_question.toLowerCase();
-      llama_score = parseInt(llama_score, 10);
+      const is_valid_question = data.toLowerCase();
 
-      let improvement_suggestion = await llama_response2.json();
+      const llama_score = parseInt(await llama_response2.json(), 10);
+
+      let improvement_suggestion = await llama_response3.json();
 
       // Capitalize the first letter of improvement_suggestion
       if (improvement_suggestion) {
@@ -80,7 +86,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       console.log({ is_valid_question, llama_score, improvement_suggestion });
 
       if (is_valid_question.includes("no")) {
-        return new Response(JSON.stringify({ message: `Invalid Question`, improvement_suggestion }), {
+        return new Response(JSON.stringify({ message: `Try asking a better question`, improvement_suggestion }), {
           status: 400,
         })
       }
