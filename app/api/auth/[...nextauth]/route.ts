@@ -61,6 +61,15 @@ export const authOptions = {
                         userId: newUser.id
                     }
                 });
+            } else {
+                // User exists, check if the image matches
+                if (existingUser.image !== image) {
+                    // Update the user image
+                    await prisma.user.update({
+                        where: { email },
+                        data: { image }
+                    });
+                }
             }
             return true; // Allow sign-in to proceed
         },

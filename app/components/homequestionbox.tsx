@@ -6,6 +6,7 @@ import { faPaperPlane, faEye, faEyeSlash, faE } from '@fortawesome/free-solid-sv
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 import GeneratedResponse from '@/app/components/generatedResponse';
+import { useSession } from 'next-auth/react';
 
 export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitted: any }) {
   const [question, setQuestion] = useState('');
@@ -13,6 +14,8 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
   const [response, setResponse] = useState(null);
   const [visibility, setVisibility] = useState(false);
   const [lastQuestion, setLastQuestion] = useState('');
+
+  const { data: session } = useSession();
 
   const toggleVisibility = (state: boolean) => {
     setVisibility(state);
@@ -114,16 +117,18 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
           }}
         />
         <div className='flex flex-row float-end -translate-y-[3.7em] -translate-x-6 scale-[1.4]'>
-          <button
-            type="button"
-            onClick={toggleAnonymity}
-            className=""
-          >
-            <FontAwesomeIcon
-              icon={isAnonymous ? faEyeSlash : faEye}
-              className={`w-[1.5rem] ${isAnonymous ? 'text-rose-700' : 'text-zinc-500'} mr-1`}
-            />
-          </button>
+          {session?.user?.email && (
+            <button
+              type="button"
+              onClick={toggleAnonymity}
+              className=""
+            >
+              <FontAwesomeIcon
+                icon={isAnonymous ? faEyeSlash : faEye}
+                className={`w-[1.5rem] ${isAnonymous ? 'text-rose-700' : 'text-zinc-500'} mr-1`}
+              />
+            </button>
+          )}
 
           <button
             type="submit"

@@ -13,6 +13,7 @@ import { QuestionCategory } from '@/app/utils/postUtils';
 import QuestionBox from "@/app/components/homequestionbox";
 import PaltaQComponent from "@/app/components/paltaQ";
 import { getRankDetails } from '@/app/utils/rankings';
+import { uid } from '@/app/api/submitGenQuestion/route'
 
 interface RankDetails {
     colorCode: string;
@@ -636,26 +637,34 @@ export default function RecentQuestions() {
                                         <div className='flex flex-col ml-1'>
                                             <div>
                                                 <div className='flex flex-row gap-x-2'>
-                                                    {question.user.is_Faculty ? (
+                                                    {question.user.id == uid ? (
                                                         <div>
-                                                            {question.user.id == userId ? (
-                                                                <div>
-                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
-                                                                    <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                </div>
-                                                            ) : (
-                                                                <div>
-                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
-                                                                    <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                </div>
-                                                            )}
+                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `Guest User` : question.user.name}</span>
                                                         </div>
-                                                    ) : (
+                                                    ):(
                                                         <div>
-                                                            {question.user.id == userId ? (
-                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                            {question.user.is_Faculty ? (
+                                                                <div>
+                                                                    {question.user.id == userId ? (
+                                                                        <div>
+                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                                            <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div>
+                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                                            <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
                                                             ) : (
-                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                                <div>
+                                                                    {question.user.id == userId ? (
+                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                                    ) : (
+                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                                    )}
+                                                                </div>
                                                             )}
                                                         </div>
                                                     )}
@@ -847,7 +856,7 @@ export default function RecentQuestions() {
                                                                         <div className='flex flex-row gap-x-2'>
                                                                             {paltaQ.user.is_Faculty ? (
                                                                                 <div>
-                                                                                    {paltaQ.user.id == userId ? (
+                                                                                    { paltaQ.userid && paltaQ.user.id == userId ? (
                                                                                         <div>
                                                                                             <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
                                                                                             <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
