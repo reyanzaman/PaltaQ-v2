@@ -11,7 +11,7 @@ model User {
   id                String        @id @default(uuid())
   email             String        @unique
   name              String?
-  image             String        @default("default_image.png")
+  image             String        @default("/default_image2.png")
   is_Admin          Boolean       @default(false)
   is_Faculty        Boolean       @default(false)
   createdAt         DateTime      @default(now())
