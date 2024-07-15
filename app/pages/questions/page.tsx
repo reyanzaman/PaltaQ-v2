@@ -83,7 +83,7 @@ export default function Questions(props) {
         <div className={`${nunito.className} antialiased flex flex-row`}>
             <UserImage />
     
-            <div className="lg:ml-[7em] lg:mt-[4em] mt-[5em] lg:w-[78em] w-full">
+            <div className="lg:ml-[7em] lg:mt-[4em] mt-[5em] w-full">
                 {user && <QuestionComponent user={user} />}
             </div>
         </div>

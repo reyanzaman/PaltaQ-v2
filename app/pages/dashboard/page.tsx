@@ -10,6 +10,9 @@ import UserImage from "@/app/components/userimage";
 import FacultyClass from "@/app/components/facultyclass";
 import StudentDashboard from "@/app/components/studentDashboard";
 
+import { faGraduationCap, faChalkboardUser } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 interface User {
     id: string;
     name: string;
@@ -150,32 +153,56 @@ export default function Dashboard(props) {
             <UserImage />
 
             {userStatus==="faculty" ? (
-                <div className="lg:ml-[7em] pl-4 pr-4 lg:mt-[4em] mt-[5em] lg:w-[80em] w-full">
+                <div className="lg:ml-[7em] lg:pl-4 lg:pr-4 lg:mt-[4em] mt-[5em] w-full">
                     <div className="flex flex-row gap-x-4">
-                        <h1 className="text-2xl font-bold">Faculty Dashboard</h1>
-                        <button
-                            type="button" 
-                            className="btn btn-sm btn-primary px-3 lg:-translate-y-1 translate-y-5"
-                            onClick={() => setUserStatus('student')}
-                        >
-                            Switch to Student
-                        </button>
+                        <h1 className="text-2xl font-bold pad-l1">Faculty Dashboard</h1>
+                        <div className="lg:block hidden">
+                            <button
+                                type="button" 
+                                className="btn btn-sm btn-primary px-3"
+                                onClick={() => setUserStatus('student')}
+                            >
+                                Switch to Student
+                            </button>
+                        </div>
+                        <div className="block lg:hidden">
+                            <button
+                                type="button" 
+                                className="btn btn-sm btn-primary px-3"
+                                onClick={() => setUserStatus('student')}
+                            >
+                                <FontAwesomeIcon icon={faGraduationCap} />
+                            </button>
+                        </div>
                     </div>
                     {/* @ts-ignore */}
                     <FacultyClass user={user} />
                 </div>
             ) : (
-                <div className="lg:ml-[7em] pl-4 pr-4 lg:mt-[4em] mt-[5em] lg:w-[80em] w-full">
+                <div className="lg:ml-[7em] lg:mt-[4em] mt-[5em] w-full">
                     <div className="flex flex-row gap-x-4">
-                        <h1 className="text-2xl font-bold">Student Dashboard</h1>
+                        <h1 className="text-2xl font-bold pl-3">Student Dashboard</h1>
                         {user?.is_Faculty && (
-                        <button
-                            type="button" 
-                            className="btn btn-sm btn-primary px-3 lg:-translate-y-1 translate-y-5"
-                            onClick={() => setUserStatus('faculty')}
-                        >
-                            Switch to Faculty
-                        </button>
+                            <div>
+                                <div className="hidden lg:block">
+                                    <button
+                                        type="button" 
+                                        className="btn btn-sm btn-primary px-3"
+                                        onClick={() => setUserStatus('faculty')}
+                                    >
+                                        Switch to Faculty
+                                    </button>
+                                </div>
+                                <div className="block lg:hidden">
+                                    <button
+                                        type="button" 
+                                        className="btn btn-sm btn-primary px-3"
+                                        onClick={() => setUserStatus('faculty')}
+                                    >
+                                        <FontAwesomeIcon icon={faChalkboardUser} />
+                                    </button>
+                                </div>
+                            </div>
                         )}
                     </div>
                     {user && (

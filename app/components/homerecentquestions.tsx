@@ -639,7 +639,7 @@ export default function RecentQuestions() {
                                                 <div className='flex flex-row gap-x-2'>
                                                     {question.user.id == uid ? (
                                                         <div>
-                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `Guest User` : question.user.name}</span>
+                                                            <span className="font-bold text-lg ml-2">Guest User</span>
                                                         </div>
                                                     ):(
                                                         <div>
@@ -670,7 +670,9 @@ export default function RecentQuestions() {
                                                     )}
                                                     {rank[question.user.id] && (
                                                         <div>
-                                                            <Image src={`/${rank[question.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                            {question.user.id !== uid && (
+                                                                <Image src={`/${rank[question.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
@@ -856,15 +858,23 @@ export default function RecentQuestions() {
                                                                         <div className='flex flex-row gap-x-2'>
                                                                             {paltaQ.user.is_Faculty ? (
                                                                                 <div>
-                                                                                    { paltaQ.userid && paltaQ.user.id == userId ? (
+                                                                                    {paltaQ.user.id == uid ? (
                                                                                         <div>
-                                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
-                                                                                            <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                                            <span className="font-bold text-lg ml-2">Guest User</span>
                                                                                         </div>
-                                                                                    ) : (
+                                                                                    ):(
                                                                                         <div>
-                                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
-                                                                                            <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                                            { paltaQ.userid && paltaQ.user.id == userId ? (
+                                                                                                <div>
+                                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
+                                                                                                    <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                                                </div>
+                                                                                            ) : (
+                                                                                                <div>
+                                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
+                                                                                                    <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                                                </div>
+                                                                                            )}
                                                                                         </div>
                                                                                     )}
                                                                                 </div>
@@ -879,7 +889,11 @@ export default function RecentQuestions() {
                                                                             )}
                                                                             {rank[paltaQ.user.id] && (
                                                                                 <div>
-                                                                                    <Image src={`/${rank[paltaQ.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                                                    {paltaQ.user.id !== uid && (
+                                                                                        <div>
+                                                                                            <Image src={`/${rank[paltaQ.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                                                        </div>
+                                                                                    )}
                                                                                 </div>
                                                                             )}
                                                                         </div>

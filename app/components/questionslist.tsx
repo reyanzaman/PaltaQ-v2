@@ -709,6 +709,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
 
                 </div>
 
+                {/* Question card bottom part */}
                 <div className=''>
 
                     {/* Main Question Badges */}
@@ -1149,10 +1150,10 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                         <QuestionSection {...question} />
                                     ) : (
                                         <div className=''>
-                                            {index==1 && currentPage==1 &&  (
+                                            {index==0 && currentPage==1 &&  (
                                                 <div>
                                                     {facultyQuestions.length >= 1 && (
-                                                        <h1 className='text-base ml-3 text-gray-800 pb-4'>Note: Faculty questions are hidden. There are <b>{facultyQuestions.length ? facultyQuestions.length -1 : 0}</b> faculty questions. Click the arrow above to show the hidden faculty questions.</h1>
+                                                        <h1 className='text-base ml-3 text-gray-800 pb-4'>Note: Faculty questions are hidden. There are <b>{facultyQuestions.length ? facultyQuestions.length : 0}</b> faculty questions. Click the arrow above to show the hidden faculty questions.</h1>
                                                     )}
                                                 </div>
                                             )}

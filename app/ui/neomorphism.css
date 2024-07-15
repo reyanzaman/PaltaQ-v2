@@ -33902,3 +33902,33 @@ article a:hover {
       opacity: 0;
     }
   }
+
+  .pad-l1 {
+    padding-left: 0.75rem;
+  }
+
+  .pad-x1 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .mar-x1 {
+    margin-left: 0.75rem;
+    margin-right: 0.75rem;
+  }
+  
+  @media (min-width: 1024px) {
+    .pad-l1 {
+      padding-left: 0;
+    }
+
+    .pad-x1 {
+        padding-left: 0;
+        padding-right: 1.75rem;
+    }
+
+    .mar-x1 {
+        margin-left: 0;
+        margin-right: 0;
+    }
+  }

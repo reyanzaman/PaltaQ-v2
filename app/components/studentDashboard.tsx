@@ -526,11 +526,11 @@ export default function StudentDashboard({ user }: { user: User }) {
 
     return (
         <div className={`${nunito.className} antialiased flex flex-col`}>
-            <h6 className="text-base">{user.name}</h6>
+            <h5 className="font-bold pl-3">Wecome {user.name}</h5>
 
             {/* DropDown */}
-            <div className='lg:mt-4'>
-                <label className='lg:hidden block pb-2 text-base font-bold'>Select your topic</label>
+            <div className='lg:mt-4 pl-3'>
+                <label className='lg:hidden block pb-2 text-base font-bold '>Select your topic</label>
 
                 <span className='dropdown'>
                     <div className='btn-group mr-2 mb-2'>
@@ -572,7 +572,7 @@ export default function StudentDashboard({ user }: { user: User }) {
             </div>
 
             {/* Info */}
-            <div className="grid lg:grid-cols-4 grid-cols-2 lg:gap-20 gap-8 w-fit lg:pr-5 py-4 my-4">
+            <div className="grid lg:grid-cols-4 grid-cols-2 lg:gap-20 gap-8 w-fit lg:pr-5 py-4 my-4 pl-3">
 
                 <div className="w-full">
                     <div className="card shadow-soft border-light p-4 flex flex-col items-center lg:mt-4 lg:h-[8em] h-[9em]">
@@ -608,7 +608,7 @@ export default function StudentDashboard({ user }: { user: User }) {
             </div>
 
             {/* Progress Bar */}
-            <div>
+            <div className="px-3">
                 {loading ? (
                     <h1 className="text-2xl font-bold">Loading...</h1>
                 ) : (
@@ -636,7 +636,7 @@ export default function StudentDashboard({ user }: { user: User }) {
             <hr className="lg:hidden mt-4"></hr>
 
             {/* Charts */}
-            <div>
+            <div className="px-2">
                 {loading ? (
                     <h1 className="text-2xl font-bold">Loading...</h1>
                 ) : (
@@ -655,7 +655,7 @@ export default function StudentDashboard({ user }: { user: User }) {
             </div>
 
             {/* Leaderboard */}
-            <div className="mb-8">
+            <div className="mb-8 px-3">
                 <h4 className="py-4 font-bold">Leaderboard</h4>
 
                 {/* Rankings */}
@@ -666,15 +666,15 @@ export default function StudentDashboard({ user }: { user: User }) {
                         <div className="my-3">
                             {selectedClassId !== undefined && (
                                 <div>
-                                    <table className="table table-striped table-responsive-sm shadow-soft rounded">
+                                    <table className="table table-striped shadow-soft rounded">
                                         <thead>
                                             <tr>
                                                 <th className="border-0" scope="col">Rank Position</th>
                                                 <th className="border-0" scope="col">Name</th>
                                                 <th className="border-0" scope="col">Score</th>
-                                                <th className="border-0" scope="col">Rank Title</th>
-                                                <th className="border-0" scope="col">Questions Asked</th>
-                                                <th className="border-0" scope="col">PaltaQ Asked</th>
+                                                <th className="border-0 lg:table-cell hidden" scope="col">Rank Title</th>
+                                                <th className="border-0 lg:table-cell hidden" scope="col">Questions Asked</th>
+                                                <th className="border-0 lg:table-cell hidden" scope="col">PaltaQ Asked</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -695,9 +695,9 @@ export default function StudentDashboard({ user }: { user: User }) {
                                                             <td>{crownIcon} {index + 1}</td>
                                                             <td>{student.user.is_Faculty ? `${student.user.name} (Faculty)` : student.user.name}</td>
                                                             <td>{student.score}</td>
-                                                            <td>{student.rank}</td>
-                                                            <td>{student.questionCount}</td>
-                                                            <td>{student.paltaQCount}</td>
+                                                            <td className="lg:table-cell hidden">{student.rank}</td>
+                                                            <td className="lg:table-cell hidden">{student.questionCount}</td>
+                                                            <td className="lg:table-cell hidden">{student.paltaQCount}</td>
                                                         </tr>
                                                     );
                                                 })}

@@ -189,7 +189,7 @@ export async function putHandler(req: Request, res: NextApiResponse) {
             });
 
             if (!classData) {
-                return new Response(JSON.stringify({ error: 'Class not found', message: 'Clas does not exist' }), {
+                return new Response(JSON.stringify({ error: 'Class not found', message: 'Class does not exist' }), {
                     status: 404,
                     headers: {
                         'Content-Type': 'application/json'
@@ -249,7 +249,84 @@ export async function putHandler(req: Request, res: NextApiResponse) {
     }
 }
 
+export async function patchHandler(req: Request, res: NextApiResponse) {
+    if (req.method === 'PATCH') {
+        const url = req?.url ? new URL(req.url) : null;
+        const cid = url?.searchParams.get('cid');
+        const cname = url?.searchParams.get('cname');
+        const cdate = url?.searchParams.get('cdate');
+
+        if (!cid || (!cname && !cdate)) {
+            return new Response(JSON.stringify({ error: 'cid and cname/cdate are required' }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        } else {
+            try {
+                if(cname && cid && cdate) {
+                    // Attempt to parse the date string
+                    const parsedDate = Date.parse(cdate);
+
+                    if (isNaN(parsedDate)) {
+                        console.error('Invalid Date Format:', cdate);
+                        return new Response(JSON.stringify({ error: 'Invalid Date Format' }), {
+                            status: 400,
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                    }
+
+                    const endsAt = new Date(parsedDate).toISOString();
+
+                    const user = await prisma.classes.update({
+                        where: {
+                            id: cid,
+                        },
+                        data: {
+                            name: cname,
+                            endsAt: endsAt
+                        }
+                    });
+                    return new Response(JSON.stringify({ message: 'Class details updated' }), {
+                        status: 200,
+                    })
+                }
+            } catch (error: any) {
+                console.error('Failed to update class:', error);
+
+                if (error.code === 'P2002' && error.meta?.target.includes('name')) {
+                    // Handle unique constraint violation specifically for 'name' field
+                    return new Response(JSON.stringify({ error: 'Class Name must be unique' }), {
+                        status: 400,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                }
+
+                return new Response(JSON.stringify({ error: 'Failed to update class' }), {
+                    status: 500,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
+        }
+    } else {
+        return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+            status: 405,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+}
+
 export { postHandler as POST };
 export { getHandler as GET };
 export { deleteHandler as DELETE };
 export { putHandler as PUT };
+export { patchHandler as PATCH };

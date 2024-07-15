@@ -10,6 +10,7 @@ import { useSession } from "next-auth/react";
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 import { getRankDetails } from '../utils/rankings';
+import { uid } from '../api/submitGenQuestion/route';
 
 interface RankDetails {
     colorCode: string;
@@ -509,15 +510,23 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                             <div className='flex flex-row gap-x-2'>
                                                 {paltaQ.user.is_Faculty ? (
                                                     <div>
-                                                        {paltaQ.user.id == userId ? (
+                                                        {paltaQ.user.id == uid ? (
                                                             <div>
-                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
-                                                                <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                <span className="font-bold text-lg ml-2">Guest User</span>
                                                             </div>
-                                                        ) : (
+                                                        ):(
                                                             <div>
-                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
-                                                                <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                {paltaQ.user.id == userId ? (
+                                                                    <div>
+                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
+                                                                        <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div>
+                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
+                                                                        <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
@@ -532,7 +541,11 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                                 )}
                                                 {rank[paltaQ.user.id] && (
                                                     <div>
-                                                        <Image src={`/${rank[paltaQ.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                        {paltaQ.user.id !== uid && (
+                                                            <div>
+                                                                <Image src={`/${rank[paltaQ.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>

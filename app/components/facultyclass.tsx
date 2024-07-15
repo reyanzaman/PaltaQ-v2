@@ -70,6 +70,10 @@ export default function FacultyClass({ user }: { user: User }) {
     const [toggleRemove, setToggleRemove] = useState(null as any);
     const [editIndex, setEditIndex] = useState(null);
 
+    const [newClassName, setNewClassName] = useState('' as string);
+    const [newClassDate, setNewClassDate] = useState('' as string);
+    const [toggleUpdate, setToggleUpdate] = useState(null as any);
+
     useEffect(() => {
         const fetchClasses = async () => {
             setLoading(true);
@@ -110,6 +114,14 @@ export default function FacultyClass({ user }: { user: User }) {
         fetchClasses();
         fetchTopics();
     }, [refresh]);
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
 
     const createClass = async (e: any) => {
         e.preventDefault();
@@ -209,7 +221,38 @@ export default function FacultyClass({ user }: { user: User }) {
     };
 
     const updateClass = async (index: any) => {
+        if (newClassName == '') {
+            toast.error('Class name cannot be blank');
+            return;
+        }
 
+        if (newClassDate == '') {
+            toast.error('Date cannot be blank');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/classes?cid=${classes[index].class.id}&cname=${newClassName}&cdate=${newClassDate}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setRefresh(!refresh);
+                toast.success('Class details updated');
+            } else {
+                // Handle error
+                console.error('Failed to update class');
+                toast.error(data.error ? data.error : 'Failed to update class');
+            }
+        } catch (error) {
+            console.error('Error updating class:', error);
+        }
+        setToggleDelete(null);
     }
 
     const createTopic = async (e: any) => {
@@ -358,10 +401,6 @@ export default function FacultyClass({ user }: { user: User }) {
         setSelectedClass(undefined);
     };
 
-    const updateEndDate = async (index: any) => {
-
-    }
-
     const displayStudents = () => {
         if (selectedClass) {
             if (selectedClass.enrollments.length <= 1) {
@@ -465,12 +504,12 @@ export default function FacultyClass({ user }: { user: User }) {
                 <div className="flex lg:flex-row flex-col mt-4 mb-4 lg:w-75 w-full ">
 
                     <div className="border border-gray-400 rounded-lg px-2 py-4 w-full lg:h-[23.8em] h-[24em] overflow-y-auto scrollbar-thin scrollbar-webkit lg:order-first order-last">
-                        <h5 className="pl-3">Topics of {selectedClass?.name}</h5>
+                        <h5 className="pad-l1">Topics of {selectedClass?.name}</h5>
 
 
                         {topics.length !== 0 && (
                             <div>
-                                <p className="pl-3">Number of topics: {topics.length}</p>
+                                <p className="pad-l1">Number of topics: {topics.length}</p>
                                 <table className="table table-hover table-responsive-sm">
                                     <tr>
                                         <th className="border-0" scope="col" id="className">Topic Name</th>
@@ -588,27 +627,29 @@ export default function FacultyClass({ user }: { user: User }) {
                             </div>
                         )}
 
-                        {topics.length === 0 && <p className="lg:pl-4 pl-3">No topics set yet.</p>}
+                        {topics.length === 0 && <p className="pad-l1">No topics set yet.</p>}
 
                     </div>
 
                     <div className="lg:w-50 w-full lg:mb-0 mb-5">
 
-                        <h5 className="text-neutral-700 lg:pl-1">Set the topics in your classroom</h5>
-                        <p className="lg:pl-1">Students will only be able to ask questions on the topics you set</p>
+                        <h5 className="text-neutral-700 pad-l1">Set the topics in your classroom</h5>
+                        <p className="pad-l1">Students will only be able to ask questions on the topics you set</p>
                         <form onSubmit={createTopic} className="flex flex-col lg:pr-20 gap-6 py-2 mb-2">
                             <div>
-                                <label>Topic Name</label>
-                                <input
-                                    id="classTopic"
-                                    className="form-control pr-5o5 resize-none py-3 pl-3"
-                                    placeholder="Create a class topic here"
-                                    value={classTopic}
-                                    onChange={(e) => setClassTopic(e.target.value)}
-                                />
+                                <label className="pad-l1">Topic Name</label>
+                                <div className="mar-x1">
+                                    <input
+                                        id="classTopic"
+                                        className="form-control pr-5o5 resize-none py-3 pl-3"
+                                        placeholder="Create a class topic here"
+                                        value={classTopic}
+                                        onChange={(e) => setClassTopic(e.target.value)}
+                                    />
+                                </div>
                             </div>
 
-                            <button className="btn animate-down-2" type="submit">Create Topic</button>
+                            <button className="btn animate-down-2 mar-x1" type="submit">Create Topic</button>
                         </form>
 
                     </div>
@@ -617,8 +658,8 @@ export default function FacultyClass({ user }: { user: User }) {
         } else {
             return (
                 <div>
-                    <h5 className="lg:pl-4 pl-2">Set topics for your students to ask question on</h5>
-                    <p className="lg:pl-4 pl-2">Select a class to set topics.</p>
+                    <h5 className="pad-l1">Set topics for your students to ask question on</h5>
+                    <p className="pad-l1">Select a class to set topics.</p>
                 </div>
             )
         }
@@ -630,12 +671,13 @@ export default function FacultyClass({ user }: { user: User }) {
 
     return (
         <div className={`${nunito.className} antialiased flex flex-col`}>
-            <h5 className="font-bold">Welcome {user.name}</h5>
+            <h5 className="font-bold pad-l1">Welcome {user.name}</h5>
 
             {/* Create/Join/View Classrooms */}
-            <div className="flex lg:flex-row flex-col my-4 lg:w-75 w-full ">
+            <div className="flex lg:flex-row flex-col my-4 w-full ">
 
-                <div className="border border-gray-400 rounded-lg px-2 py-4 w-full lg:h-[23.8em] h-[24em] overflow-y-auto scrollbar-thin scrollbar-webkit lg:order-first order-last">
+                {/* Right Part */}
+                <div className="border border-gray-400 rounded-lg px-2 py-4 w-full lg:h-[28em] h-[24em] overflow-y-auto scrollbar-thin scrollbar-webkit lg:order-first order-last">
                     <h5 className="pl-3">Classes taught by you</h5>
 
 
@@ -653,18 +695,34 @@ export default function FacultyClass({ user }: { user: User }) {
                                 {classes.map((classItem: any, index: any) => (
                                     <tr key={index}>
                                         <td>
-                                            {classItem.class.name}
+                                            {toggleUpdate === index ? (
+                                                <input
+                                                    type="text"
+                                                    value={newClassName}
+                                                    onChange={(e) => setNewClassName(e.target.value)}
+                                                    className="form-control"
+                                                />
+                                            ) : (
+                                                classItem.class.name
+                                            )}
                                         </td>
                                         <td>
                                             {classItem.class.code}
                                         </td>
                                         <td>
-                                            {classItem.class.endsAt ? (
-                                                <>
-                                                    {new Date(classItem.class.endsAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                                                </>
+                                            {toggleUpdate === index ? (
+                                                <input
+                                                    type="date"
+                                                    value={newClassDate}
+                                                    onChange={(e) => setNewClassDate(e.target.value)}
+                                                    className="form-control"
+                                                />
                                             ) : (
-                                                <div className="text-rose-800">N/A</div>
+                                                classItem.class.endsAt ? (
+                                                    new Date(classItem.class.endsAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                                ) : (
+                                                    <div className="text-rose-800">N/A</div>
+                                                )
                                             )}
                                         </td>
                                         <td className="">
@@ -714,18 +772,52 @@ export default function FacultyClass({ user }: { user: User }) {
                                                         </div>
                                                     )}
 
-                                                    {classItem.class.endsAt && (
-                                                        <div className="flex flex-row items-center">
-                                                            <p className="lg:block hidden mx-2">|</p>
-                                                            <button
-                                                                className="hover:text-lime-800 transition-colors duration-500 lg:-translate-y-2 translate-y-2"
-                                                                onClick={() => updateEndDate(index)}>
-                                                                Edit
-                                                            </button>
+                                                    {user.id === classItem.class.creatorId && (
+                                                        <div>
+                                                            {classItem.class.endsAt && (
+                                                                <div className="flex flex-row items-center">
+                                                                    <p className="lg:block hidden mx-2">|</p>
+                                                                    <button
+                                                                        className="hover:text-lime-800 transition-colors duration-500 lg:-translate-y-2 translate-y-2"
+                                                                        onClick={() => {
+                                                                            setNewClassName(classItem.class.name);
+                                                                            setNewClassDate(formatDate(classItem.class.endsAt));
+                                                                            setToggleUpdate(index);
+                                                                        }}>
+                                                                        Edit
+                                                                    </button>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
 
+                                                {/* Update Toggle */}
+                                                {user.id == classItem.class.creatorId && (
+                                                    <div>
+                                                        { toggleUpdate === index && (
+                                                        <div>
+                                                            <td className="w-full flex gap-x-4">
+                                                                <button
+                                                                    className="hover:text-red-800 transition-colors duration-500"
+                                                                    onClick={() => { 
+                                                                        setToggleUpdate(null);
+                                                                        updateClass(index); 
+                                                                    }}>
+                                                                    Confirm
+                                                                </button>
+                                                                <button
+                                                                    className="hover:text-red-800 transition-colors duration-500"
+                                                                    onClick={() => setToggleUpdate(null)}>
+                                                                    Cancel
+                                                                </button>
+                                                            </td>
+                                                        </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Delete Toggle */}
                                                 {user.id !== classItem.class.creatorId ? (
                                                     <div>
                                                         {toggleDelete === index && (
@@ -774,10 +866,11 @@ export default function FacultyClass({ user }: { user: User }) {
                     {classes.length === 0 && <p className="lg:pl-4 pl-3">No classes created yet.</p>}
                 </div>
 
-                <div className="lg:w-50 w-full">
+                {/* Left Part */}
+                <div className="w-full">
                     <hr className="lg:hidden block"></hr>
-                    <h5 className="text-neutral-700 lg:pl-1">Get started by creating your own class</h5>
-                    <form onSubmit={createClass} className="flex flex-col lg:pr-20 px py-4 gap-4 mb-2">
+                    <h5 className="text-neutral-700 pad-l1">Get started by creating your own class</h5>
+                    <form onSubmit={createClass} className="flex flex-col lg:pr-20 px py-4 gap-4 mb-2 pad-x1">
                         <input
                             id="className"
                             className="form-control pr-5o5 resize-none py-3 pl-3"
@@ -788,8 +881,8 @@ export default function FacultyClass({ user }: { user: User }) {
                         <button className="btn animate-down-2" type="submit">Create Class</button>
                     </form>
 
-                    <h5 className="text-neutral-700 lg:pl-1">Or you can join someone else's class</h5>
-                    <form onSubmit={joinClass} className="flex flex-col lg:pr-20 px py-4 gap-4">
+                    <h5 className="text-neutral-700 pad-l1">Or you can join someone else's class</h5>
+                    <form onSubmit={joinClass} className="flex flex-col lg:pr-20 px py-4 gap-4 pad-x1">
                         <input
                             id="classCode"
                             className="form-control pr-5o5 resize-none py-3 pl-3"
@@ -808,7 +901,7 @@ export default function FacultyClass({ user }: { user: User }) {
                 <hr className="border-b border-gray-400"></hr>
 
                 <div className="flex flex-row justify-between">
-                    <div><h4 className="lg:pl-2 text-sky-800">{selectedClass?.name} Classroom</h4></div>
+                    <div><h4 className="lg:pl-2 text-sky-800 pad-l1">{selectedClass?.name} Classroom</h4></div>
                     {selectedClass && (
                         <div>
                             <button onClick={handleCollapse} className="animate-down-2 font-bold mt-2 mr-4 h-fit lg:block hidden">
@@ -830,7 +923,7 @@ export default function FacultyClass({ user }: { user: User }) {
             </div>
 
             {/* Display Students */}
-            <div className="border border-gray-400 rounded-lg px-2 py-4 mb-8 w-full">
+            <div className="border border-gray-400 rounded-lg py-4 mb-8 w-full">
                 {displayStudents()}
             </div>
 
