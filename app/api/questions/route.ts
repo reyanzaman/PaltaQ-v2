@@ -44,7 +44,8 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                 parent: true,
                 replies: true,
               }
-            }
+            },
+            topic: true,
           }
         });
         // Calculate replies length for each paltaQBy and set replies to undefined

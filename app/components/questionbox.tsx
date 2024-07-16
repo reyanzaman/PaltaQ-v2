@@ -373,7 +373,7 @@ export default function QuestionBox({ classId, handleRefreshQs}: { classId: stri
 
             {/* AI Response */}
             <div className='mt-5'>
-                <GeneratedResponse response={response} visibility={visibility} lastQuestion={lastQuestion} toggleVisibility={toggleVisibility}/>
+                <GeneratedResponse response={response} visibility={visibility} lastQuestion={lastQuestion} toggleVisibility={toggleVisibility} type={'question'} questionID={''}/>
             </div>
         </form>
     );

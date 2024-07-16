@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 import { getRankDetails } from '../utils/rankings';
 import { uid } from '../api/submitGenQuestion/route';
+import GeneratedResponse from './generatedResponse';
 
 interface RankDetails {
     colorCode: string;
@@ -94,6 +95,14 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
 
     const [paltaQInputs, setPaltaQInputs] = useState<{ [key: string]: any }>({});
     const [rank, setRank] = useState<{ [key: string]: RankDetails }>({});
+
+    const [responseAI, setResponseAI] = useState<{ [key: string]: string }>({});
+    const [visibility, setVisibility] = useState<{ [key: string]: boolean }>({});
+    const [lastQuestion, setLastQuestion] = useState<{ [key: string]: string }>({});
+
+    const toggleVisibility = (questionId: string, state: boolean) => {
+        setVisibility(prev => ({ ...prev, [questionId]: state }));
+    }
 
     const handleInputChange = (questionId: string) => (event: any) => {
         const value = event.target.value;
@@ -257,9 +266,20 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
 
             const responseData = await response?.json();
 
+            setResponseAI(prevState => ({
+                ...prevState,
+                [questionId]: responseData.improvement_suggestion
+            }));
+            setLastQuestion(prevState => ({
+                ...prevState,
+                [questionId]: pQuestion
+            }));
+
             if (response && response.ok) {
                 // Handle successful submission
                 setPaltaQInputs(prev => ({ ...prev, [questionId]: '' }));
+                setVisibility(prev => ({ ...prev, [questionId]: true }));
+
                 const responseText = responseData.message;
                 const [mainText, updateText] = responseText.split('|');
 
@@ -687,6 +707,10 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                 </div>
 
                                 <hr className={`border-b border-gray-400 mr-4 ${idx === sortedQuestions.length - 1 ? 'my-0 mt-3' : 'my-3'}`}></hr>
+
+                                <div className='mb-4 lg:mx-2 pr-3'>
+                                    <GeneratedResponse response={responseAI[paltaQ.id]} visibility={visibility[paltaQ.id]} lastQuestion={lastQuestion[paltaQ.id]} toggleVisibility={toggleVisibility} type={'palta'} questionID={paltaQ.id}/>
+                                </div>
 
                             </div>
 

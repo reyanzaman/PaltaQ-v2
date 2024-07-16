@@ -14,6 +14,7 @@ import QuestionBox from "@/app/components/homequestionbox";
 import PaltaQComponent from "@/app/components/paltaQ";
 import { getRankDetails } from '@/app/utils/rankings';
 import { uid } from '@/app/api/submitGenQuestion/route'
+import GeneratedResponse from '@/app/components/generatedResponse';
 
 interface RankDetails {
     colorCode: string;
@@ -88,6 +89,14 @@ export default function RecentQuestions() {
     const [textBoxPosition, setTextBoxPosition] = useState('');
     const [userName, setUserName] = useState('');
     const [isAnonymous, setIsAnonymous] = useState<{ [key: string]: boolean }>({});
+
+    const [responseAI, setResponseAI] = useState<{ [key: string]: string }>({});
+    const [visibility, setVisibility] = useState<{ [key: string]: boolean }>({});
+    const [lastQuestion, setLastQuestion] = useState<{ [key: string]: string }>({});
+
+    const toggleVisibility = (questionId: string, state: boolean) => {
+        setVisibility(prev => ({ ...prev, [questionId]: state }));
+    }
 
     const [visibleInputBox, setVisibleInputBox] = useState<{ [key: string]: boolean }>({});
 
@@ -397,10 +406,20 @@ export default function RecentQuestions() {
             }
 
             const responseData = await response.json();
+            
+            setResponseAI(prevState => ({
+                ...prevState,
+                [questionId]: responseData.improvement_suggestion
+            }));
+            setLastQuestion(prevState => ({
+                ...prevState,
+                [questionId]: pQuestion
+            }));
 
             if (response.ok) {
                 // Handle successful submission
                 setPaltaQInputs(prev => ({ ...prev, [questionId]: '' }));
+                setVisibility(prev => ({ ...prev, [questionId]: true }));
 
                 const responseText = responseData.message;
                 const [mainText, updateText] = responseText.split('|');
@@ -812,6 +831,10 @@ export default function RecentQuestions() {
                                     )}
                                 </div>
 
+                                <div className='mb-4 lg:mx-2 -translate-y-1'>
+                                    <GeneratedResponse response={responseAI[question.id]} visibility={visibility[question.id]} lastQuestion={lastQuestion[question.id]} toggleVisibility={toggleVisibility} type={'palta'} questionID={question.id}/>
+                                </div>
+
                                 {/* Palta Questions Options */}
                                 {visibleInputBox[question.id] && (
                                     <div className="">
@@ -1028,9 +1051,13 @@ export default function RecentQuestions() {
 
                                                             <hr className={`border-b border-gray-400 mr-4 ${idx === sortedQuestions.length - 1 ? 'mb-0 mt-3' : 'my-3'}`}></hr>
 
+                                                            <div className='mb-4 lg:mx-2 pr-3'>
+                                                                <GeneratedResponse response={responseAI[paltaQ.id]} visibility={visibility[paltaQ.id]} lastQuestion={lastQuestion[paltaQ.id]} toggleVisibility={toggleVisibility} type={'palta'} questionID={paltaQ.id}/>
+                                                            </div>
+
                                                         </div>
 
-                                                        {/* PaltaQ Component */}
+                                                        {/* Recursive PaltaQ Component */}
                                                         {visibleInputBox[paltaQ.id] && (
                                                             <div>
                                                                 {/* Replies */}

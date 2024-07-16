@@ -142,7 +142,7 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
         </div>
       </div>
 
-      <GeneratedResponse response={response} visibility={visibility} lastQuestion={lastQuestion} toggleVisibility={toggleVisibility}/>
+      <GeneratedResponse response={response} visibility={visibility} lastQuestion={lastQuestion} toggleVisibility={toggleVisibility} type={'question'} questionID={''}/>
     </form>
   );
 }
