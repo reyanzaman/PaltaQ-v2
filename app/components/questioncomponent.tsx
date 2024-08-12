@@ -5,7 +5,7 @@ import { nunito } from "@/app/ui/fonts";
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
-import { Question, ClassFaculty, Topic } from '@prisma/client';
+import { Question, ClassFaculty, Topic, PreQuestionnaire, PostQuestionnaire, } from '@prisma/client';
 import QuestionBox from "@/app/components/questionbox";
 import QuestionsList from "@/app/components/questionslist";
 
@@ -17,6 +17,8 @@ interface ClassEnrollment {
     updatedAt: Date;
     user: User;
     class: Class;
+    preQuestionnaire: PreQuestionnaire;
+    postQuestionnaire: PostQuestionnaire;
 }
 
 interface Class {
@@ -41,6 +43,8 @@ interface User {
     createdAt: string;
     updatedAt: string;
     userDetails: UserDetails;
+    preQuestionnaire: PreQuestionnaire;
+    postQuestionnaire: PostQuestionnaire;
 }
 
 interface UserDetails {
@@ -66,6 +70,27 @@ export default function QuestionComponent({ user }: { user: User }) {
         setRefreshQuestions(!refreshQuestions);
     }
 
+    const createDefaultQuestionnaire = async (userId: string, classEnrId: string, type: string) => {
+        try {
+            const response = await fetch(`/api/questionnaire/default?uid=${userId}&ceid=${classEnrId}&type=${type}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                console.log('Default questionnaire created:');
+            } else {
+                // Handle error
+                console.error('Failed to create default questionnaire');
+            }
+            
+        } catch (error: any) {
+            console.error('Error fetching questions:', error);
+        }
+    }
+
     useEffect(() => {
         const fetchClasses = async () => {
             setLoading(true);
@@ -89,7 +114,49 @@ export default function QuestionComponent({ user }: { user: User }) {
     }, [refresh]);
 
     useEffect(() => {
-        
+        const callQuestionnaire = async () => {
+            try {
+                if (selectedClass) {
+                    const init_response = await fetch(`/api/classes/enrollment?code=${selectedClass.code}&uid=${user.id}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    const init_data = await init_response.json() as ClassEnrollment;
+
+                    if (!init_data.preQuestionnaire) {
+                        createDefaultQuestionnaire(user.id, init_data.id, 'pre').then(
+                            () => callQuestionnaire()
+                        );
+                    } else if (!init_data.postQuestionnaire) {
+                        createDefaultQuestionnaire(user.id, init_data.id, 'post').then(
+                            () => callQuestionnaire()
+                        );
+                    }
+
+                    if (init_data.preQuestionnaire?.isCompleted == false) {
+                        if (!user.is_Faculty && !user.is_Admin) {
+                            // Show loading indicator
+                            toast.loading('Redirecting to questionnaire page...');
+
+                            setTimeout(function() {
+                                window.location.href = `/pages/questionnaire?id=${user.id}&ceid=${init_data.id}&cname=${init_data.class.name}&type=pre`;
+                            }, 1000);  // Redirect after 1 second
+                        }
+                    } else if (init_data.postQuestionnaire?.isCompleted == false) {
+                        // window.location.href = `/pages/questionnaire?id=${user.id}&ceid=${init_data.id}&cname=${init_data.class.name}&type=post`;
+                    }
+
+                }
+            } catch (error: any) {
+                console.error('Error fetching questions:', error);
+            }
+        }
+
+        callQuestionnaire();
+
     }, [selectedClass]);
 
     const joinClass = async (e: any) => {

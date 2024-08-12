@@ -12,7 +12,7 @@ export const cid = 'ae9b5c88-e98e-4774-a606-790f71947591';
 // General Topic ID
 export const tid = 'e1566b05-fef2-4958-885b-2808695b7ba7';
 // Guest User ID
-export const uid = '03277337-f5ae-42c4-985c-4e35e64b3fc3'
+export const uid = '03277337-f5ae-42c4-985c-4e35e64b3fc3';
 
 async function postHandler(req: Request, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -62,38 +62,22 @@ async function postHandler(req: Request, res: NextApiResponse) {
             'Content-Type': 'application/json'
         }
       });
-      const llama_response3 = await fetch(`${baseUrl}/api/groq?question=${processed_question}&version=3`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-      });
 
       const data = await llama_response.json();
       const is_valid_question = data.toLowerCase();
 
       const llama_score = parseInt(await llama_response2.json(), 10);
 
-      let improvement_suggestion = await llama_response3.json();
-
-      // Capitalize the first letter of improvement_suggestion
-      if (improvement_suggestion) {
-        improvement_suggestion = improvement_suggestion.charAt(0).toUpperCase() + improvement_suggestion.slice(1);
-      } else {
-        improvement_suggestion = ''; // Handle case where there's no improvement suggestion
-      }
-
-      console.log({ is_valid_question, llama_score, improvement_suggestion });
+      console.log({ is_valid_question, llama_score});
 
       if (is_valid_question.includes("no")) {
-        return new Response(JSON.stringify({ message: `Try asking a better question`, improvement_suggestion }), {
+        return new Response(JSON.stringify({ error: `Try asking a better question`}), {
           status: 400,
         })
       }
 
-
       // Score the question
-      const { score, foundKeywords } = await scoreQuestion(processed_question, llama_score);
+      const { score, quban_score, foundKeywords } = await scoreQuestion(processed_question, llama_score);
 
       // Submit the question to the database
       if (category === QuestionCategory.General) {
@@ -102,6 +86,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
             uid,
             processed_question,
             score,
+            quban_score,
+            llama_score,
             category,
             tid,
             cid,
@@ -113,6 +99,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
             userId,
             processed_question,
             score,
+            quban_score,
+            llama_score,
             category,
             tid,
             cid,
@@ -129,6 +117,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
             '',
             cid,
             score,
+            quban_score,
+            llama_score,
             true,
             foundKeywords
           );
@@ -140,6 +130,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
             '',
             cid,
             score,
+            quban_score,
+            llama_score,
             anonymity,
             foundKeywords
           );
@@ -153,6 +145,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
             paltaQuesID,
             cid,
             score,
+            quban_score,
+            llama_score,
             true,
             foundKeywords,
             'paltapalta'
@@ -165,6 +159,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
             paltaQuesID,
             cid,
             score,
+            quban_score,
+            llama_score,
             anonymity,
             foundKeywords,
             'paltapalta'
@@ -173,7 +169,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       }
 
       // Return success response
-      return new Response(JSON.stringify({ message: `${score} Points Awarded!`, improvement_suggestion }), {
+      return new Response(JSON.stringify({ message: `${score} Points Awarded!` }), {
         status: 200,
       })
 

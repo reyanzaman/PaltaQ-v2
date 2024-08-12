@@ -38,10 +38,10 @@ const GeneratedResponse = ({ response, visibility, lastQuestion, toggleVisibilit
     return (
         <div className="">
             {visibility && (
-                <div className='w-full rounded-lg border-b-2 border-blue-500 shadow-md px-4 py-3' style={{backgroundColor: '#edeffa'}}>
+                <div className='w-full rounded-lg border-b-2 border-blue-500 shadow-md px-4 py-3 mt-2 mb-4' style={{backgroundColor: '#edeffa'}}>
                     <div>
-                        <div className='flex flex-row items-start justify-between'>
-                            <p className='text-zinc-700 mb-4 font-bold'>{lastQuestion}</p>
+                        <div className='flex flex-row items-start justify-between pt-2'>
+                            <p className='text-zinc-700 mb-3 font-bold'>{lastQuestion}</p>
                             <p className='font-bold text-grey-500 cursor-pointer scale-x-125' onClick={() => type=='question' ? toggleVisibility(false) : toggleVisibility(questionID, false)}>X</p>
                         </div>
 

@@ -8,6 +8,7 @@ import {
   bloom_evaluating,
   bloom_understanding
 } from '@/app/utils/taxonomy';
+import { tid } from '@/app/api/submitGenQuestion/route';
 
 export async function validateQuestion(question: string, category: QuestionCategory, topicID: string, classID: string): Promise<string> {
   try {
@@ -45,31 +46,79 @@ export async function validateQuestion(question: string, category: QuestionCateg
     }
 
     // Check if there are any existing questions for the same topic, class, and category
-    const existingQuestions = await prisma.question.findMany({
-      where: {
-        topicId: topicID,
-        classId: classID,
-      }
-    });
+    var existingQuestions;
+    var existingPaltaQs;
 
-    const existingPaltaQs = await prisma.paltaQ.findMany({
-      where: {
-        OR: [
-          {
-            question: {
-              topicId: topicID,
-              classId: classID,
-            }
+    // Getting existing questions for the same topic and class
+    if (topicID === tid && category === QuestionCategory.General) {
+      const DaysAgo = new Date();
+      DaysAgo.setDate(DaysAgo.getDate()-7);
+      DaysAgo.setHours(0, 0, 0, 0);
+
+      existingQuestions = await prisma.question.findMany({
+        where: {
+          topicId: topicID,
+          classId: classID,
+          createdAt: {
+            gte: DaysAgo.toISOString(),
           },
-          {
-            parentMQ: {
-              topicId: topicID,
-              classId: classID,
+        }
+      });
+
+      existingPaltaQs = await prisma.paltaQ.findMany({
+        where: {
+          OR: [
+            {
+              question: {
+                topicId: topicID,
+                classId: classID,
+                createdAt: {
+                  gte: DaysAgo.toISOString(),
+                },
+              }
+            },
+            {
+              parentMQ: {
+                topicId: topicID,
+                classId: classID,
+                createdAt: {
+                  gte: DaysAgo.toISOString(),
+                },
+              }
             }
-          }
-        ]
-      }
-    });
+          ]
+        }
+      });
+
+    } else {
+
+      existingQuestions = await prisma.question.findMany({
+        where: {
+          topicId: topicID,
+          classId: classID,
+        }
+      });
+
+      existingPaltaQs = await prisma.paltaQ.findMany({
+        where: {
+          OR: [
+            {
+              question: {
+                topicId: topicID,
+                classId: classID,
+              }
+            },
+            {
+              parentMQ: {
+                topicId: topicID,
+                classId: classID,
+              }
+            }
+          ]
+        }
+      });
+
+    }
 
     // If no existing questions and no PaltaQ comments, skip similarity check
     if (existingQuestions.length === 0 && existingPaltaQs.length === 0) {
@@ -148,10 +197,10 @@ function tokensToVector(tokens: string[]): { [key: string]: number } {
   return vector;
 }
 
-export async function scoreQuestion(question: string, llama_score: number): Promise<{ score: number, foundKeywords: { [key: string]: boolean } }> {
+export async function scoreQuestion(question: string, llama_score: number): Promise<{ score: number, quban_score: number, foundKeywords: { [key: string]: boolean } }> {
   try {
-    const calculatedScore = calculateScore(question, llama_score);
-    return calculatedScore;
+    const calculatedData = calculateScore(question, llama_score);
+    return calculatedData;
   } catch (error) {
     // Handle database error
     console.error('Failed to score question', error);
@@ -178,14 +227,19 @@ const bloomKeywords: string[][] = [
   bloom_creating
 ];
 
-function calculateScore(question: string, llama_score: number): { score: number, foundKeywords: { [key: string]: boolean } } {
+function calculateScore(question: string, llama_score: number): { score: number, quban_score: number, foundKeywords: { [key: string]: boolean } } {
   let totalScore = 0;
   let foundKeywords: { [key: string]: boolean } = {};
   
-  if (llama_score < 100 && llama_score >= 20) {
-    llama_score = llama_score - 20;
-  } else if (llama_score >= 100 && llama_score < 135) {
-    llama_score = llama_score - 25;
+  // Adjustments to the llama score
+  if (llama_score < 100) {
+    llama_score = llama_score - 40;
+  } else if (llama_score >= 112 && llama_score < 135) {
+    llama_score = llama_score - 10;
+  }
+
+  if (llama_score <= 0) {
+    llama_score = 5;
   }
 
   bloomKeywords.forEach((levels, index) => {
@@ -207,7 +261,7 @@ function calculateScore(question: string, llama_score: number): { score: number,
 
   console.log('Blooms score:', totalScore, 'Llama score:', llama_score, 'Average score:', average_score);
 
-  return { score: average_score, foundKeywords };
+  return { score: average_score, quban_score: totalScore, foundKeywords };
 }
 
 export async function updateRank(userId: string, classId: string): Promise<string> {

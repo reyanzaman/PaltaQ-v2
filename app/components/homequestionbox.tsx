@@ -5,21 +5,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane, faEye, faEyeSlash, faE } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
-import GeneratedResponse from '@/app/components/generatedResponse';
 import { useSession } from 'next-auth/react';
 
 export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitted: any }) {
   const [question, setQuestion] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [response, setResponse] = useState(null);
-  const [visibility, setVisibility] = useState(false);
-  const [lastQuestion, setLastQuestion] = useState('');
 
   const { data: session } = useSession();
-
-  const toggleVisibility = (state: boolean) => {
-    setVisibility(state);
-  }
 
   useEffect(() => {
   }, [question]);
@@ -49,12 +41,9 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
       });
 
       const responseData = await response.json();
-      setResponse(responseData.improvement_suggestion);
-      setLastQuestion(question);
 
       if (response.ok) {
         // Handle successful submission
-        setVisibility(true);
         setQuestion('');
 
         const responseText = responseData.message;
@@ -141,8 +130,6 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
           </button>
         </div>
       </div>
-
-      <GeneratedResponse response={response} visibility={visibility} lastQuestion={lastQuestion} toggleVisibility={toggleVisibility} type={'question'} questionID={''}/>
     </form>
   );
 }

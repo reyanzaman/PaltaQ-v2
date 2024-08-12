@@ -20,7 +20,7 @@ export async function getGroqChatCompletion2(question: string) {
       messages: [
         {
           role: "user",
-          content: `'${question}' Strictly score the question out of 150, strictly adhering to the full range. Only give me the score. For example: 50`,
+          content: `'${question}' Very strictly score the question out of 150, ensuring that low-level or low IQ questions receive below 50, mid-level or moderate questions between 50 to 100, and high-level and intelligent questions between 100 to 150. Only give me the score. For example: 50`,
         },
       ],
       model: "llama3-8b-8192",

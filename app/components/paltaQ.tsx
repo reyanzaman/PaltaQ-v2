@@ -1,6 +1,6 @@
 "use client";
 
-import { faPaperPlane, faFlag, faThumbsUp, faThumbsDown, faComment, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faFlag, faThumbsUp, faThumbsDown, faComment, faEye, faEyeSlash, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
 import Image from 'next/image';
@@ -374,6 +374,38 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
         }
     };
 
+    const handleAIGenerate = async (question: string, questionId: string) => {
+        try {
+            const response = await fetch('/api/improve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: Failed to generate AI response`);
+            }
+
+            const responseData = await response.json();
+
+            setResponseAI(prevState => ({
+                ...prevState,
+                [questionId]: responseData.improvement_suggestion
+            }));
+            setLastQuestion(prevState => ({
+                ...prevState,
+                [questionId]: question
+            }));
+            setVisibility(prev => ({ ...prev, [questionId]: true }));
+            
+        } catch (error) {
+            toast.error('Failed to generate AI response');
+            console.log('Error in handleAIGenerate:', error);
+        }
+    }
+
     useEffect(() => {
         fetchPaltaQ();
 
@@ -607,7 +639,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                         </div>
                                     </div>
 
-                                    {/* PaltaQ Like/Dislike/PaltaQ */}
+                                    {/* PaltaQ Like/Dislike/PaltaQ/Improve */}
                                     <div className="flex flex-row items-start mt-2 pt-1">
                                         {/* Like */}
                                         <button onClick={() => handleLike(paltaQ.id, userId)} disabled={loading}>
@@ -650,6 +682,20 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                                 </button>
                                             </div>
                                         )}
+                                        <span className="small mx-2">|</span>
+                                        {/* Improve */}
+                                        <button onClick={() => handleAIGenerate(paltaQ.paltaQ, paltaQ.id)}>
+                                            <div className='flex flex-row hover:text-blue-500 hover:-translate-y-[4px] duration-200'>
+                                                <FontAwesomeIcon
+                                                    icon={faWandMagicSparkles}
+                                                    className={`translate-y-0.5`}
+                                                />
+                                                <span
+                                                    className={`font-bold text-base pl-1 -translate-y-[2px]`}>
+                                                    Improve
+                                                </span>
+                                            </div>
+                                        </button>
                                     </div>
 
                                 </div>

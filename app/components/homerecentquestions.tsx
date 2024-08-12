@@ -1,6 +1,6 @@
 "use client";
 
-import { faPaperPlane, faFlag, faThumbsUp, faThumbsDown, faComment, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faFlag, faThumbsUp, faThumbsDown, faComment, faEye, faEyeSlash, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
 import Image from 'next/image';
@@ -406,20 +406,10 @@ export default function RecentQuestions() {
             }
 
             const responseData = await response.json();
-            
-            setResponseAI(prevState => ({
-                ...prevState,
-                [questionId]: responseData.improvement_suggestion
-            }));
-            setLastQuestion(prevState => ({
-                ...prevState,
-                [questionId]: pQuestion
-            }));
 
             if (response.ok) {
                 // Handle successful submission
                 setPaltaQInputs(prev => ({ ...prev, [questionId]: '' }));
-                setVisibility(prev => ({ ...prev, [questionId]: true }));
 
                 const responseText = responseData.message;
                 const [mainText, updateText] = responseText.split('|');
@@ -469,6 +459,38 @@ export default function RecentQuestions() {
             setLoading(false);
         }
     };
+
+    const handleAIGenerate = async (question: string, questionId: string) => {
+        try {
+            const response = await fetch('/api/improve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: Failed to generate AI response`);
+            }
+
+            const responseData = await response.json();
+
+            setResponseAI(prevState => ({
+                ...prevState,
+                [questionId]: responseData.improvement_suggestion
+            }));
+            setLastQuestion(prevState => ({
+                ...prevState,
+                [questionId]: question
+            }));
+            setVisibility(prev => ({ ...prev, [questionId]: true }));
+            
+        } catch (error) {
+            toast.error('Failed to generate AI response');
+            console.log('Error in handleAIGenerate:', error);
+        }
+    }
 
     const fetchQuestions = async () => {
         try {
@@ -740,7 +762,7 @@ export default function RecentQuestions() {
                                     </div>
                                 </div>
 
-                                {/* Main Question Like/Dislike/PaltaQ */}
+                                {/* Main Question Like/Dislike/PaltaQ/Improve */}
                                 <div className="flex flex-row items-start mt-2 ml-3 pl-2 pt-1 pb-2 translate-x-[0.1em]">
                                     {/* Like */}
                                     <button onClick={() => handleLike(question.id, userId, 'question')} disabled={loading}>
@@ -772,6 +794,20 @@ export default function RecentQuestions() {
                                             className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'mainQ' ? 'text-emerald-700' : ''}`}>
                                             PaltaQ
                                         </h5>
+                                    </button>
+                                    <span className="small mx-2">|</span>
+                                    {/* Improve */}
+                                    <button onClick={() => handleAIGenerate(question.question, question.id)}>
+                                        <div className='flex flex-row hover:text-blue-500 hover:-translate-y-[4px] duration-200'>
+                                            <FontAwesomeIcon
+                                                icon={faWandMagicSparkles}
+                                                className={`translate-y-0.5`}
+                                            />
+                                            <span
+                                                className={`font-bold text-base pl-1 -translate-y-[2px]`}>
+                                                Improve
+                                            </span>
+                                        </div>
                                     </button>
                                 </div>
 
@@ -831,7 +867,7 @@ export default function RecentQuestions() {
                                     )}
                                 </div>
 
-                                <div className='mb-4 lg:mx-2 -translate-y-1'>
+                                <div className='lg:mx-2 -translate-y-1'>
                                     <GeneratedResponse response={responseAI[question.id]} visibility={visibility[question.id]} lastQuestion={lastQuestion[question.id]} toggleVisibility={toggleVisibility} type={'palta'} questionID={question.id}/>
                                 </div>
 
@@ -957,7 +993,7 @@ export default function RecentQuestions() {
                                                                     </div>
                                                                 </div>
 
-                                                                {/* PaltaQ Like/Dislike/PaltaQ */}
+                                                                {/* PaltaQ Like/Dislike/PaltaQ/Improve */}
                                                                 <div className="flex flex-row items-start mt-2 pt-1">
                                                                     {/* Like */}
                                                                     <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading}>
@@ -989,6 +1025,20 @@ export default function RecentQuestions() {
                                                                             className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'paltaQ1' ? 'text-emerald-700' : ''}`}>
                                                                             PaltaQ
                                                                         </h5>
+                                                                    </button>
+                                                                    <span className="small mx-2">|</span>
+                                                                    {/* Improve */}
+                                                                    <button onClick={() => handleAIGenerate(paltaQ.paltaQ, paltaQ.id)}>
+                                                                        <div className='flex flex-row hover:text-blue-500 hover:-translate-y-[4px] duration-200'>
+                                                                            <FontAwesomeIcon
+                                                                                icon={faWandMagicSparkles}
+                                                                                className={`translate-y-0.5`}
+                                                                            />
+                                                                            <span
+                                                                                className={`font-bold text-base pl-1 -translate-y-[2px]`}>
+                                                                                Improve
+                                                                            </span>
+                                                                        </div>
                                                                     </button>
                                                                 </div>
 
@@ -1094,7 +1144,7 @@ export default function RecentQuestions() {
             <p className='text-zinc-500 -translate-y-2 text-center'>Showing the questions asked in last 7 days</p>
 
             {/* Pagination-bottom */}
-            <div className='flex justify-center items-center mx-auto'>
+            <div className='flex justify-center items-center mx-auto pad-x2'>
                 {questions.length > 0 && (
                     <div className='py-3'>
                         <nav aria-label="Questions page navigation">

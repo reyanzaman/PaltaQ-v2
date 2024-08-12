@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 
 import UserImage from "@/app/components/userimage";
 import QuestionComponent from "@/app/components/questioncomponent";
+import { PreQuestionnaire, PostQuestionnaire } from "@prisma/client";
 
 interface User {
     id: string;
@@ -18,6 +19,8 @@ interface User {
     createdAt: string;
     updatedAt: string;
     userDetails: UserDetails;
+    preQuestionnaire: PreQuestionnaire;
+    postQuestionnaire: PostQuestionnaire;
 }
 
 interface UserDetails {

@@ -7,7 +7,8 @@ import {
     faAngleUp,
     faArrowsRotate,
     faEye,
-    faEyeSlash
+    faEyeSlash,
+    faWandMagicSparkles
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
@@ -494,6 +495,38 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
         setShowDropdown(!showDropdown);
     }
 
+    const handleAIGenerate = async (question: string, questionId: string) => {
+        try {
+            const response = await fetch('/api/improve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: Failed to generate AI response`);
+            }
+
+            const responseData = await response.json();
+
+            setResponseAI(prevState => ({
+                ...prevState,
+                [questionId]: responseData.improvement_suggestion
+            }));
+            setLastQuestion(prevState => ({
+                ...prevState,
+                [questionId]: question
+            }));
+            setVisibility(prev => ({ ...prev, [questionId]: true }));
+            
+        } catch (error) {
+            toast.error('Failed to generate AI response');
+            console.log('Error in handleAIGenerate:', error);
+        }
+    }
+
     useEffect(() => {
 
         const fetchTopics = async () => {
@@ -595,7 +628,6 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                     ranks[userId] = { colorCode: '', icon: '' };  // Default values if score is undefined
                 }
             }
-            console.log(ranks);
             setRank(ranks);
         };
 
@@ -836,7 +868,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                     </div>
                                                 </div>
 
-                                                {/* Main Question Like/Dislike/PaltaQ */}
+                                                {/* Main Question Like/Dislike/PaltaQ/Improve */}
                                                 <div className="flex flex-row items-start mt-2 ml-3 pl-2 pt-1 pb-2 translate-x-[0.1em]">
                                                     {/* Like */}
                                                     <button onClick={() => handleLike(question.id, userId, 'question')} disabled={loading}>
@@ -868,6 +900,20 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                             className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'mainQ' ? 'text-emerald-700' : ''}`}>
                                                             PaltaQ
                                                         </h5>
+                                                    </button>
+                                                    <span className="small mx-2">|</span>
+                                                    {/* Improve */}
+                                                    <button onClick={() => handleAIGenerate(question.question, question.id)}>
+                                                        <div className='flex flex-row hover:text-blue-500 hover:-translate-y-[4px] duration-200'>
+                                                            <FontAwesomeIcon
+                                                                icon={faWandMagicSparkles}
+                                                                className={`translate-y-0.5`}
+                                                            />
+                                                            <span
+                                                                className={`font-bold text-base pl-1 -translate-y-[2px]`}>
+                                                                Improve
+                                                            </span>
+                                                        </div>
                                                     </button>
                                                 </div>
 
@@ -1041,7 +1087,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                     </div>
                                                                                 </div>
 
-                                                                                {/* PaltaQ Like/Dislike/Show/PaltaQ */}
+                                                                                {/* PaltaQ Like/Dislike/Show/PaltaQ/Improve */}
                                                                                 <div className="flex flex-row items-start mt-2 pt-1">
                                                                                     {/* Like */}
                                                                                     <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading}>
@@ -1073,6 +1119,20 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                             className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'paltaQ1' ? 'text-emerald-700' : ''}`}>
                                                                                             PaltaQ
                                                                                         </h5>
+                                                                                    </button>
+                                                                                    <span className="small mx-2">|</span>
+                                                                                    {/* Improve */}
+                                                                                    <button onClick={() => handleAIGenerate(paltaQ.paltaQ, paltaQ.id)}>
+                                                                                        <div className='flex flex-row hover:text-blue-500 hover:-translate-y-[4px] duration-200'>
+                                                                                            <FontAwesomeIcon
+                                                                                                icon={faWandMagicSparkles}
+                                                                                                className={`translate-y-0.5`}
+                                                                                            />
+                                                                                            <span
+                                                                                                className={`font-bold text-base pl-1 -translate-y-[2px]`}>
+                                                                                                Improve
+                                                                                            </span>
+                                                                                        </div>
                                                                                     </button>
                                                                                 </div>
 
@@ -1300,7 +1360,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                     </div>
                                                 </div>
 
-                                                {/* Main Question Like/Dislike/PaltaQ */}
+                                                {/* Main Question Like/Dislike/PaltaQ/Improve */}
                                                 <div className="flex flex-row items-start mt-2 ml-3 pl-2 pt-1 pb-2 translate-x-[0.1em]">
                                                     {/* Like */}
                                                     <button onClick={() => handleLike(question.id, userId, 'question')} disabled={loading}>
@@ -1332,6 +1392,20 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                             className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'mainQ' ? 'text-emerald-700' : ''}`}>
                                                             PaltaQ
                                                         </h5>
+                                                    </button>
+                                                    <span className="small mx-2">|</span>
+                                                    {/* Improve */}
+                                                    <button onClick={() => handleAIGenerate(question.question, question.id)}>
+                                                        <div className='flex flex-row hover:text-blue-500 hover:-translate-y-[4px] duration-200'>
+                                                            <FontAwesomeIcon
+                                                                icon={faWandMagicSparkles}
+                                                                className={`translate-y-0.5`}
+                                                            />
+                                                            <span
+                                                                className={`font-bold text-base pl-1 -translate-y-[2px]`}>
+                                                                Improve
+                                                            </span>
+                                                        </div>
                                                     </button>
                                                 </div>
 
@@ -1505,7 +1579,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                     </div>
                                                                                 </div>
 
-                                                                                {/* PaltaQ Like/Dislike/Show/PaltaQ */}
+                                                                                {/* PaltaQ Like/Dislike/Show/PaltaQ/Improve */}
                                                                                 <div className="flex flex-row items-start mt-2 pt-1">
                                                                                     {/* Like */}
                                                                                     <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading}>
@@ -1537,6 +1611,20 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                             className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'paltaQ1' ? 'text-emerald-700' : ''}`}>
                                                                                             PaltaQ
                                                                                         </h5>
+                                                                                    </button>
+                                                                                    <span className="small mx-2">|</span>
+                                                                                    {/* Improve */}
+                                                                                    <button onClick={() => handleAIGenerate(paltaQ.paltaQ, paltaQ.id)}>
+                                                                                        <div className='flex flex-row hover:text-blue-500 hover:-translate-y-[4px] duration-200'>
+                                                                                            <FontAwesomeIcon
+                                                                                                icon={faWandMagicSparkles}
+                                                                                                className={`translate-y-0.5`}
+                                                                                            />
+                                                                                            <span
+                                                                                                className={`font-bold text-base pl-1 -translate-y-[2px]`}>
+                                                                                                Improve
+                                                                                            </span>
+                                                                                        </div>
                                                                                     </button>
                                                                                 </div>
 

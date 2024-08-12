@@ -1,0 +1,31 @@
+-- AlterTable
+ALTER TABLE "PostQuestionnaire" ALTER COLUMN "universityId" SET DEFAULT '',
+ALTER COLUMN "section" SET DEFAULT '',
+ALTER COLUMN "currentAge" SET DEFAULT '',
+ALTER COLUMN "currentAge" SET DATA TYPE TEXT,
+ALTER COLUMN "gender" SET DEFAULT '',
+ALTER COLUMN "curiosity" SET DEFAULT 0,
+ALTER COLUMN "questionsAtAge4" SET DEFAULT '',
+ALTER COLUMN "questionsAtAge4" SET DATA TYPE TEXT,
+ALTER COLUMN "questionsYesterday" SET DEFAULT '',
+ALTER COLUMN "questionsYesterday" SET DATA TYPE TEXT,
+ALTER COLUMN "enjoyStudies" SET DEFAULT 0,
+ALTER COLUMN "confidentStudies" SET DEFAULT 0,
+ALTER COLUMN "motivatedStudies" SET DEFAULT '',
+ALTER COLUMN "motivatedStudies" SET DATA TYPE TEXT;
+
+-- AlterTable
+ALTER TABLE "PreQuestionnaire" ALTER COLUMN "universityId" SET DEFAULT '',
+ALTER COLUMN "section" SET DEFAULT '',
+ALTER COLUMN "currentAge" SET DEFAULT '',
+ALTER COLUMN "currentAge" SET DATA TYPE TEXT,
+ALTER COLUMN "gender" SET DEFAULT '',
+ALTER COLUMN "curiosity" SET DEFAULT 0,
+ALTER COLUMN "questionsAtAge4" SET DEFAULT '',
+ALTER COLUMN "questionsAtAge4" SET DATA TYPE TEXT,
+ALTER COLUMN "questionsYesterday" SET DEFAULT '',
+ALTER COLUMN "questionsYesterday" SET DATA TYPE TEXT,
+ALTER COLUMN "enjoyStudies" SET DEFAULT 0,
+ALTER COLUMN "confidentStudies" SET DEFAULT 0,
+ALTER COLUMN "motivatedStudies" SET DEFAULT '',
+ALTER COLUMN "motivatedStudies" SET DATA TYPE TEXT;

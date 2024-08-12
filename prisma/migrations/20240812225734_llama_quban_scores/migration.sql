@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "PaltaQ" ADD COLUMN     "llama_score" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "quban_score" INTEGER NOT NULL DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE "Question" ADD COLUMN     "llama_score" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "quban_score" INTEGER NOT NULL DEFAULT 0;

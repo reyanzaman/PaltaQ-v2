@@ -33912,6 +33912,11 @@ article a:hover {
     padding-right: 0.75rem;
   }
 
+  .pad-x2 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
   .mar-x1 {
     margin-left: 0.75rem;
     margin-right: 0.75rem;
@@ -33925,6 +33930,11 @@ article a:hover {
     .pad-x1 {
         padding-left: 0;
         padding-right: 1.75rem;
+    }
+
+    .pad-x2 {
+        padding-left: 0;
+        padding-right: 0rem;
     }
 
     .mar-x1 {

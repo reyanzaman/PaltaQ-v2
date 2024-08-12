@@ -83,6 +83,10 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                 const user = await prisma.user.findUnique({
                     where: {
                         email: email,
+                    },
+                    include: {
+                        preQuestionnaire: true,
+                        postQuestionnaire: true,
                     }
                 });
                 return new Response(JSON.stringify(user), {

@@ -8,7 +8,7 @@ export enum QuestionCategory {
   PaltaPalta = 'PaltaPalta',
 }
 
-export async function submitQuestionToDatabase(userId: string, question: string, score: number, category: QuestionCategory, topicId: string, classId: string, isAnonymous: boolean, foundKeywords: { [key: string]: boolean }, from: string = "general"): Promise<void> {
+export async function submitQuestionToDatabase(userId: string, question: string, score: number, quban_score: number, llama_score: number, category: QuestionCategory, topicId: string, classId: string, isAnonymous: boolean, foundKeywords: { [key: string]: boolean }, from: string = "general"): Promise<void> {
   try {
     // Insert the question into the database using Prisma
     const createdQuestion = await prisma.question.create({
@@ -19,7 +19,9 @@ export async function submitQuestionToDatabase(userId: string, question: string,
         category: category,
         isAnonymous: isAnonymous,
         topicId: topicId,
-        classId: classId
+        classId: classId,
+        quban_score: quban_score,
+        llama_score: llama_score
       },
     });
 
@@ -92,7 +94,7 @@ export async function submitQuestionToDatabase(userId: string, question: string,
   }
 }
 
-export async function submitPaltaQToDatabase(userId: string, question: string, questionId: string, paltaQId: string = '', classId: string, score: number, isAnonymous: boolean, foundKeywords: { [key: string]: boolean }, from: string = "general"): Promise<void> {
+export async function submitPaltaQToDatabase(userId: string, question: string, questionId: string, paltaQId: string = '', classId: string, score: number, quban_score: number, llama_score: number, isAnonymous: boolean, foundKeywords: { [key: string]: boolean }, from: string = "general"): Promise<void> {
   try {
 
     // Insert the question into the database using Prisma
@@ -107,6 +109,8 @@ export async function submitPaltaQToDatabase(userId: string, question: string, q
           parentId: questionId,
           mainQuestionID: paltaQId,
           score: score,
+          quban_score: quban_score,
+          llama_score: llama_score,
           isAnonymous: isAnonymous,
         },
       });
@@ -131,6 +135,8 @@ export async function submitPaltaQToDatabase(userId: string, question: string, q
           paltaQ: question,
           questionId: questionId,
           score: score,
+          quban_score: quban_score,
+          llama_score: llama_score,
           isAnonymous: isAnonymous,
         },
       });

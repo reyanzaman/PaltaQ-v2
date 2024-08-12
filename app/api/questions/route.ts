@@ -226,7 +226,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       console.log({ is_valid_question, is_validTopic, llama_score, improvement_suggestion });
 
       // Score the question
-      const { score, foundKeywords } = await scoreQuestion(question, llama_score);
+      const { score, quban_score, foundKeywords } = await scoreQuestion(question, llama_score);
 
       // Submit the question to the database
       if (category === QuestionCategory.Topic) {
@@ -234,6 +234,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
           userId,
           question,
           score,
+          quban_score,
+          llama_score,
           category,
           tid,
           cid,
@@ -249,6 +251,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
           '',
           cid,
           score,
+          quban_score,
+          llama_score,
           isAnonymous,
           foundKeywords,
           'topic'
@@ -261,6 +265,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
           Mqid,
           cid,
           score,
+          quban_score,
+          llama_score,
           isAnonymous,
           foundKeywords,
           'paltapalta'
