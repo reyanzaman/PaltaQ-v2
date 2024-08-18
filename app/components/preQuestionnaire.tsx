@@ -322,7 +322,7 @@ export default function PreQuestionnaire({ ceid, uid }: { ceid: string, uid: str
                         </div>
                         <div className="form-check py-1 w-fit">
                             <input className="form-check-input" type="radio" name="exampleRadios5" id="RadiosNowQues6" value="30 or more questions" checked={nowQues==='30 or more questions'} onChange={(event) => setNowQues(event.target.value)}/>
-                            <label className="form-check-label text-base" htmlFor="exampleRadios5">
+                            <label className="form-check-label text-base" htmlFor="RadiosNowQues6">
                                 30 or more questions
                             </label>
                         </div>

@@ -70,6 +70,8 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
         const type = url?.searchParams.get('type');
         const uid = url?.searchParams.get('uid');
 
+        console.log({ceid, type, uid});
+
         // Extract question data from the request body
         const { univID, section, age, gender, curiosity, smallQues, nowQues, enjoyStudies, confidence, motivation } = await req.json();
 
