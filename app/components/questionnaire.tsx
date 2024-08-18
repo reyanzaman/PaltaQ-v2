@@ -3,9 +3,24 @@
 import { nunito } from "@/app/ui/fonts";
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import { useSearchParams } from 'next/navigation';
 
 //@ts-ignore
-export default function PreQuestionnaire({ ceid, uid }: { ceid: string, uid: string }) {
+export default function QuestionnaireForm() {
+
+    const [userId, setUserId] = useState('');
+    const [classId, setClassId] = useState('');
+    const [className, setClassName] = useState('');
+    const [type, setType] = useState('');
+
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        setUserId(searchParams.get('id') || '');
+        setClassId(searchParams.get('ceid') || '');
+        setClassName(searchParams.get('cname') || '');
+        setType(searchParams.get('type') || '');
+    }, [searchParams]);
 
     const [univID, setUnivID] = useState("");
     const [section, setSection] = useState("");
@@ -36,7 +51,7 @@ export default function PreQuestionnaire({ ceid, uid }: { ceid: string, uid: str
                 return;
             }
 
-            const response = await fetch(`/api/questionnaire/default?type=pre&uid=${uid}&ceid=${ceid}`, {
+            const response = await fetch(`/api/questionnaire/default?type=pre&uid=${userId}&ceid=${classId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -65,6 +80,16 @@ export default function PreQuestionnaire({ ceid, uid }: { ceid: string, uid: str
 
     return (
         <div className={`${nunito.className} antialiased flex flex-col`}>
+
+            <div>
+                <h1>PaltaQ {type == 'pre' ? 'Pre-Questionnaire' : 'Post-Questionnaire'}</h1>
+                <h5><b>Classroom: </b>{className}</h5>
+                <hr className="border-b-2 border-gray-500"></hr>
+                <p>Please take some time to fill up this questionnaire.</p>
+                <p>The purpose of this form is to gauge your motivation and interest towards study and being creative.</p>
+                <p className="pt-3"><b className="text-rose-800">Note: This questionnaire will not affect your grades! So, please be honest in your responses.</b></p>
+            </div>
+
             <form onSubmit={handleSubmit} className="w-[95%] lg:w-[60%]">
                 {/* University ID */}
                 <div className="form-group mb-3 mt-4">
