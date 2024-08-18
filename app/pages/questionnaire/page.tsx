@@ -2,7 +2,7 @@
 
 import { nunito } from "@/app/ui/fonts";
 import React, { Suspense, useEffect } from 'react';
-import QuestionnaireForm from "@/app/components/Questionnaire";
+import QuestionnaireForm from "@/app/components/questionnaire";
 
 //@ts-ignore
 export default function Questionnaire(props) {
