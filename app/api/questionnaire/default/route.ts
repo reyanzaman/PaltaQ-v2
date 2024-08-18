@@ -68,15 +68,30 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
         const url = req?.url ? new URL(req.url) : null;
         const ceid = url?.searchParams.get('ceid');
         const type = url?.searchParams.get('type');
+        const uid = url?.searchParams.get('uid');
+
+        // Extract question data from the request body
+        const { univID, section, age, gender, curiosity, smallQues, nowQues, enjoyStudies, confidence, motivation } = await req.json();
 
         try {
             if (ceid && type) {
                 if (type == 'pre') {
                     await prisma.preQuestionnaire.update({
                         data: {
-                            // Add the properties you want to update here
+                            isCompleted: true,
+                            universityId: univID,
+                            section: section,
+                            currentAge: age,
+                            gender: gender,
+                            curiosity: parseInt(curiosity),
+                            questionsAtAge4: smallQues,
+                            questionsYesterday: nowQues,
+                            enjoyStudies: parseInt(enjoyStudies),
+                            confidentStudies: parseInt(confidence),
+                            motivatedStudies: motivation
                         },
                         where: {
+                            userId: uid ?? undefined,
                             classId: ceid,
                         }
                     });
@@ -98,7 +113,8 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
                     });
                 }
 
-                return new Response('', {
+                // Return success response
+                return new Response(JSON.stringify({ message: 'Pre-Questionnaire submitted'}), {
                     status: 200,
                 })
             } else {
