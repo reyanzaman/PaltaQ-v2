@@ -142,7 +142,7 @@ export default function QuestionComponent({ user }: { user: User }) {
                             toast.loading('Redirecting to questionnaire page...');
 
                             setTimeout(function() {
-                                window.location.href = `/pages/questionnaire?id=${user.id}&ceid=${init_data.classId}&cname=${init_data.class.name}&type=pre`;
+                                window.location.href = `/pages/questionnaire?id=${user.id}&ceid=${init_data.id}&cname=${init_data.class.name}&type=pre`;
                             }, 1000);  // Redirect after 1 second
                         }
                     } else if (init_data.postQuestionnaire?.isCompleted == false) {
