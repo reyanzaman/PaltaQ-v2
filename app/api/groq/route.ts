@@ -32,7 +32,7 @@ export async function getGroqChatCompletion2(question: string) {
       messages: [
         {
           role: "user",
-          content: `'${question}' Give tips to improve the question without using bullet points. Keep the response limited to 2 short sentences. DO NOT suggest rephrased questions or give examples.`,
+          content: `'${question}' For this question, please give tips on how to improve the question while keeping the response limited to 2 short sentences. DO NOT directly provide an improved question or suggestion an improved version. NEVER give the answer. NEVER provide an example.`,
         },
       ],
       model: "llama3-8b-8192",

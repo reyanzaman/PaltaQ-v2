@@ -22,6 +22,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
           likedBy: true,
           dislikedBy: true,
           replies: true,
+          questionType: true,
         },
       });
 

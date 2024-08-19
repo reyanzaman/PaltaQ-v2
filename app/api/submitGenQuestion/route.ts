@@ -66,7 +66,17 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const data = await llama_response.json();
       const is_valid_question = data.toLowerCase();
 
-      const llama_score = parseInt(await llama_response2.json(), 10);
+      let llama_score = parseInt(await llama_response2.json(), 10);
+
+      while (Number.isNaN(llama_score)) {
+        const llama_response2 = await fetch(`${baseUrl}/api/groq?question=${processed_question}&version=2`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          }
+        });
+        llama_score = parseInt(await llama_response2.json(), 10);
+      }
 
       console.log({ is_valid_question, llama_score});
 

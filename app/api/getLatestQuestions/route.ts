@@ -55,8 +55,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
               createdAt: true,
               parent: true,
               replies: true,
+              questionType: true,
             },
           },
+          questionType: true,
         },
       });
 
