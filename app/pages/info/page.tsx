@@ -226,7 +226,7 @@ export default function Info(props) {
                         Please note that the figure does not contain all the keywords and is just a representation of the levels.
                         </p>
                         <br></br>
-                        <Image src="/information/blooms.png" width={600} height={600} alt="blooms"/>
+                        <Image src="/information/Blooms.png" width={600} height={600} alt="blooms"/>
                         <br></br>
                         <br></br>
                     </section>
