@@ -8,7 +8,7 @@ export async function getGroqChatCompletion(question: string) {
     messages: [
       {
         role: "user",
-        content: `'${question}' Is the following text a question? Only reply with 'yes' or 'no'`,
+        content: `'${question}' - Is this text a proper, valid and legit question? Only reply with 'yes' or 'no'`,
       },
     ],
     model: "llama3-8b-8192",

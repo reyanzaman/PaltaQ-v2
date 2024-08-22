@@ -103,7 +103,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
     const [selectedTopicId, setSelectedTopicId] = useState('' as string);
     const [topics, setTopics] = useState<Topic[]>();
     const [viewQuestions, setViewQuestions] = useState(true);
-    const [viewFacultyQs, setViewFacultyQs] = useState(false);
+    const [viewFacultyQs, setViewFacultyQs] = useState(true);
 
     const [questions, setQuestions] = useState<Question[]>([]);
     const [isAnonymous, setIsAnonymous] = useState<{ [key: string]: boolean }>({});
@@ -440,19 +440,9 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
 
             const responseData = await response.json();
 
-            setResponseAI(prevState => ({
-                ...prevState,
-                [questionId]: responseData.improvement_suggestion
-            }));
-            setLastQuestion(prevState => ({
-                ...prevState,
-                [questionId]: pQuestion
-            }));
-
             if (response.ok) {
                 // Handle successful submission
                 setPaltaQInputs(prev => ({ ...prev, [questionId]: '' }));
-                setVisibility(prev => ({ ...prev, [questionId]: true }));
 
                 const responseText = responseData.message;
                 const [mainText, updateText] = responseText.split('|');

@@ -67,10 +67,9 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
         }
       } else {
         // Handle error
-        if (responseData.improvement_suggestion) {setVisibility(true)};
         console.error('Failed to submit question (Frontend)');
         toast.update(loadingToastId, {
-          render: responseData.message || 'Question submission failed (Frontend)',
+          render: responseData.message || responseData.error || 'Question submission failed (Frontend)',
           type: 'error',
           isLoading: false,
           autoClose: 5000,

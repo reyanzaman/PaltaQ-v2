@@ -190,25 +190,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
         })
       }
 
-      // Generate improvement suggestion
-      const llama_response3 = await fetch(`${baseUrl}/api/groq?question=${question}&version=3`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-      });
-
-      let improvement_suggestion = await llama_response3.json();
-
-      // Capitalize the first letter of improvement_suggestion
-      if (improvement_suggestion) {
-        improvement_suggestion = improvement_suggestion.charAt(0).toUpperCase() + improvement_suggestion.slice(1);
-      } else {
-        improvement_suggestion = ''; // Handle case where there's no improvement suggestion
-      }
-
       if (is_valid_question.includes("no")) {
-        return new Response(JSON.stringify({ message: `Try asking a better question`, improvement_suggestion }), {
+        return new Response(JSON.stringify({ message: `Try asking a better question` }), {
           status: 400,
         })
       }
@@ -223,7 +206,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
 
       const llama_score = parseInt(await llama_response2.json(), 10);
 
-      console.log({ is_valid_question, is_validTopic, llama_score, improvement_suggestion });
+      console.log({ is_valid_question, is_validTopic, llama_score });
 
       // Score the question
       const { score, quban_score, foundKeywords } = await scoreQuestion(question, llama_score);
@@ -276,7 +259,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const status = await updateRank(userId, cid);
 
       // Return success response
-      return new Response(JSON.stringify({ message: `${score} Points Awarded!|${status}` , improvement_suggestion }), {
+      return new Response(JSON.stringify({ message: `${score} Points Awarded!|${status}` }), {
         status: 200,
       })
 

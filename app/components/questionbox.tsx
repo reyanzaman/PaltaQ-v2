@@ -149,12 +149,9 @@ export default function QuestionBox({ classId, handleRefreshQs}: { classId: stri
         });
 
         const responseData = await response.json();
-        setResponse(responseData.improvement_suggestion);
-        setLastQuestion(question);
 
         if (response.ok) {
             // Handle successful submission
-            setVisibility(true);
             setQuestion('');
 
             const responseText = responseData.message;
@@ -369,11 +366,6 @@ export default function QuestionBox({ classId, handleRefreshQs}: { classId: stri
                         </div>
                     </div>
                 )}
-            </div>
-
-            {/* AI Response */}
-            <div className='mt-5'>
-                <GeneratedResponse response={response} visibility={visibility} lastQuestion={lastQuestion} toggleVisibility={toggleVisibility} type={'question'} questionID={''}/>
             </div>
         </form>
     );
