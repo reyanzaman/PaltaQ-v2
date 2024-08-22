@@ -226,7 +226,7 @@ export default function Info(props) {
                         Please note that the figure does not contain all the keywords and is just a representation of the levels.
                         </p>
                         <br></br>
-                        <Image src="/info/blooms.png" width={600} height={600} alt="blooms"/>
+                        <Image src="/information/blooms.png" width={600} height={600} alt="blooms"/>
                         <br></br>
                         <br></br>
                     </section>
@@ -282,7 +282,7 @@ export default function Info(props) {
                             <br></br>Note: You can change your picture or name anytime later on by changing your google account&apos;s picture or name. You are not required to use your actual name or picture.
                         </p>
                         <br></br>
-                        <Image src="/info/register.png" width={600} height={600} alt="register"/>
+                        <Image src="/information/register.png" width={600} height={600} alt="register"/>
                         <br></br>
                         <br></br>
                     </section>
@@ -307,7 +307,7 @@ export default function Info(props) {
                             Once, finished, click on the button on the right side of the input box to submit your question. <br></br>
                         </p>
                         <br></br>
-                        <Image src="/info/first.png" width={600} height={600} alt="first"/>
+                        <Image src="/information/first.png" width={600} height={600} alt="first"/>
                         <br></br><br></br>
                     </section>
 
@@ -317,7 +317,7 @@ export default function Info(props) {
                             Clicking on PaltaQ button below a question will open a text box where you can type your palta question and submit it like you sbumitted your first question.
                         </p>
                         <br></br>
-                        <Image src="/info/palta.png" width={600} height={600} alt="palta"/>
+                        <Image src="/information/palta.png" width={600} height={600} alt="palta"/>
                         <br></br>
                         <p>
                             Furthermore, you can also ask palta questions over another palta questions too. The method is the same as asking palta questions over a question.
@@ -337,10 +337,10 @@ export default function Info(props) {
                                     Your new classroom name should appear on the right side of the page along with a successfully created class notification.
                                 </p>
                                 <br></br>
-                                <Image src="/info/faculty_dashboard.png" width={600} height={600} alt="facultydashboard"/>
+                                <Image src="/information/faculty_dashboard.png" width={600} height={600} alt="facultydashboard"/>
                                 <br></br>
                                 <hr></hr>
-                                <Image src="/info/create_class.png" width={600} height={600} alt="create_class"/>
+                                <Image src="/information/create_class.png" width={600} height={600} alt="create_class"/>
                                 <br></br>
                                 <br></br>
                             </section>
@@ -353,10 +353,10 @@ export default function Info(props) {
                                     Your new topic should appear on the right side of the page along with a successfully created topic notification.
                                 </p>
                                 <br></br>
-                                <Image src="/info/view_class.png" width={800} height={800} alt="view_class"/>
+                                <Image src="/information/view_class.png" width={800} height={800} alt="view_class"/>
                                 <br></br>
                                 <hr></hr>
-                                <Image src="/info/topic_create.png" width={800} height={800} alt="topic_Create"/>
+                                <Image src="/information/topic_create.png" width={800} height={800} alt="topic_Create"/>
                                 <br></br>
                                 <br></br>
                             </section>
@@ -368,7 +368,7 @@ export default function Info(props) {
                                     On the right side, you will find the classroom code which you can share with your students.
                                 </p>
                                 <br></br>
-                                <Image src="/info/class_code.png" width={800} height={800} alt="class_code"/>
+                                <Image src="/information/class_code.png" width={800} height={800} alt="class_code"/>
                                 <br></br>
                                 <br></br>
                             </section>
@@ -386,10 +386,10 @@ export default function Info(props) {
                                     You can now click on the select button on the enrolled classes panel and continue onto the next step.
                                 </p>
                                 <br></br>
-                                <Image src="/info/question_page.png" width={600} height={600} alt="question_page"/>
+                                <Image src="/information/question_page.png" width={600} height={600} alt="question_page"/>
                                 <br></br>
                                 <hr></hr>
-                                <Image src="/info/join_class.png" width={800} height={800} alt="join_class"/>
+                                <Image src="/information/join_class.png" width={800} height={800} alt="join_class"/>
                             </section>
 
                             <section id="code" style={{ paddingTop: '150pt', marginTop: '-150pt' }}>
@@ -417,9 +417,9 @@ export default function Info(props) {
                             To learn more about the leaderboard, you can check the <a className="text-blue-500" href="#leaderboard">leaderboard section</a>.
                         </p>
                         <br></br>
-                        <Image src="/info/topic_question.png" width={800} height={800} alt="topic_questions"/>
+                        <Image src="/information/topic_question.png" width={800} height={800} alt="topic_questions"/>
                         <hr></hr>
-                        <Image src="/info/student_faculty_question.png" width={600} height={600} alt="student_faculty_question"/>
+                        <Image src="/information/student_faculty_question.png" width={600} height={600} alt="student_faculty_question"/>
                         <br></br>
                         <br></br>
                     </section>
@@ -437,7 +437,7 @@ export default function Info(props) {
                                     You are not only limited to being a faculty. You can also switch to a student by clicking on the switch button on the top left of the page. 
                                 </p>
                                 <br></br>
-                                <Image src="/info/switch.png" width={600} height={600} alt="switch"/>
+                                <Image src="/information/switch.png" width={600} height={600} alt="switch"/>
                                 <br></br><br></br>
                             </section>
                         </div>
@@ -454,10 +454,10 @@ export default function Info(props) {
                             Please refer to the <a className="text-blue-500" href="#taxonomy">Blooms Taxonomy</a> section for more information on the levels.
                         </p>
                         <br></br>
-                        <Image src="/info/faculty_dashboard.png" width={600} height={600} alt="facultydashboard"/>
+                        <Image src="/information/faculty_dashboard.png" width={600} height={600} alt="facultydashboard"/>
                         <br></br>
                         <hr></hr>
-                        <Image src="/info/student_dashboard.png" width={600} height={600} alt="studentdashboard"/>
+                        <Image src="/information/student_dashboard.png" width={600} height={600} alt="studentdashboard"/>
                         <br></br>
                         <br></br>
                     </section>
@@ -494,7 +494,7 @@ export default function Info(props) {
                             Click on the logout button to confirm.
                         </p>
                         <br></br>
-                        <Image src="/info/popup.png" width={400} height={400} alt="logout"/>
+                        <Image src="/information/popup.png" width={400} height={400} alt="logout"/>
                     </section>
                 </div>
 
@@ -531,7 +531,7 @@ export default function Info(props) {
                             The badges and color codes are as follows:
                         </p>
                         <br></br>
-                        <Image src="/info/rankings.png" width={600} height={600} alt="rankings"/>
+                        <Image src="/information/rankings.png" width={600} height={600} alt="rankings"/>
                         <br></br>
                         <br></br>
                     </section>
@@ -591,7 +591,7 @@ export default function Info(props) {
                             <br></br> EV - Evaluating
                             <br></br> CR - Creating
                         </p>
-                        <Image src="/info/tags.png" width={600} height={600} alt="tags"/>
+                        <Image src="/information/tags.png" width={600} height={600} alt="tags"/>
                         <br></br>
                         <p>Please note that the question is a placeholder question and it does not contain the keyword from all the levels of bloom&apos;s taxonomy.</p>
                         <br></br>
@@ -642,8 +642,8 @@ export default function Info(props) {
                     <p>Absolutely! You are free to use the app whenever and wherever you want as long as you do not misuse it.</p>
                 </div>
                 <div className="mb-6 mt-3 pl-2">
-                    If you have any suggestions or queries, please contact <a href="mailto:paltaq.seu@gmail.com" className="text-blue-500"> paltaq.seu@gmail.com</a>
-                    For any collaboration, please contact Prof. Yusuf Mahbubul Islam, Vice Chancellor, South-East University, Bangladesh.
+                    If you have any suggestions or queries, please contact <a href="mailto:paltaq.seu@gmail.com" className="text-blue-500"> paltaq.seu@gmail.com</a>. 
+                     For any collaboration, please contact Prof. Yusuf Mahbubul Islam, Vice Chancellor, South-East University, Bangladesh.
                     <hr></hr>
                 </div>
             </div>
