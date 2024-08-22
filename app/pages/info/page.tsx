@@ -642,7 +642,8 @@ export default function Info(props) {
                     <p>Absolutely! You are free to use the app whenever and wherever you want as long as you do not misuse it.</p>
                 </div>
                 <div className="mb-6 mt-3 pl-2">
-                    If you have any suggestions or queries, please contact <a href="mailto:paltaq.seu@gmail.com" className="text-blue-500"> paltaq.seu@gmail.com </a>
+                    If you have any suggestions or queries, please contact <a href="mailto:paltaq.seu@gmail.com" className="text-blue-500"> paltaq.seu@gmail.com</a>
+                    For any collaboration, please contact Prof. Yusuf Mahbubul Islam, Vice Chancellor, South-East University, Bangladesh.
                     <hr></hr>
                 </div>
             </div>
