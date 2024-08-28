@@ -33921,6 +33921,18 @@ article a:hover {
     margin-left: 0.75rem;
     margin-right: 0.75rem;
   }
+
+  .mar-ly {
+    margin-left: 1.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .mar-ly2 {
+    margin-left: 0;
+    padding-top: 0;
+    margin-bottom: 0.35rem;
+}
   
   @media (min-width: 1024px) {
     .pad-l1 {
@@ -33940,5 +33952,17 @@ article a:hover {
     .mar-x1 {
         margin-left: 0;
         margin-right: 0;
+    }
+
+    .mar-ly {
+        margin-left: 0.5rem;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .mar-ly2 {
+        margin-left: 0;
+        padding-top: 0.6rem;
+        margin-bottom: 0rem;
     }
   }

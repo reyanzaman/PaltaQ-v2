@@ -445,7 +445,7 @@ export default function RecentQuestions() {
                 // Handle error
                 console.error('Failed to submit palta question');
                 toast.update(loadingToastId, {
-                    render: responseData.message || responseData.error ||'PaltaQ submission failed',
+                    render: responseData.message || responseData.error || 'PaltaQ submission failed',
                     type: 'error',
                     isLoading: false,
                     autoClose: 6000,
@@ -673,6 +673,8 @@ export default function RecentQuestions() {
                                 {/* Main Question User Details */}
                                 <div className="flex flex-row justify-between mb-2">
                                     <div className="flex items-center">
+
+                                        {/* Image */}
                                         <div className='icon shadow-inset border border-light rounded-circle p-1'>
                                             {question.isAnonymous ? (
                                                 <Image
@@ -680,7 +682,7 @@ export default function RecentQuestions() {
                                                     alt="Anonymous Image"
                                                     width={30}
                                                     height={30}
-                                                    className='rounded-full'
+                                                    className='rounded-full min-w-[30px] min-h-[30px]'
                                                 ></Image>
                                             ) : (
                                                 <Image
@@ -693,25 +695,39 @@ export default function RecentQuestions() {
                                             )}
                                         </div>
 
+                                        {/* Name/Rank Icon/Date */}
                                         <div className='flex flex-col ml-1'>
                                             <div>
                                                 <div className='flex flex-row gap-x-2'>
+                                                    {/* Name */}
                                                     {question.user.id == uid ? (
                                                         <div>
                                                             <span className="font-bold text-lg ml-2">Guest User</span>
                                                         </div>
                                                     ) : (
-                                                        <div>
+                                                        <div className=''>
                                                             {question.user.is_Faculty ? (
                                                                 <div>
                                                                     {question.user.id == userId ? (
                                                                         <div>
-                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>
+                                                                                {question.isAnonymous
+                                                                                    ? `User@${question.user.id.slice(0, 8)} (You)`
+                                                                                    : (question.user.name.length > 18
+                                                                                        ? question.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                        : question.user.name)}
+                                                                            </span>
                                                                             <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
                                                                         </div>
                                                                     ) : (
                                                                         <div>
-                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>
+                                                                                {question.isAnonymous
+                                                                                    ? `User@${question.user.id.slice(0, 8)}`
+                                                                                    : (question.user.name.length > 18
+                                                                                        ? question.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                        : question.user.name)}
+                                                                            </span>
                                                                             <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
                                                                         </div>
                                                                     )}
@@ -719,39 +735,55 @@ export default function RecentQuestions() {
                                                             ) : (
                                                                 <div>
                                                                     {question.user.id == userId ? (
-                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>
+                                                                            {question.isAnonymous
+                                                                                ? `User@${question.user.id.slice(0, 8)} (You)`
+                                                                                : (question.user.name.length > 18
+                                                                                    ? question.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                    : question.user.name)}
+                                                                        </span>
                                                                     ) : (
-                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>
+                                                                            {question.isAnonymous
+                                                                                ? `User@${question.user.id.slice(0, 8)}`
+                                                                                : (question.user.name.length > 18
+                                                                                    ? question.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                    : question.user.name)}
+                                                                        </span>
                                                                     )}
                                                                 </div>
                                                             )}
                                                         </div>
                                                     )}
+
+                                                    {/* Rank Icon */}
                                                     {rank[question.user.id] && (
-                                                        <div>
+                                                        <div className=''>
                                                             {question.user.id !== uid && (
-                                                                <Image src={`/${rank[question.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                                <Image src={`/${rank[question.user.id].icon}`} alt="Rank Icon" width={25} height={25} className='min-w-[25px] min-h-[25px]' />
                                                             )}
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
+
+                                            {/* Date */}
                                             <span className="small ml-2">
                                                 {new Date(question.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
                                             </span>
                                         </div>
                                     </div>
 
-                                    <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
+                                    {/* <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
                                         <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
                                         <span className="font-bold lg:block hidden">Report</span>
-                                    </button>
+                                    </button> */}
 
                                 </div>
 
                                 {/* Main Question */}
                                 <div className="flex flex-row pt-2 pb-1">
-                                    <h4 className="lg:text-lg text-base text-justify">
+                                    <h4 className="lg:text-lg text-base lg:text-justify">
                                         {question.question}
                                     </h4>
                                 </div>
@@ -782,7 +814,7 @@ export default function RecentQuestions() {
                                     </div>
 
                                     {/* Blooms Badge */}
-                                    <span className='ml-1.5'>
+                                    <div className='mar-ly lg:inline-block'>
                                         {/* Remembering */}
                                         {question.questionType[0].remembering && (
                                             <div
@@ -942,7 +974,7 @@ export default function RecentQuestions() {
                                                 }}
                                             />
                                         </div>
-                                    </span>
+                                    </div>
                                 </div>
 
                                 {/* Main Question Like/Dislike/PaltaQ/Improve */}
@@ -1076,6 +1108,8 @@ export default function RecentQuestions() {
                                                             {/* PaltaQ User Details */}
                                                             <div className='flex justify-between'>
                                                                 <div className="flex items-center">
+
+                                                                    {/* Image */}
                                                                     <div className='icon shadow-inset border border-light rounded-circle p-1'>
                                                                         {paltaQ.isAnonymous ? (
                                                                             <Image
@@ -1083,7 +1117,7 @@ export default function RecentQuestions() {
                                                                                 alt="Anonymous Image"
                                                                                 width={30}
                                                                                 height={30}
-                                                                                className='rounded-full'
+                                                                                className='rounded-full min-w-[30px] min-h-[30px]'
                                                                             ></Image>
                                                                         ) : (
                                                                             <Image
@@ -1098,47 +1132,73 @@ export default function RecentQuestions() {
 
                                                                     <div className='flex flex-col'>
                                                                         <div className='flex flex-row gap-x-2'>
-                                                                            {paltaQ.user.is_Faculty ? (
+                                                                            {/* Name */}
+                                                                            {paltaQ.user.id == uid ? (
                                                                                 <div>
-                                                                                    {paltaQ.user.id == uid ? (
+                                                                                    <span className="font-bold text-lg ml-2">Guest User</span>
+                                                                                </div>
+                                                                            ) : (
+                                                                                <div className=''>
+                                                                                    {paltaQ.user.is_Faculty ? (
                                                                                         <div>
-                                                                                            <span className="font-bold text-lg ml-2">Guest User</span>
-                                                                                        </div>
-                                                                                    ) : (
-                                                                                        <div>
-                                                                                            {paltaQ.userid && paltaQ.user.id == userId ? (
+                                                                                            {paltaQ.user.id == userId ? (
                                                                                                 <div>
-                                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
+                                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>
+                                                                                                        {paltaQ.isAnonymous
+                                                                                                            ? `User@${paltaQ.user.id.slice(0, 8)} (You)`
+                                                                                                            : (question.user.name.length > 18
+                                                                                                                ? paltaQ.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                                                : paltaQ.user.name)}
+                                                                                                    </span>
                                                                                                     <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
                                                                                                 </div>
                                                                                             ) : (
                                                                                                 <div>
-                                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
+                                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>
+                                                                                                        {paltaQ.isAnonymous
+                                                                                                            ? `User@${paltaQ.user.id.slice(0, 8)}`
+                                                                                                            : (paltaQ.user.name.length > 18
+                                                                                                                ? paltaQ.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                                                : paltaQ.user.name)}
+                                                                                                    </span>
                                                                                                     <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
                                                                                                 </div>
                                                                                             )}
                                                                                         </div>
-                                                                                    )}
-                                                                                </div>
-                                                                            ) : (
-                                                                                <div>
-                                                                                    {paltaQ.user.id == userId ? (
-                                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
                                                                                     ) : (
-                                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
-                                                                                    )}
-                                                                                </div>
-                                                                            )}
-                                                                            {rank[paltaQ.user.id] && (
-                                                                                <div>
-                                                                                    {paltaQ.user.id !== uid && (
                                                                                         <div>
-                                                                                            <Image src={`/${rank[paltaQ.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                                                            {paltaQ.user.id == userId ? (
+                                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>
+                                                                                                    {paltaQ.isAnonymous
+                                                                                                        ? `User@${paltaQ.user.id.slice(0, 8)} (You)`
+                                                                                                        : (paltaQ.user.name.length > 18
+                                                                                                            ? paltaQ.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                                            : paltaQ.user.name)}
+                                                                                                </span>
+                                                                                            ) : (
+                                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>
+                                                                                                    {paltaQ.isAnonymous
+                                                                                                        ? `User@${paltaQ.user.id.slice(0, 8)}`
+                                                                                                        : (paltaQ.user.name.length > 18
+                                                                                                            ? paltaQ.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                                            : paltaQ.user.name)}
+                                                                                                </span>
+                                                                                            )}
                                                                                         </div>
                                                                                     )}
                                                                                 </div>
                                                                             )}
+
+                                                                            {/* Rank Icon */}
+                                                                            {rank[question.user.id] && (
+                                                                                <div className=''>
+                                                                                    {question.user.id !== uid && (
+                                                                                        <Image src={`/${rank[question.user.id].icon}`} alt="Rank Icon" width={25} height={25} className='min-w-[25px] min-h-[25px]' />
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
                                                                         </div>
+
                                                                         {/* Date */}
                                                                         <span className="small ml-2">
                                                                             {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(paltaQ.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
@@ -1146,12 +1206,12 @@ export default function RecentQuestions() {
                                                                     </div>
                                                                 </div>
 
-                                                                <div>
+                                                                {/* <div>
                                                                     <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500">
                                                                         <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
                                                                         <span className="font-bold lg:block hidden">Report</span>
                                                                     </button>
-                                                                </div>
+                                                                </div> */}
                                                             </div>
 
                                                             {/* PaltaQ Question */}
@@ -1160,23 +1220,25 @@ export default function RecentQuestions() {
                                                             {/* Bottom Part */}
                                                             <div className='flex flex-col'>
 
-                                                                {/* PaltaQ Badge */}
-                                                                <div className="flex items-center mt-2 mb-1 -translate-x-2">
-                                                                    <div className='badge mx-1'>
-                                                                        {paltaQ.score >= 100
-                                                                            ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-danger'>HIGH LEVEL</span>
-                                                                            : paltaQ.score >= 50
-                                                                                ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-secondary'>MID LEVEL </span>
-                                                                                : <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-success'>LOW LEVEL</span>}
-                                                                    </div>
-                                                                    <div className='badge mx-1'>
-                                                                        <span className="font-bold lg:text-sm text-xxs items-end lg:ml-2 ml-0">
-                                                                            SCORE: {paltaQ.score}
-                                                                        </span>
+                                                                <div className='flex lg:flex-row flex-col'>
+                                                                    {/* PaltaQ Badge */}
+                                                                    <div className="flex items-center mt-2 mb-1 -translate-x-2">
+                                                                        <div className='badge mx-1'>
+                                                                            {paltaQ.score >= 100
+                                                                                ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-danger'>HIGH LEVEL</span>
+                                                                                : paltaQ.score >= 50
+                                                                                    ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-secondary'>MID LEVEL </span>
+                                                                                    : <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-success'>LOW LEVEL</span>}
+                                                                        </div>
+                                                                        <div className='badge mx-1'>
+                                                                            <span className="font-bold lg:text-sm text-xxs items-end lg:ml-2 ml-0">
+                                                                                SCORE: {paltaQ.score}
+                                                                            </span>
+                                                                        </div>
                                                                     </div>
 
                                                                     {/* Blooms Badge */}
-                                                                    <span className='ml-1.5'>
+                                                                    <div className='mar-ly2 -translate-x-1'>
                                                                         {/* Remembering */}
                                                                         {paltaQ.questionType[0].remembering && (
                                                                             <div
@@ -1184,7 +1246,7 @@ export default function RecentQuestions() {
                                                                                 data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory, such as remembering dates, names, or key terms without needing to understand or analyze them."
                                                                                 data-tooltip-id="PQ-badge-remember"
                                                                             >
-                                                                                <span className='font-bold text-white text-sm'>
+                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
                                                                                     RE
                                                                                 </span>
                                                                             </div>
@@ -1197,7 +1259,7 @@ export default function RecentQuestions() {
                                                                                 data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept in your own words. This level goes beyond mere recall by requiring comprehension of the material."
                                                                                 data-tooltip-id="PQ-badge-understand"
                                                                             >
-                                                                                <span className='font-bold text-white text-sm'>
+                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
                                                                                     UN
                                                                                 </span>
                                                                             </div>
@@ -1210,7 +1272,7 @@ export default function RecentQuestions() {
                                                                                 data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems, using concepts in practice, or carrying out a procedure in a different context. This level focuses on the ability to implement learned material."
                                                                                 data-tooltip-id="PQ-badge-apply"
                                                                             >
-                                                                                <span className='font-bold text-white text-sm'>
+                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
                                                                                     AP
                                                                                 </span>
                                                                             </div>
@@ -1223,7 +1285,7 @@ export default function RecentQuestions() {
                                                                                 data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into components to understand its structure, such as comparing and contrasting ideas, identifying relationships, or recognizing patterns. This level requires critical thinking to dissect information."
                                                                                 data-tooltip-id="PQ-badge-analyze"
                                                                             >
-                                                                                <span className='font-bold text-white text-sm'>
+                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
                                                                                     AN
                                                                                 </span>
                                                                             </div>
@@ -1236,7 +1298,7 @@ export default function RecentQuestions() {
                                                                                 data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria and standards, such as critiquing an argument, assessing the validity of a source, or weighing the pros and cons of a decision. This level requires both analysis and justification."
                                                                                 data-tooltip-id="PQ-badge-evaluate"
                                                                             >
-                                                                                <span className='font-bold text-white text-sm'>
+                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
                                                                                     EV
                                                                                 </span>
                                                                             </div>
@@ -1249,7 +1311,7 @@ export default function RecentQuestions() {
                                                                                 data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas, products, or ways of viewing things, such as designing a project, composing a story, or proposing a theory. This level emphasizes innovation and the ability to put elements together in a novel way."
                                                                                 data-tooltip-id="PQ-badge-create"
                                                                             >
-                                                                                <span className='font-bold text-white text-sm'>
+                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
                                                                                     CR
                                                                                 </span>
                                                                             </div>
@@ -1336,7 +1398,7 @@ export default function RecentQuestions() {
                                                                                 }}
                                                                             />
                                                                         </div>
-                                                                    </span>
+                                                                    </div>
                                                                 </div>
 
                                                                 {/* PaltaQ Like/Dislike/PaltaQ/Improve */}
