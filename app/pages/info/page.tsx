@@ -474,12 +474,12 @@ export default function Info(props) {
                         <h5>Marking Scheme</h5>
                         <p className="pt-2 text-justify">The marks provided to students are solely based on the classroom faculties or teachers.
                             A generic markscheme is provided below for reference that teacher and faculties can use.
-                            <br></br><br></br>&emsp;
-                            1. 1st Student in the classroom leaderboard - 4 mark <br></br>&emsp;
-                            2. 2nd Student in the classroom leaderboard - 3 mark <br></br>&emsp;
-                            3. 3rd Student in the classroom leaderboard - 2 mark <br></br>&emsp;
-                            4. 4th-10th Student in the classroom leaderboard - 1 mark <br></br>&emsp;
-                            5. Anyone who has achieved the <a className="text-blue-500" href="#scorerank">Legendary Inquirer</a> badge (&gt;7000 points) - 1 mark
+                            <br></br><br></br>
+                            1. 1st Student in the classroom leaderboard - <b>4 mark</b> <br></br>
+                            2. 2nd Student in the classroom leaderboard - <b>3 mark</b> <br></br>
+                            3. 3rd Student in the classroom leaderboard - <b>2 mark</b> <br></br>
+                            4. 4th-10th Student in the classroom leaderboard - <b>1 mark</b> <br></br>
+                            5. Anyone who has achieved the <a className="text-blue-500" href="#scorerank">Legendary Inquirer</a> badge (&gt;7000 points) - <b>1 mark</b>
                         </p>
                         <br></br>
                     </section>

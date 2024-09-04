@@ -1130,6 +1130,7 @@ export default function RecentQuestions() {
                                                                         )}
                                                                     </div>
 
+                                                                    {/* Details */}
                                                                     <div className='flex flex-col'>
                                                                         <div className='flex flex-row gap-x-2'>
                                                                             {/* Name */}
@@ -1556,7 +1557,7 @@ export default function RecentQuestions() {
                 {questions.length > 0 && (
                     <div className='py-3'>
                         <nav aria-label="Questions page navigation">
-                            <ul className="pagination">
+                            <ul className="pagination gap-y-4">
                                 <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
                                     <a className="page-link" href="#" onClick={(e) => handlePageChange(currentPage - 1, e)}>Previous</a>
                                 </li>

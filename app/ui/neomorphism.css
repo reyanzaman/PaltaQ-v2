@@ -7108,9 +7108,11 @@ input[type=submit].btn-block {
 
 .pagination {
     display: flex;
+    justify-content: center;
     padding-left: 0;
+    flex-wrap: wrap;
     list-style: none;
-    border-radius: .55rem
+    border-radius: .55rem;
 }
 
 .page-link {

@@ -221,8 +221,8 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
 
       {/* Desktop */}
       {!isMobileMenuOpen && (
-        <div className="lg:flex hidden fixed left-0 top-0 h-screen">
-          <div className="flex-col justify-between items-center pt-8 pb-5 card btn bg-[#e6e7ee] w-[110px] md:w-[110px]">
+        <div className="lg:flex hidden fixed left-0 top-0 h-screen" style={{ width: '110px' }}>
+          <div className="flex-col justify-between items-center pt-8 pb-5 card btn bg-[#e6e7ee] max-w-[110px]" style={{ width: '110px' }}>
             <div className="space-y-6">
 
               {/* Home */}
@@ -236,7 +236,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
                 {isHomeActive ? (
                   <FontAwesomeIcon
                     icon={faHouseChimney}
-                    className="text-3xl bg-white hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                    className="text-3xl bg-white hover:text-black p-3 icon shadow-inset border border-light rounded-circle max-w-[35px]"
                   />
                 ) : (
                   <FontAwesomeIcon
