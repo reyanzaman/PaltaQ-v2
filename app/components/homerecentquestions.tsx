@@ -110,6 +110,8 @@ export default function RecentQuestions() {
     const [visibility, setVisibility] = useState<{ [key: string]: boolean }>({});
     const [lastQuestion, setLastQuestion] = useState<{ [key: string]: string }>({});
 
+    const [refresh, setRefresh] = useState(false);
+
     const toggleVisibility = (questionId: string, state: boolean) => {
         setVisibility(prev => ({ ...prev, [questionId]: state }));
     }
@@ -170,6 +172,10 @@ export default function RecentQuestions() {
             }));
         }
     };
+
+    const toggleRefresh = () => {
+        setRefresh(!refresh);
+    }
 
     const handleButtonClick = (questionId: string, position: any, username: string) => {
         try {
@@ -465,6 +471,7 @@ export default function RecentQuestions() {
 
             const data = await response2.json();
             setQuestions(data);
+            setRefresh(!refresh);
 
             resetClick();
             toggleInputBox(questionId, false);
@@ -790,6 +797,7 @@ export default function RecentQuestions() {
 
                             </div>
 
+                            {/* Bottom Part */}
                             <div className=''>
                                 {/* Main Question Badges */}
                                 <div className='pb-2 -translate-x-1'>
@@ -1535,6 +1543,8 @@ export default function RecentQuestions() {
                                                                     from="general"
                                                                     classId=''
                                                                     topicId=''
+                                                                    refresh = {refresh}
+                                                                    toggleRefresh = {toggleRefresh}
                                                                 />
                                                             </div>
                                                         )}

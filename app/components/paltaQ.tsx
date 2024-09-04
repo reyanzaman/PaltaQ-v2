@@ -83,6 +83,8 @@ interface PaltaQProps {
     from: string;
     classId: string;
     topicId: string;
+    refresh: boolean;
+    toggleRefresh: () => void;
 }
 
 const PaltaQComponent: React.FC<PaltaQProps> = ({
@@ -99,7 +101,9 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
     resetClick,
     from,
     classId,
-    topicId
+    topicId,
+    refresh,
+    toggleRefresh
 }) => {
 
     const { data: session, status } = useSession();
@@ -316,6 +320,8 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                 if (!response.ok) throw new Error('Failed to get latest paltaQ');
                 const data = await response.json();
                 setQuestions(data);
+                setLoading(false);
+                toggleRefresh();
             } else {
                 // Handle error
                 console.error('Failed to submit palta question');
@@ -325,12 +331,12 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                     isLoading: false,
                     autoClose: 4000,
                 });
+                setLoading(false);
             }
 
             resetClick();
             toggleInputBox(questionId, false);
             toggleAnonymity(questionId, true);
-            fetchPaltaQ();
         } catch (error) {
             console.error('Failed to submit palta question:', error);
             toast.error('Failed to submit PaltaQ');
@@ -413,10 +419,10 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
     useEffect(() => {
         fetchPaltaQ();
 
-        const intervalId = setInterval(fetchPaltaQ, 30000); // Fetch every minute
+        const intervalId = setInterval(fetchPaltaQ, 15000); // Fetch every 15 seconds
         return () => clearInterval(intervalId); // Cleanup function to clear interval
 
-    }, [userId]);
+    }, [userId, refresh]);
 
     useEffect(() => {
         if (questions.length === 0) return;
@@ -855,7 +861,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                         </button>
                                         <span className="small ml-1 mr-2">{paltaQ.dislikes}</span>
                                         {/* Show PaltaQ */}
-                                        {index < 3 && (
+                                        {index < 4 && (
                                             <div className='flex flex-row'>
                                                 <span className="small mr-2">|</span>
                                                 <div className='flex flex-row'>
@@ -867,10 +873,13 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                             </div>
                                         )}
                                         {/* PaltaQ */}
-                                        {index < 3 && (
+                                        {index < 4 && (
                                             <div className='flex flex-row'>
                                                 <span className="small mr-2">|</span>
-                                                <button onClick={() => handleButtonClick(paltaQ.id, `paltaQ${index + 1}`, paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name)}>
+                                                <button onClick={() => {
+                                                    handleButtonClick(paltaQ.id, `paltaQ${index + 1}`, paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name);
+                                                    toggleAnonymity(paltaQ.id, true);
+                                                }}>
                                                     <h5
                                                         className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'paltaQ1' ? 'text-emerald-700' : ''}`}>
                                                         PaltaQ
@@ -902,7 +911,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                         <div className=''>
                                             {/* Anonymity */}
                                             <div className='flex flex-row items-end justify-between'>
-                                                <h6 className='text-zinc-400 lg:text-sm text-xs'>Depth:{index + 1} | Responding to {userName}</h6>
+                                                <h6 className='text-zinc-400 lg:text-sm text-xs'>Depth:{index + 2} | Responding to {userName}</h6>
                                                 <label className='inline-flex items-center cursor-pointer'>
                                                     <input
                                                         type="checkbox"
@@ -975,6 +984,8 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                             from={from}
                                             classId={classId}
                                             topicId={topicId}
+                                            refresh={refresh}
+                                            toggleRefresh={toggleRefresh}
                                         />
                                     ) : null
                                 )}

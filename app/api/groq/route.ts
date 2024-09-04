@@ -3,12 +3,12 @@ import Groq from "groq-sdk";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-export async function getGroqChatCompletion(question: string) {
+export async function getGroqChatCompletion1(question: string) {
   return groq.chat.completions.create({
     messages: [
       {
         role: "user",
-        content: `'${question}' - Is this text a proper, valid and legit question? Only reply with 'yes' or 'no'`,
+        content: `'${question}' - Is this text a question? Reply with only 'yes' or 'no'`,
       },
     ],
     model: "llama3-8b-8192",
@@ -44,7 +44,7 @@ export async function getGroqChatCompletion2(question: string) {
       messages: [
         {
           role: "user",
-          content: `'${question}' Does this question clearly belong to the topic '${topic}'? Only reply with 'yes' or 'no'`,
+          content: `'${question}' Does this question belong to the topic '${topic}'? Only reply with 'yes' or 'no'`,
         },
       ],
       model: "llama3-8b-8192",
@@ -72,7 +72,7 @@ export async function postHandler(req: Request, res: NextApiResponse) {
             let response;
             
             if (version == '1') {
-                response = await getGroqChatCompletion(question);
+                response = await getGroqChatCompletion1(question);
             } else if (version == '2') {
                 response = await getGroqChatCompletion2(question);
             } else if (version == '3') {
