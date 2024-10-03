@@ -1560,7 +1560,7 @@ export default function RecentQuestions() {
                     ))}
             </div>
 
-            <p className='text-zinc-500 -translate-y-2 text-center'>Showing the questions asked in last 7 days</p>
+            <p className='text-zinc-500 -translate-y-2 text-center'>Showing the most recent questions</p>
 
             {/* Pagination-bottom */}
             <div className='flex justify-center items-center mx-auto pad-x2'>
