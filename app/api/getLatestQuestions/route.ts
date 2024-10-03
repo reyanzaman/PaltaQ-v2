@@ -8,10 +8,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     revalidateTag('questions');
     try {
       const DaysAgo = new Date();
-      DaysAgo.setDate(DaysAgo.getDate()-7);
+      DaysAgo.setDate(DaysAgo.getDate() - 7);
       DaysAgo.setHours(0, 0, 0, 0);
 
-      const questions = await prisma.question.findMany({
+      let questions = await prisma.question.findMany({
         where: {
           classId: cid,
           topicId: tid,
@@ -61,6 +61,58 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
           questionType: true,
         },
       });
+
+      // If no questions in the last 7 days, fetch the latest 10 questions
+      if (questions.length === 0) {
+        questions = await prisma.question.findMany({
+          where: {
+            classId: cid,
+            topicId: tid,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 10, // Get the latest 10 questions
+          include: {
+            user: true,
+            likedBy: {
+              select: {
+                id: true,
+                userId: true,
+                questionId: true,
+              },
+            },
+            dislikedBy: {
+              select: {
+                id: true,
+                userId: true,
+                questionId: true,
+              },
+            },
+            paltaQBy: {
+              select: {
+                id: true,
+                userId: true,
+                user: true,
+                paltaQ: true,
+                questionId: true,
+                parentId: true,
+                score: true,
+                likes: true,
+                dislikes: true,
+                likedBy: true,
+                dislikedBy: true,
+                isAnonymous: true,
+                createdAt: true,
+                parent: true,
+                replies: true,
+                questionType: true,
+              },
+            },
+            questionType: true,
+          },
+        });
+      }
 
       // Calculate replies length for each paltaQBy and set replies to undefined
       questions.forEach(question => {
