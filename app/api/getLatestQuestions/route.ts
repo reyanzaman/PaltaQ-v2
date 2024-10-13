@@ -63,7 +63,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       });
 
       // If no questions in the last 7 days, fetch the latest 10 questions
-      if (questions.length === 0) {
+      if (questions.length <= 10) {
         questions = await prisma.question.findMany({
           where: {
             classId: cid,
