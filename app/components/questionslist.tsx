@@ -680,7 +680,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
 
             {viewQuestions && (
                 <div>
-                    <div className='flex flex-col'>
+                    <div className='flex flex-col items-start'>
 
                         {/* Pagination-bottom */}
                         <div className='order-last'>
@@ -706,7 +706,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                         </div>
 
                         {/* Pagination-top */}
-                        <div className='order-3 z-20'>
+                        <div className='order-4 z-20'>
                             {questions.length > 0 && (
                                 <div className='pl-3 pb-4'>
                                     <nav aria-label="Questions page navigation">
@@ -729,7 +729,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                         </div>
 
                         {/* Questions List */}
-                        <div className='order-4'>
+                        <div className='order-5'>
                             {currentQuestions.map((question: Question, index: number) => (
                                 <div key={question.id}>
                                     {/* Check if current question is non-faculty and student questions haven't started */}
@@ -772,7 +772,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                 <div className="flex flex-row justify-between mb-2">
                                                     <div className="flex items-center">
 
-                                                        {/* Image, Name, Date, Report */}
+                                                        {/* Image */}
                                                         <div className='icon shadow-inset border border-light rounded-circle p-1'>
                                                             {question.isAnonymous ? (
                                                                 <Image
@@ -793,6 +793,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                             )}
                                                         </div>
 
+                                                        {/* Name */}
                                                         <div className='flex flex-col ml-1'>
                                                             <div>
                                                                 <div className='flex flex-row gap-x-2'>
@@ -800,12 +801,16 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                         <div>
                                                                             {question.user.id == userId ? (
                                                                                 <div>
-                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : (question.user.name.length > 18
+                                                                                        ? question.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                        : question.user.name)}</span>
                                                                                     <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
                                                                                 </div>
                                                                             ) : (
                                                                                 <div>
-                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : (question.user.name.length > 18
+                                                                                        ? question.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                        : question.user.name)}</span>
                                                                                     <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
                                                                                 </div>
                                                                             )}
@@ -813,12 +818,17 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                     ) : (
                                                                         <div>
                                                                             {question.user.id == userId ? (
-                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : (question.user.name.length > 18
+                                                                                    ? question.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                    : question.user.name)}</span>
                                                                             ) : (
-                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : (question.user.name.length > 18
+                                                                                    ? question.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                    : question.user.name)}</span>
                                                                             )}
                                                                         </div>
                                                                     )}
+
                                                                     {rank[question.user.id] && (
                                                                         <div>
                                                                             <Image src={`/${rank[question.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
@@ -1595,7 +1605,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                 <div className="flex flex-row justify-between mb-2">
                                                     <div className="flex items-center">
 
-                                                        {/* Image, Name, Date, Report */}
+                                                        {/* Image */}
                                                         <div className='icon shadow-inset border border-light rounded-circle p-1'>
                                                             {question.isAnonymous ? (
                                                                 <Image
@@ -1616,6 +1626,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                             )}
                                                         </div>
 
+                                                        {/* Name */}
                                                         <div className='flex flex-col ml-1'>
                                                             <div>
                                                                 <div className='flex flex-row gap-x-2'>
@@ -1636,9 +1647,13 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                     ) : (
                                                                         <div>
                                                                             {question.user.id == userId ? (
-                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
+                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : (question.user.name.length > 18
+                                                                                    ? question.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                    : question.user.name)}</span>
                                                                             ) : (
-                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
+                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : (question.user.name.length > 18
+                                                                                    ? question.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                    : question.user.name)}</span>
                                                                             )}
                                                                         </div>
                                                                     )}
@@ -2466,8 +2481,13 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                             </div>
                         </div>
 
+                        {/* Filter */}
+                        <div className='flex flex-row justify-between mb-2 pb-2 order-2 z-50'>
+                            
+                        </div>
+
                         {/* Info */}
-                        <div className='order-2 pl-3 z-20'>
+                        <div className='order-3 pl-3 z-20'>
                             <p className='text-xl mb-0 pb-1'>Questions Registered: {loadingQ ? "Loading" : questions.length}</p>
                             <p className='text-sm pb-3 text-zinc-500'>Displaying {itemsPerPage} questions per page</p>
                             {loadingQ ? (
