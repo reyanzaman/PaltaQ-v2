@@ -2471,7 +2471,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                 </div>
                             </div>
 
-                            <div className='mr-4 ml-3 lg:block hidden'>
+                            <div className='mr-4 ml-3 -translate-y-1 lg:block hidden'>
                                 <button onClick={() => handleRefresh()} className="btn btn-primary">Refresh</button>
                             </div>
                             <div className='mr-4 ml-3 -translate-y-[0.2em] lg:hidden block'>
