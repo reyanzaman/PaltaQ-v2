@@ -43,9 +43,11 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                 createdAt: true,
                 parent: true,
                 replies: true,
+                questionType: true,
               }
             },
             topic: true,
+            questionType: true,
           }
         });
         // Calculate replies length for each paltaQBy and set replies to undefined
@@ -85,9 +87,10 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                 createdAt: true,
                 parent: true,
                 replies: true,
+                questionType: true,
               }
             },
-            questionType: true
+            questionType: true,
           }
         }
         );

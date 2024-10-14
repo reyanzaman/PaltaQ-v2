@@ -22,6 +22,7 @@ import PaltaQComponent from "@/app/components/paltaQ";
 import { getRankDetails } from '@/app/utils/rankings';
 import GeneratedResponse from './generatedResponse';
 import { Topic } from '@prisma/client';
+import { Tooltip } from "react-tooltip";
 
 interface RankDetails {
     colorCode: string;
@@ -56,6 +57,7 @@ interface PaltaQ {
     createdAt: string;
     parent: PaltaQ;
     repliesLength: number;
+    questionType: QuestionType[];
 }
 
 interface User {
@@ -80,8 +82,21 @@ interface Question {
     paltaQBy: PaltaQ[];
     likedBy: Likes[];
     dislikedBy: Dislikes[];
+    questionType: QuestionType[];
     createdAt: string;
     topic: Topic;
+}
+
+interface QuestionType {
+    id: string;
+    questionId: string;
+    paltaQId: string;
+    remembering: boolean;
+    understanding: boolean;
+    applying: boolean;
+    analyzing: boolean;
+    evaluating: boolean;
+    creating: boolean;
 }
 
 export default function QuestionsList({ classId, refresh, handleRefresh }: { classId: string, refresh: boolean, handleRefresh: any }) {
@@ -462,7 +477,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                 // Handle error
                 console.error('Failed to submit palta question');
                 toast.update(loadingToastId, {
-                    render: responseData.message || 'PaltaQ submission failed',
+                    render: responseData.message || responseData.error || 'PaltaQ submission failed',
                     type: 'error',
                     isLoading: false,
                     autoClose: 4000,
@@ -510,7 +525,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                 [questionId]: question
             }));
             setVisibility(prev => ({ ...prev, [questionId]: true }));
-            
+
         } catch (error) {
             toast.error('Failed to generate AI response');
             console.log('Error in handleAIGenerate:', error);
@@ -851,10 +866,174 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                 ? <span className='font-bold text-sm px-1'>MID LEVEL QUESTION</span>
                                                                 : <span className='font-bold text-sm px-1'>LOW LEVEL QUESTION</span>}
                                                     </div>
+
                                                     <div className='badge ml-2 px-2'>
                                                         <span className="font-bold text-sm items-end p-1">
                                                             SCORE: {question.score}
                                                         </span>
+                                                    </div>
+
+                                                    {/* Blooms Badge */}
+                                                    <div className='mar-ly lg:inline-block'>
+                                                        {/* Remembering */}
+                                                        {question.questionType[0].remembering && (
+                                                            <div
+                                                                className='badge bg-[#393d71] ml-0.5 px-2'
+                                                                data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory, such as remembering dates, names, or key terms without needing to understand or analyze them."
+                                                                data-tooltip-id="badge-remember"
+                                                            >
+                                                                <span className='font-bold text-white text-sm'>
+                                                                    RE
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Understanding */}
+                                                        {question.questionType[0].understanding && (
+                                                            <div
+                                                                className='badge bg-[#63899f] ml-0.5 px-1.5 py-1'
+                                                                data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept in your own words. This level goes beyond mere recall by requiring comprehension of the material."
+                                                                data-tooltip-id="badge-understand"
+                                                            >
+                                                                <span className='font-bold text-white text-sm'>
+                                                                    UN
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Applying */}
+                                                        {question.questionType[0].applying && (
+                                                            <div
+                                                                className='badge bg-[#576042] ml-0.5 px-1.5 py-1'
+                                                                data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems, using concepts in practice, or carrying out a procedure in a different context. This level focuses on the ability to implement learned material."
+                                                                data-tooltip-id="badge-apply"
+                                                            >
+                                                                <span className='font-bold text-white text-sm'>
+                                                                    AP
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Analying */}
+                                                        {question.questionType[0].analyzing && (
+                                                            <div
+                                                                className='badge bg-[#578a72] ml-0.5 px-1.5 py-1'
+                                                                data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into components to understand its structure, such as comparing and contrasting ideas, identifying relationships, or recognizing patterns. This level requires critical thinking to dissect information."
+                                                                data-tooltip-id="badge-analyze"
+                                                            >
+                                                                <span className='font-bold text-white text-sm'>
+                                                                    AN
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Evaluate */}
+                                                        {question.questionType[0].evaluating && (
+                                                            <div
+                                                                className='badge bg-[#dca146] ml-0.5 px-1.5 py-1'
+                                                                data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria and standards, such as critiquing an argument, assessing the validity of a source, or weighing the pros and cons of a decision. This level requires both analysis and justification."
+                                                                data-tooltip-id="badge-evaluate"
+                                                            >
+                                                                <span className='font-bold text-white text-sm'>
+                                                                    EV
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Create */}
+                                                        {question.questionType[0].creating && (
+                                                            <div
+                                                                className='badge bg-[#cb484f] ml-0.5 px-1.5 py-1'
+                                                                data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas, products, or ways of viewing things, such as designing a project, composing a story, or proposing a theory. This level emphasizes innovation and the ability to put elements together in a novel way."
+                                                                data-tooltip-id="badge-create"
+                                                            >
+                                                                <span className='font-bold text-white text-sm'>
+                                                                    CR
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Tooltips */}
+                                                        <div>
+                                                            <Tooltip
+                                                                id="badge-remember"
+                                                                place="top"
+                                                                style={{
+                                                                    borderRadius: "8px",
+                                                                    padding: "10px",
+                                                                    zIndex: "100",
+                                                                    opacity: "1",
+                                                                    width: "350px",
+                                                                    textAlign: "left",
+                                                                    backgroundColor: "#393d71"
+                                                                }}
+                                                            />
+                                                            <Tooltip
+                                                                id="badge-understand"
+                                                                place="top"
+                                                                style={{
+                                                                    borderRadius: "8px",
+                                                                    padding: "10px",
+                                                                    zIndex: "100",
+                                                                    opacity: "1",
+                                                                    width: "350px",
+                                                                    textAlign: "left",
+                                                                    backgroundColor: "#63899f"
+                                                                }}
+                                                            />
+                                                            <Tooltip
+                                                                id="badge-apply"
+                                                                place="top"
+                                                                style={{
+                                                                    borderRadius: "8px",
+                                                                    padding: "10px",
+                                                                    zIndex: "100",
+                                                                    opacity: "1",
+                                                                    width: "350px",
+                                                                    textAlign: "left",
+                                                                    backgroundColor: "#576042"
+                                                                }}
+                                                            />
+                                                            <Tooltip
+                                                                id="badge-analyze"
+                                                                place="top"
+                                                                style={{
+                                                                    borderRadius: "8px",
+                                                                    padding: "10px",
+                                                                    zIndex: "100",
+                                                                    opacity: "1",
+                                                                    width: "350px",
+                                                                    textAlign: "left",
+                                                                    backgroundColor: "#578a72"
+                                                                }}
+                                                            />
+                                                            <Tooltip
+                                                                id="badge-evaluate"
+                                                                place="top"
+                                                                style={{
+                                                                    borderRadius: "8px",
+                                                                    padding: "10px",
+                                                                    zIndex: "100",
+                                                                    opacity: "1",
+                                                                    width: "350px",
+                                                                    textAlign: "left",
+                                                                    backgroundColor: "#dca146"
+                                                                }}
+                                                            />
+                                                            <Tooltip
+                                                                id="badge-create"
+                                                                place="top"
+                                                                style={{
+                                                                    borderRadius: "8px",
+                                                                    padding: "10px",
+                                                                    zIndex: "100",
+                                                                    opacity: "1",
+                                                                    width: "350px",
+                                                                    textAlign: "left",
+                                                                    backgroundColor: "#cb484f"
+                                                                }}
+                                                            />
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -1061,19 +1240,184 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                             {/* Bottom Part */}
                                                                             <div className='flex flex-col'>
 
-                                                                                {/* PaltaQ Badge */}
-                                                                                <div className="flex items-center mt-2 mb-1 -translate-x-2">
-                                                                                    <div className='badge mx-1'>
-                                                                                        {paltaQ.score >= 100
-                                                                                            ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-danger'>HIGH LEVEL</span>
-                                                                                            : paltaQ.score >= 50
-                                                                                                ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-secondary'>MID LEVEL </span>
-                                                                                                : <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-success'>LOW LEVEL</span>}
+                                                                                <div className='flex lg:flex-row flex-col'>
+                                                                                    {/* PaltaQ Badge */}
+                                                                                    <div className="flex items-center mt-2 mb-1 -translate-x-2">
+                                                                                        <div className='badge mx-1'>
+                                                                                            {paltaQ.score >= 100
+                                                                                                ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-danger'>HIGH LEVEL</span>
+                                                                                                : paltaQ.score >= 50
+                                                                                                    ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-secondary'>MID LEVEL </span>
+                                                                                                    : <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-success'>LOW LEVEL</span>}
+                                                                                        </div>
+                                                                                        <div className='badge mx-1'>
+                                                                                            <span className="font-bold lg:text-sm text-xxs items-end lg:ml-2 ml-0">
+                                                                                                SCORE: {paltaQ.score}
+                                                                                            </span>
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div className='badge mx-1'>
-                                                                                        <span className="font-bold lg:text-sm text-xxs items-end lg:ml-2 ml-0">
-                                                                                            SCORE: {paltaQ.score}
-                                                                                        </span>
+
+                                                                                    {/* Blooms Badge */}
+                                                                                    <div className='mar-ly2 -translate-x-1'>
+                                                                                        {/* Remembering */}
+                                                                                        {paltaQ.questionType[0].remembering && (
+                                                                                            <div
+                                                                                                className='badge bg-[#393d71] ml-0.5 px-2'
+                                                                                                data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory, such as remembering dates, names, or key terms without needing to understand or analyze them."
+                                                                                                data-tooltip-id="PQ-badge-remember"
+                                                                                            >
+                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
+                                                                                                    RE
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+
+                                                                                        {/* Understanding */}
+                                                                                        {paltaQ.questionType[0].understanding && (
+                                                                                            <div
+                                                                                                className='badge bg-[#63899f] ml-0.5 px-1.5 py-1'
+                                                                                                data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept in your own words. This level goes beyond mere recall by requiring comprehension of the material."
+                                                                                                data-tooltip-id="PQ-badge-understand"
+                                                                                            >
+                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
+                                                                                                    UN
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+
+                                                                                        {/* Applying */}
+                                                                                        {paltaQ.questionType[0].applying && (
+                                                                                            <div
+                                                                                                className='badge bg-[#576042] ml-0.5 px-1.5 py-1'
+                                                                                                data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems, using concepts in practice, or carrying out a procedure in a different context. This level focuses on the ability to implement learned material."
+                                                                                                data-tooltip-id="PQ-badge-apply"
+                                                                                            >
+                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
+                                                                                                    AP
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+
+                                                                                        {/* Analying */}
+                                                                                        {paltaQ.questionType[0].analyzing && (
+                                                                                            <div
+                                                                                                className='badge bg-[#578a72] ml-0.5 px-1.5 py-1'
+                                                                                                data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into components to understand its structure, such as comparing and contrasting ideas, identifying relationships, or recognizing patterns. This level requires critical thinking to dissect information."
+                                                                                                data-tooltip-id="PQ-badge-analyze"
+                                                                                            >
+                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
+                                                                                                    AN
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+
+                                                                                        {/* Evaluate */}
+                                                                                        {paltaQ.questionType[0].evaluating && (
+                                                                                            <div
+                                                                                                className='badge bg-[#dca146] ml-0.5 px-1.5 py-1'
+                                                                                                data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria and standards, such as critiquing an argument, assessing the validity of a source, or weighing the pros and cons of a decision. This level requires both analysis and justification."
+                                                                                                data-tooltip-id="PQ-badge-evaluate"
+                                                                                            >
+                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
+                                                                                                    EV
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+
+                                                                                        {/* Create */}
+                                                                                        {paltaQ.questionType[0].creating && (
+                                                                                            <div
+                                                                                                className='badge bg-[#cb484f] ml-0.5 px-1.5 py-1'
+                                                                                                data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas, products, or ways of viewing things, such as designing a project, composing a story, or proposing a theory. This level emphasizes innovation and the ability to put elements together in a novel way."
+                                                                                                data-tooltip-id="PQ-badge-create"
+                                                                                            >
+                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
+                                                                                                    CR
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+
+                                                                                        {/* Tooltips */}
+                                                                                        <div>
+                                                                                            <Tooltip
+                                                                                                id="PQ-badge-remember"
+                                                                                                place="top"
+                                                                                                style={{
+                                                                                                    borderRadius: "8px",
+                                                                                                    padding: "10px",
+                                                                                                    zIndex: "100",
+                                                                                                    opacity: "1",
+                                                                                                    width: "350px",
+                                                                                                    textAlign: "left",
+                                                                                                    backgroundColor: "#393d71"
+                                                                                                }}
+                                                                                            />
+                                                                                            <Tooltip
+                                                                                                id="PQ-badge-understand"
+                                                                                                place="top"
+                                                                                                style={{
+                                                                                                    borderRadius: "8px",
+                                                                                                    padding: "10px",
+                                                                                                    zIndex: "100",
+                                                                                                    opacity: "1",
+                                                                                                    width: "350px",
+                                                                                                    textAlign: "left",
+                                                                                                    backgroundColor: "#63899f"
+                                                                                                }}
+                                                                                            />
+                                                                                            <Tooltip
+                                                                                                id="PQ-badge-apply"
+                                                                                                place="top"
+                                                                                                style={{
+                                                                                                    borderRadius: "8px",
+                                                                                                    padding: "10px",
+                                                                                                    zIndex: "100",
+                                                                                                    opacity: "1",
+                                                                                                    width: "350px",
+                                                                                                    textAlign: "left",
+                                                                                                    backgroundColor: "#576042"
+                                                                                                }}
+                                                                                            />
+                                                                                            <Tooltip
+                                                                                                id="PQ-badge-analyze"
+                                                                                                place="top"
+                                                                                                style={{
+                                                                                                    borderRadius: "8px",
+                                                                                                    padding: "10px",
+                                                                                                    zIndex: "100",
+                                                                                                    opacity: "1",
+                                                                                                    width: "350px",
+                                                                                                    textAlign: "left",
+                                                                                                    backgroundColor: "#578a72"
+                                                                                                }}
+                                                                                            />
+                                                                                            <Tooltip
+                                                                                                id="PQ-badge-evaluate"
+                                                                                                place="top"
+                                                                                                style={{
+                                                                                                    borderRadius: "8px",
+                                                                                                    padding: "10px",
+                                                                                                    zIndex: "100",
+                                                                                                    opacity: "1",
+                                                                                                    width: "350px",
+                                                                                                    textAlign: "left",
+                                                                                                    backgroundColor: "#dca146"
+                                                                                                }}
+                                                                                            />
+                                                                                            <Tooltip
+                                                                                                id="PQ-badge-create"
+                                                                                                place="top"
+                                                                                                style={{
+                                                                                                    borderRadius: "8px",
+                                                                                                    padding: "10px",
+                                                                                                    zIndex: "100",
+                                                                                                    opacity: "1",
+                                                                                                    width: "350px",
+                                                                                                    textAlign: "left",
+                                                                                                    backgroundColor: "#cb484f"
+                                                                                                }}
+                                                                                            />
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
 
@@ -1221,7 +1565,9 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                 )}
                                             </div>
                                         </div>
+
                                     ) : (
+
                                         <div className=''>
                                             {index == 0 && currentPage == 1 && (
                                                 <div>
@@ -1343,10 +1689,174 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                 ? <span className='font-bold text-sm px-1'>MID LEVEL QUESTION</span>
                                                                 : <span className='font-bold text-sm px-1'>LOW LEVEL QUESTION</span>}
                                                     </div>
+
                                                     <div className='badge ml-2 px-2'>
                                                         <span className="font-bold text-sm items-end p-1">
                                                             SCORE: {question.score}
                                                         </span>
+                                                    </div>
+
+                                                    {/* Blooms Badge */}
+                                                    <div className='mar-ly lg:inline-block'>
+                                                        {/* Remembering */}
+                                                        {question.questionType[0].remembering && (
+                                                            <div
+                                                                className='badge bg-[#393d71] ml-0.5 px-2'
+                                                                data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory, such as remembering dates, names, or key terms without needing to understand or analyze them."
+                                                                data-tooltip-id="badge-remember"
+                                                            >
+                                                                <span className='font-bold text-white text-sm'>
+                                                                    RE
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Understanding */}
+                                                        {question.questionType[0].understanding && (
+                                                            <div
+                                                                className='badge bg-[#63899f] ml-0.5 px-1.5 py-1'
+                                                                data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept in your own words. This level goes beyond mere recall by requiring comprehension of the material."
+                                                                data-tooltip-id="badge-understand"
+                                                            >
+                                                                <span className='font-bold text-white text-sm'>
+                                                                    UN
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Applying */}
+                                                        {question.questionType[0].applying && (
+                                                            <div
+                                                                className='badge bg-[#576042] ml-0.5 px-1.5 py-1'
+                                                                data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems, using concepts in practice, or carrying out a procedure in a different context. This level focuses on the ability to implement learned material."
+                                                                data-tooltip-id="badge-apply"
+                                                            >
+                                                                <span className='font-bold text-white text-sm'>
+                                                                    AP
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Analying */}
+                                                        {question.questionType[0].analyzing && (
+                                                            <div
+                                                                className='badge bg-[#578a72] ml-0.5 px-1.5 py-1'
+                                                                data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into components to understand its structure, such as comparing and contrasting ideas, identifying relationships, or recognizing patterns. This level requires critical thinking to dissect information."
+                                                                data-tooltip-id="badge-analyze"
+                                                            >
+                                                                <span className='font-bold text-white text-sm'>
+                                                                    AN
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Evaluate */}
+                                                        {question.questionType[0].evaluating && (
+                                                            <div
+                                                                className='badge bg-[#dca146] ml-0.5 px-1.5 py-1'
+                                                                data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria and standards, such as critiquing an argument, assessing the validity of a source, or weighing the pros and cons of a decision. This level requires both analysis and justification."
+                                                                data-tooltip-id="badge-evaluate"
+                                                            >
+                                                                <span className='font-bold text-white text-sm'>
+                                                                    EV
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Create */}
+                                                        {question.questionType[0].creating && (
+                                                            <div
+                                                                className='badge bg-[#cb484f] ml-0.5 px-1.5 py-1'
+                                                                data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas, products, or ways of viewing things, such as designing a project, composing a story, or proposing a theory. This level emphasizes innovation and the ability to put elements together in a novel way."
+                                                                data-tooltip-id="badge-create"
+                                                            >
+                                                                <span className='font-bold text-white text-sm'>
+                                                                    CR
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Tooltips */}
+                                                        <div>
+                                                            <Tooltip
+                                                                id="badge-remember"
+                                                                place="top"
+                                                                style={{
+                                                                    borderRadius: "8px",
+                                                                    padding: "10px",
+                                                                    zIndex: "100",
+                                                                    opacity: "1",
+                                                                    width: "350px",
+                                                                    textAlign: "left",
+                                                                    backgroundColor: "#393d71"
+                                                                }}
+                                                            />
+                                                            <Tooltip
+                                                                id="badge-understand"
+                                                                place="top"
+                                                                style={{
+                                                                    borderRadius: "8px",
+                                                                    padding: "10px",
+                                                                    zIndex: "100",
+                                                                    opacity: "1",
+                                                                    width: "350px",
+                                                                    textAlign: "left",
+                                                                    backgroundColor: "#63899f"
+                                                                }}
+                                                            />
+                                                            <Tooltip
+                                                                id="badge-apply"
+                                                                place="top"
+                                                                style={{
+                                                                    borderRadius: "8px",
+                                                                    padding: "10px",
+                                                                    zIndex: "100",
+                                                                    opacity: "1",
+                                                                    width: "350px",
+                                                                    textAlign: "left",
+                                                                    backgroundColor: "#576042"
+                                                                }}
+                                                            />
+                                                            <Tooltip
+                                                                id="badge-analyze"
+                                                                place="top"
+                                                                style={{
+                                                                    borderRadius: "8px",
+                                                                    padding: "10px",
+                                                                    zIndex: "100",
+                                                                    opacity: "1",
+                                                                    width: "350px",
+                                                                    textAlign: "left",
+                                                                    backgroundColor: "#578a72"
+                                                                }}
+                                                            />
+                                                            <Tooltip
+                                                                id="badge-evaluate"
+                                                                place="top"
+                                                                style={{
+                                                                    borderRadius: "8px",
+                                                                    padding: "10px",
+                                                                    zIndex: "100",
+                                                                    opacity: "1",
+                                                                    width: "350px",
+                                                                    textAlign: "left",
+                                                                    backgroundColor: "#dca146"
+                                                                }}
+                                                            />
+                                                            <Tooltip
+                                                                id="badge-create"
+                                                                place="top"
+                                                                style={{
+                                                                    borderRadius: "8px",
+                                                                    padding: "10px",
+                                                                    zIndex: "100",
+                                                                    opacity: "1",
+                                                                    width: "350px",
+                                                                    textAlign: "left",
+                                                                    backgroundColor: "#cb484f"
+                                                                }}
+                                                            />
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -1553,19 +2063,184 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                             {/* Bottom Part */}
                                                                             <div className='flex flex-col'>
 
-                                                                                {/* PaltaQ Badge */}
-                                                                                <div className="flex items-center mt-2 mb-1 -translate-x-2">
-                                                                                    <div className='badge mx-1'>
-                                                                                        {paltaQ.score >= 100
-                                                                                            ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-danger'>HIGH LEVEL</span>
-                                                                                            : paltaQ.score >= 50
-                                                                                                ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-secondary'>MID LEVEL </span>
-                                                                                                : <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-success'>LOW LEVEL</span>}
+                                                                                <div className='flex lg:flex-row flex-col'>
+                                                                                    {/* PaltaQ Badge */}
+                                                                                    <div className="flex items-center mt-2 mb-1 -translate-x-2">
+                                                                                        <div className='badge mx-1'>
+                                                                                            {paltaQ.score >= 100
+                                                                                                ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-danger'>HIGH LEVEL</span>
+                                                                                                : paltaQ.score >= 50
+                                                                                                    ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-secondary'>MID LEVEL </span>
+                                                                                                    : <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-success'>LOW LEVEL</span>}
+                                                                                        </div>
+                                                                                        <div className='badge mx-1'>
+                                                                                            <span className="font-bold lg:text-sm text-xxs items-end lg:ml-2 ml-0">
+                                                                                                SCORE: {paltaQ.score}
+                                                                                            </span>
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div className='badge mx-1'>
-                                                                                        <span className="font-bold lg:text-sm text-xxs items-end lg:ml-2 ml-0">
-                                                                                            SCORE: {paltaQ.score}
-                                                                                        </span>
+
+                                                                                    {/* Blooms Badge */}
+                                                                                    <div className='mar-ly2 -translate-x-1'>
+                                                                                        {/* Remembering */}
+                                                                                        {paltaQ.questionType[0].remembering && (
+                                                                                            <div
+                                                                                                className='badge bg-[#393d71] ml-0.5 px-2'
+                                                                                                data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory, such as remembering dates, names, or key terms without needing to understand or analyze them."
+                                                                                                data-tooltip-id="PQ-badge-remember"
+                                                                                            >
+                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
+                                                                                                    RE
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+
+                                                                                        {/* Understanding */}
+                                                                                        {paltaQ.questionType[0].understanding && (
+                                                                                            <div
+                                                                                                className='badge bg-[#63899f] ml-0.5 px-1.5 py-1'
+                                                                                                data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept in your own words. This level goes beyond mere recall by requiring comprehension of the material."
+                                                                                                data-tooltip-id="PQ-badge-understand"
+                                                                                            >
+                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
+                                                                                                    UN
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+
+                                                                                        {/* Applying */}
+                                                                                        {paltaQ.questionType[0].applying && (
+                                                                                            <div
+                                                                                                className='badge bg-[#576042] ml-0.5 px-1.5 py-1'
+                                                                                                data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems, using concepts in practice, or carrying out a procedure in a different context. This level focuses on the ability to implement learned material."
+                                                                                                data-tooltip-id="PQ-badge-apply"
+                                                                                            >
+                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
+                                                                                                    AP
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+
+                                                                                        {/* Analying */}
+                                                                                        {paltaQ.questionType[0].analyzing && (
+                                                                                            <div
+                                                                                                className='badge bg-[#578a72] ml-0.5 px-1.5 py-1'
+                                                                                                data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into components to understand its structure, such as comparing and contrasting ideas, identifying relationships, or recognizing patterns. This level requires critical thinking to dissect information."
+                                                                                                data-tooltip-id="PQ-badge-analyze"
+                                                                                            >
+                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
+                                                                                                    AN
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+
+                                                                                        {/* Evaluate */}
+                                                                                        {paltaQ.questionType[0].evaluating && (
+                                                                                            <div
+                                                                                                className='badge bg-[#dca146] ml-0.5 px-1.5 py-1'
+                                                                                                data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria and standards, such as critiquing an argument, assessing the validity of a source, or weighing the pros and cons of a decision. This level requires both analysis and justification."
+                                                                                                data-tooltip-id="PQ-badge-evaluate"
+                                                                                            >
+                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
+                                                                                                    EV
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+
+                                                                                        {/* Create */}
+                                                                                        {paltaQ.questionType[0].creating && (
+                                                                                            <div
+                                                                                                className='badge bg-[#cb484f] ml-0.5 px-1.5 py-1'
+                                                                                                data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas, products, or ways of viewing things, such as designing a project, composing a story, or proposing a theory. This level emphasizes innovation and the ability to put elements together in a novel way."
+                                                                                                data-tooltip-id="PQ-badge-create"
+                                                                                            >
+                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
+                                                                                                    CR
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+
+                                                                                        {/* Tooltips */}
+                                                                                        <div>
+                                                                                            <Tooltip
+                                                                                                id="PQ-badge-remember"
+                                                                                                place="top"
+                                                                                                style={{
+                                                                                                    borderRadius: "8px",
+                                                                                                    padding: "10px",
+                                                                                                    zIndex: "100",
+                                                                                                    opacity: "1",
+                                                                                                    width: "350px",
+                                                                                                    textAlign: "left",
+                                                                                                    backgroundColor: "#393d71"
+                                                                                                }}
+                                                                                            />
+                                                                                            <Tooltip
+                                                                                                id="PQ-badge-understand"
+                                                                                                place="top"
+                                                                                                style={{
+                                                                                                    borderRadius: "8px",
+                                                                                                    padding: "10px",
+                                                                                                    zIndex: "100",
+                                                                                                    opacity: "1",
+                                                                                                    width: "350px",
+                                                                                                    textAlign: "left",
+                                                                                                    backgroundColor: "#63899f"
+                                                                                                }}
+                                                                                            />
+                                                                                            <Tooltip
+                                                                                                id="PQ-badge-apply"
+                                                                                                place="top"
+                                                                                                style={{
+                                                                                                    borderRadius: "8px",
+                                                                                                    padding: "10px",
+                                                                                                    zIndex: "100",
+                                                                                                    opacity: "1",
+                                                                                                    width: "350px",
+                                                                                                    textAlign: "left",
+                                                                                                    backgroundColor: "#576042"
+                                                                                                }}
+                                                                                            />
+                                                                                            <Tooltip
+                                                                                                id="PQ-badge-analyze"
+                                                                                                place="top"
+                                                                                                style={{
+                                                                                                    borderRadius: "8px",
+                                                                                                    padding: "10px",
+                                                                                                    zIndex: "100",
+                                                                                                    opacity: "1",
+                                                                                                    width: "350px",
+                                                                                                    textAlign: "left",
+                                                                                                    backgroundColor: "#578a72"
+                                                                                                }}
+                                                                                            />
+                                                                                            <Tooltip
+                                                                                                id="PQ-badge-evaluate"
+                                                                                                place="top"
+                                                                                                style={{
+                                                                                                    borderRadius: "8px",
+                                                                                                    padding: "10px",
+                                                                                                    zIndex: "100",
+                                                                                                    opacity: "1",
+                                                                                                    width: "350px",
+                                                                                                    textAlign: "left",
+                                                                                                    backgroundColor: "#dca146"
+                                                                                                }}
+                                                                                            />
+                                                                                            <Tooltip
+                                                                                                id="PQ-badge-create"
+                                                                                                place="top"
+                                                                                                style={{
+                                                                                                    borderRadius: "8px",
+                                                                                                    padding: "10px",
+                                                                                                    zIndex: "100",
+                                                                                                    opacity: "1",
+                                                                                                    width: "350px",
+                                                                                                    textAlign: "left",
+                                                                                                    backgroundColor: "#cb484f"
+                                                                                                }}
+                                                                                            />
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
 
