@@ -8,7 +8,8 @@ import {
     faArrowsRotate,
     faEye,
     faEyeSlash,
-    faWandMagicSparkles
+    faWandMagicSparkles,
+    faCalendar
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
@@ -23,6 +24,7 @@ import { getRankDetails } from '@/app/utils/rankings';
 import GeneratedResponse from './generatedResponse';
 import { Topic } from '@prisma/client';
 import { Tooltip } from "react-tooltip";
+import DatePicker from 'react-datepicker';
 
 interface RankDetails {
     colorCode: string;
@@ -674,7 +676,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
     return (
         <div ref={questionsRef}>
             <div onClick={() => setViewQuestions(!viewQuestions)} className='flex flex-row mb-5 ml-3 w-fit pb-1 pt-2 active:-translate-y-3 active:duration-500'>
-                <h5 className='text-gray-900'>Toggle Questions Section</h5>
+                <h5 className='text-gray-900'>Questions Asked On This Class</h5>
                 {viewQuestions ? <FontAwesomeIcon icon={faAngleUp} className="w-[1.5rem] text-zinc-800 translate-y-1" /> : <FontAwesomeIcon icon={faAngleDown} className="w-[1.5rem] translate-y-1 text-zinc-800" />}
             </div>
 
@@ -706,7 +708,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                         </div>
 
                         {/* Pagination-top */}
-                        <div className='order-4 z-20'>
+                        {/* <div className='order-4 z-20'>
                             {questions.length > 0 && (
                                 <div className='pl-3 pb-4'>
                                     <nav aria-label="Questions page navigation">
@@ -726,7 +728,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                     </nav>
                                 </div>
                             )}
-                        </div>
+                        </div> */}
 
                         {/* Questions List */}
                         <div className='order-5'>
@@ -2409,7 +2411,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                         </div>
 
                         {/* Header */}
-                        <div className='flex flex-row justify-between mb-4 pb-2 order-first z-50'>
+                        <div className='flex flex-row justify-between mb-2 pb-2 order-first z-50'>
                             <div className='flex flex-row order-first'>
                                 <h3 className='pl-3 lg:block hidden'>Topic: </h3>
 
@@ -2471,19 +2473,45 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                 </div>
                             </div>
 
+                            {/* Desktop Refresh */}
                             <div className='mr-4 ml-3 -translate-y-1 lg:block hidden'>
                                 <button onClick={() => handleRefresh()} className="btn btn-primary">Refresh</button>
                             </div>
+
+                            {/* Mobile Refresh */}
                             <div className='mr-4 ml-3 -translate-y-[0.2em] lg:hidden block'>
                                 <button onClick={() => handleRefresh()} className="btn btn-primary">
                                     <FontAwesomeIcon icon={faArrowsRotate} className="w-[1.5rem] text-[#31344b]" />
                                 </button>
                             </div>
                         </div>
+                        {/* Date */}
+                        <div className="col-12 mb-4">
+                            <div className="input-daterange datepicker row align-items-center">
+                                <div className="col">
+                                    <label className="h6" htmlFor="exampleInputDate2">From</label>
+                                    <div className="form-group">
+                                        <div className="input-group input-group-border">
+                                            <div className="input-group-prepend"><span className="input-group-text"><FontAwesomeIcon icon={faCalendar} /></span></div>
+                                            <input className="form-control datepicker" id="exampleInputDate2" placeholder="Start date" type="text" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="col">
+                                    <div className="form-group">
+                                        <label className="h6" htmlFor="exampleInputDate3">To</label>
+                                        <div className="input-group input-group-border">
+                                            <div className="input-group-prepend"><span className="input-group-text"><FontAwesomeIcon icon={faCalendar} /></span></div>
+                                            <input className="form-control datepicker" id="exampleInputDate3" placeholder="End date" type="text" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         {/* Filter */}
                         <div className='flex flex-row justify-between mb-2 pb-2 order-2 z-50'>
-                            
+
                         </div>
 
                         {/* Info */}
