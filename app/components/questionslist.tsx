@@ -687,48 +687,25 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                         {/* Pagination-bottom */}
                         <div className='order-last'>
                             {questions.length > 0 && (
-                                <div className='pl-3 py-4'>
+                                <div className='pl-3 py-4 max-w-[90vw]'>
                                     <nav aria-label="Questions page navigation">
                                         <ul className="pagination">
                                             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                                                <a className="page-link" href="#" onClick={(e) => handlePageChange(currentPage - 1, e)}>Previous</a>
+                                                <a className="page-link mb-3" href="#" onClick={(e) => handlePageChange(currentPage - 1, e)}>Previous</a>
                                             </li>
                                             {[...Array(totalPages)].map((_, i) => (
                                                 <li key={i} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
-                                                    <a className="page-link" href="#" onClick={(e) => handlePageChange(i + 1, e)}>{i + 1}</a>
+                                                    <a className="page-link mb-3" href="#" onClick={(e) => handlePageChange(i + 1, e)}>{i + 1}</a>
                                                 </li>
                                             ))}
                                             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                                                <a className="page-link" href="#" onClick={(e) => handlePageChange(currentPage + 1, e)}>Next</a>
+                                                <a className="page-link mb-3" href="#" onClick={(e) => handlePageChange(currentPage + 1, e)}>Next</a>
                                             </li>
                                         </ul>
                                     </nav>
                                 </div>
                             )}
                         </div>
-
-                        {/* Pagination-top */}
-                        {/* <div className='order-4 z-20'>
-                            {questions.length > 0 && (
-                                <div className='pl-3 pb-4'>
-                                    <nav aria-label="Questions page navigation">
-                                        <ul className="pagination">
-                                            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                                                <a className="page-link" href="#" onClick={(e) => handlePageChange(currentPage - 1, e)}>Previous</a>
-                                            </li>
-                                            {[...Array(totalPages)].map((_, i) => (
-                                                <li key={i} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
-                                                    <a className="page-link" href="#" onClick={(e) => handlePageChange(i + 1, e)}>{i + 1}</a>
-                                                </li>
-                                            ))}
-                                            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                                                <a className="page-link" href="#" onClick={(e) => handlePageChange(currentPage + 1, e)}>Next</a>
-                                            </li>
-                                        </ul>
-                                    </nav>
-                                </div>
-                            )}
-                        </div> */}
 
                         {/* Questions List */}
                         <div className='order-5'>
@@ -2485,33 +2462,29 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                 </button>
                             </div>
                         </div>
-                        {/* Date */}
-                        <div className="col-12 mb-4">
-                            <div className="input-daterange datepicker row align-items-center">
-                                <div className="col">
-                                    <label className="h6" htmlFor="exampleInputDate2">From</label>
+                        {/* Date Filter */}
+                        <div className="lg:col-10 col-14 mb-4">
+                            <div className="input-daterange datepicker flex flex-row">
+                                <div className="pl-3 pr-4 w-full">
+                                    <label className="h6" htmlFor="startDate">From</label>
                                     <div className="form-group">
                                         <div className="input-group input-group-border">
                                             <div className="input-group-prepend"><span className="input-group-text"><FontAwesomeIcon icon={faCalendar} /></span></div>
-                                            <input className="form-control datepicker" id="exampleInputDate2" placeholder="Start date" type="text" />
+                                            <input className="form-control datepicker" id="startDate" type="date" />
                                         </div>
                                     </div>
                                 </div>
-                                <div className="col">
+                                <div className="lg:pl-3 pl-0 pr-4 w-full">
                                     <div className="form-group">
-                                        <label className="h6" htmlFor="exampleInputDate3">To</label>
+                                        <label className="h6" htmlFor="endDate">To</label>
                                         <div className="input-group input-group-border">
                                             <div className="input-group-prepend"><span className="input-group-text"><FontAwesomeIcon icon={faCalendar} /></span></div>
-                                            <input className="form-control datepicker" id="exampleInputDate3" placeholder="End date" type="text" />
+                                            <input className="form-control datepicker" id="endDate" type="date" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Filter */}
-                        <div className='flex flex-row justify-between mb-2 pb-2 order-2 z-50'>
-
+                            <h5 className='text-red-800 pl-3 text-sm'>Date filter feature is under development and not functional yet!</h5>
                         </div>
 
                         {/* Info */}

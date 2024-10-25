@@ -746,13 +746,13 @@ export default function FacultyClass({ user }: { user: User }) {
                                                         <div>
                                                             <div
                                                                 className="hover:text-red-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
-                                                                onClick={() => setToggleDelete(index)}>
+                                                                onClick={() => { setToggleDelete(index); setToggleUpdate(null); }}>
                                                                 Delete
                                                             </div>
 
                                                             <button
                                                                 className="hover:text-red-800 transition-colors duration-500 lg:hidden block"
-                                                                onClick={() => setToggleDelete(index)}>
+                                                                onClick={() => { setToggleDelete(index); setToggleUpdate(null); }}>
                                                                 Delete
                                                             </button>
                                                         </div>
@@ -783,6 +783,7 @@ export default function FacultyClass({ user }: { user: User }) {
                                                                             setNewClassName(classItem.class.name);
                                                                             setNewClassDate(formatDate(classItem.class.endsAt));
                                                                             setToggleUpdate(index);
+                                                                            setToggleDelete(null);
                                                                         }}>
                                                                         Edit
                                                                     </button>
