@@ -122,46 +122,65 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
     const [viewQuestions, setViewQuestions] = useState(true);
     const [viewFacultyQs, setViewFacultyQs] = useState(true);
 
-    const [questions, setQuestions] = useState<Question[]>([]);
     const [isAnonymous, setIsAnonymous] = useState<{ [key: string]: boolean }>({});
 
     const [responseAI, setResponseAI] = useState<{ [key: string]: string }>({});
     const [visibility, setVisibility] = useState<{ [key: string]: boolean }>({});
     const [lastQuestion, setLastQuestion] = useState<{ [key: string]: string }>({});
 
-    const toggleVisibility = (questionId: string, state: boolean) => {
-        setVisibility(prev => ({ ...prev, [questionId]: state }));
-    }
-
     const questionsRef = useRef<HTMLDivElement>(null);
     const [rank, setRank] = useState<{ [key: string]: RankDetails }>({});
 
+    const [questions, setQuestions] = useState<Question[]>([]);
+    const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([]);
+    const [fromDate, setFromDate] = useState<string | undefined>(undefined);
+    const [toDate, setToDate] = useState<string | undefined>(undefined);
+
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 20;
-    const totalPages = Math.ceil(questions.length / itemsPerPage);
 
-    // Sort questions by createdAt in descending order
-    const sortedQuestions = questions.slice().sort((b, a) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    // Update filteredQuestions whenever fromDate, toDate, or questions changes
+    useEffect(() => {
+        const applyDateFilter = () => {
+            let result = questions;
 
-    // Pagination indices for sorted questions
+            if (fromDate) {
+                result = result.filter(question => new Date(question.createdAt) >= new Date(fromDate));
+            }
+            if (toDate) {
+                result = result.filter(question => new Date(question.createdAt) <= new Date(toDate));
+            }
+
+            // Separate and sort questions
+            const facultyQuestions = result
+                .filter(question => question.user.is_Faculty)
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+            const nonFacultyQuestions = result
+                .filter(question => !question.user.is_Faculty)
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+            setFilteredQuestions([...facultyQuestions, ...nonFacultyQuestions]);
+        };
+
+        applyDateFilter();
+    }, [fromDate, toDate, questions]);
+
+    // Pagination
+    const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
     const indexOfLastQuestion = currentPage * itemsPerPage;
     const indexOfFirstQuestion = indexOfLastQuestion - itemsPerPage;
+    const currentQuestions = filteredQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
 
-    // Separate faculty and non-faculty questions
-    const facultyQuestions = sortedQuestions.filter(question => question.user.is_Faculty);
-    const nonFacultyQuestions = sortedQuestions.filter(question => !question.user.is_Faculty);
+    // Update date filter
+    const updateFilteredQuestions = (fDate: string | undefined, tDate: string | undefined) => {
+        setFromDate(fDate);
+        setToDate(tDate);
+    };
 
-    // Sort faculty and non-faculty questions by createdAt descending
-    facultyQuestions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    nonFacultyQuestions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    // Combine sorted faculty questions with non-faculty questions
-    let currentQuestions = [
-        ...facultyQuestions,
-        ...nonFacultyQuestions
-    ];
-
-    currentQuestions = currentQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
+    const toggleVisibility = (questionId: string, state: boolean) => {
+        setVisibility(prev => ({ ...prev, [questionId]: state }));
+    }
 
     const handlePageChange = (pageNumber: any, event: any) => {
         event.preventDefault(); // Prevent the default anchor behavior
@@ -2389,6 +2408,8 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
 
                         {/* Header */}
                         <div className='flex flex-row justify-between mb-2 pb-2 order-first z-50'>
+
+                            {/* Dropdown Section */}
                             <div className='flex flex-row order-first'>
                                 <h3 className='pl-3 lg:block hidden'>Topic: </h3>
 
@@ -2461,28 +2482,53 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                     <FontAwesomeIcon icon={faArrowsRotate} className="w-[1.5rem] text-[#31344b]" />
                                 </button>
                             </div>
+
                         </div>
+
                         {/* Date Filter */}
                         <div className="lg:col-10 col-14 mb-4">
                             <div className="input-daterange datepicker flex flex-row">
+
+                                {/* From */}
                                 <div className="pl-3 pr-4 w-full">
                                     <label className="h6" htmlFor="startDate">From</label>
                                     <div className="form-group">
                                         <div className="input-group input-group-border">
                                             <div className="input-group-prepend"><span className="input-group-text"><FontAwesomeIcon icon={faCalendar} /></span></div>
-                                            <input className="form-control datepicker" id="startDate" type="date" />
+                                            <input
+                                                className="form-control datepicker"
+                                                id="startDate"
+                                                type="date"
+                                                value={fromDate as string | number | readonly string[] | undefined}
+                                                onChange={(e) => {
+                                                    setFromDate(e.target.value);
+                                                    updateFilteredQuestions(e.target.value, toDate);
+                                                }}
+                                            />
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* To */}
                                 <div className="lg:pl-3 pl-0 pr-4 w-full">
                                     <div className="form-group">
                                         <label className="h6" htmlFor="endDate">To</label>
                                         <div className="input-group input-group-border">
                                             <div className="input-group-prepend"><span className="input-group-text"><FontAwesomeIcon icon={faCalendar} /></span></div>
-                                            <input className="form-control datepicker" id="endDate" type="date" />
+                                            <input
+                                                className="form-control datepicker"
+                                                id="endDate"
+                                                type="date"
+                                                value={toDate as string | number | readonly string[] | undefined}
+                                                onChange={(e) => {
+                                                    setToDate(e.target.value);
+                                                    updateFilteredQuestions(fromDate, e.target.value);
+                                                }}
+                                            />
                                         </div>
                                     </div>
                                 </div>
+
                             </div>
                             <h5 className='text-red-800 pl-3 text-sm'>Date filter feature is under development and not functional yet!</h5>
                         </div>
