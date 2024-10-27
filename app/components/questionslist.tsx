@@ -2567,8 +2567,8 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                             <p className='text-xl mb-0 pb-1'>Questions Registered: {loadingQ ? "Loading" : questions.length}</p>
                             <p className='text-sm pb-3 text-zinc-500'>
                                 {questionTodayExists 
-                                    ? "Displaying today's questions" 
-                                    : `Displaying ${itemsPerPage} questions per page`
+                                    ? "Displaying today's questions (20 per page)" 
+                                    : `Displaying all questions (20 per page)`
                                 }
                             </p>
                             {loadingQ ? (
