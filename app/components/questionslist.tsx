@@ -24,7 +24,6 @@ import { getRankDetails } from '@/app/utils/rankings';
 import GeneratedResponse from './generatedResponse';
 import { Topic } from '@prisma/client';
 import { Tooltip } from "react-tooltip";
-import DatePicker from 'react-datepicker';
 
 interface RankDetails {
     colorCode: string;
@@ -132,6 +131,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
     const [rank, setRank] = useState<{ [key: string]: RankDetails }>({});
 
     const [questions, setQuestions] = useState<Question[]>([]);
+    const [questionTodayExists, setQuestionTodayExists] = useState(true);
     const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([]);
     const [fromDate, setFromDate] = useState<string | undefined>(undefined);
     const [toDate, setToDate] = useState<string | undefined>(undefined);
@@ -139,31 +139,62 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 20;
 
-    // Update filteredQuestions whenever fromDate, toDate, or questions changes
     useEffect(() => {
         const applyDateFilter = () => {
             let result = questions;
-
+    
             if (fromDate) {
                 result = result.filter(question => new Date(question.createdAt) >= new Date(fromDate));
             }
             if (toDate) {
                 result = result.filter(question => new Date(question.createdAt) <= new Date(toDate));
             }
-
+    
             // Separate and sort questions
             const facultyQuestions = result
                 .filter(question => question.user.is_Faculty)
                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
+    
             const nonFacultyQuestions = result
                 .filter(question => !question.user.is_Faculty)
                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
+    
             setFilteredQuestions([...facultyQuestions, ...nonFacultyQuestions]);
         };
+    
+        const displayTodayQuestionsFirst = () => {
+            const today = new Date().toISOString().split("T")[0];
+            const todayQuestions = questions.filter(question => 
+                question.createdAt.startsWith(today)
+            );
+    
+            if (todayQuestions.length > 0) {
+                setQuestionTodayExists(true);
+                setFromDate(today);
 
-        applyDateFilter();
+                // Separate and sort today's questions by faculty and non-faculty
+                const facultyQuestions = todayQuestions
+                    .filter(question => question.user.is_Faculty)
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+                const nonFacultyQuestions = todayQuestions
+                    .filter(question => !question.user.is_Faculty)
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+                setFilteredQuestions([...facultyQuestions, ...nonFacultyQuestions]);
+            } else {
+                setQuestionTodayExists(false);
+                // Find the oldest date in "YYYY-MM-DD" format
+                const oldestDate = questions
+                    .map(question => new Date(question.createdAt).toISOString().split("T")[0])
+                    .sort()[0];
+
+                setFromDate(oldestDate);
+                applyDateFilter(); // Fallback to the standard date filtering if no questions today
+            }
+        };
+    
+        displayTodayQuestionsFirst();
     }, [fromDate, toDate, questions]);
 
     // Pagination
@@ -841,10 +872,10 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
 
                                                     </div>
 
-                                                    <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
+                                                    {/* <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
                                                         <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
                                                         <span className="font-bold lg:block hidden">Report</span>
-                                                    </button>
+                                                    </button> */}
 
                                                 </div>
 
@@ -1234,12 +1265,12 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                     </div>
                                                                                 </div>
 
-                                                                                <div>
+                                                                                {/* <div>
                                                                                     <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
                                                                                         <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
                                                                                         <span className="font-bold lg:block hidden">Report</span>
                                                                                     </button>
-                                                                                </div>
+                                                                                </div> */}
                                                                             </div>
 
                                                                             {/* PaltaQ Question */}
@@ -1669,10 +1700,10 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
 
                                                     </div>
 
-                                                    <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
+                                                    {/* <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
                                                         <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
                                                         <span className="font-bold lg:block hidden">Report</span>
-                                                    </button>
+                                                    </button> */}
 
                                                 </div>
 
@@ -2062,12 +2093,12 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                     </div>
                                                                                 </div>
 
-                                                                                <div>
+                                                                                {/* <div>
                                                                                     <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
                                                                                         <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
                                                                                         <span className="font-bold lg:block hidden">Report</span>
                                                                                     </button>
-                                                                                </div>
+                                                                                </div> */}
                                                                             </div>
 
                                                                             {/* PaltaQ Question */}
@@ -2528,15 +2559,18 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
-                            <h5 className='text-red-800 pl-3 text-sm'>Date filter feature is under development and not functional yet!</h5>
                         </div>
 
                         {/* Info */}
                         <div className='order-3 pl-3 z-20'>
                             <p className='text-xl mb-0 pb-1'>Questions Registered: {loadingQ ? "Loading" : questions.length}</p>
-                            <p className='text-sm pb-3 text-zinc-500'>Displaying {itemsPerPage} questions per page</p>
+                            <p className='text-sm pb-3 text-zinc-500'>
+                                {questionTodayExists 
+                                    ? "Displaying today's questions" 
+                                    : `Displaying ${itemsPerPage} questions per page`
+                                }
+                            </p>
                             {loadingQ ? (
                                 <p className='mb-5'>Loading questions...</p>
 
