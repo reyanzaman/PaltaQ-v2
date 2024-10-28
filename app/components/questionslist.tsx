@@ -131,7 +131,6 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
     const [rank, setRank] = useState<{ [key: string]: RankDetails }>({});
 
     const [questions, setQuestions] = useState<Question[]>([]);
-    const [questionTodayExists, setQuestionTodayExists] = useState(true);
     const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([]);
     const [fromDate, setFromDate] = useState<string | undefined>(undefined);
     const [toDate, setToDate] = useState<string | undefined>(undefined);
@@ -142,58 +141,50 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
     useEffect(() => {
         const applyDateFilter = () => {
             let result = questions;
-    
+
             if (fromDate) {
                 result = result.filter(question => new Date(question.createdAt) >= new Date(fromDate));
             }
             if (toDate) {
                 result = result.filter(question => new Date(question.createdAt) <= new Date(toDate));
             }
-    
+
             // Separate and sort questions
             const facultyQuestions = result
                 .filter(question => question.user.is_Faculty)
                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
+
             const nonFacultyQuestions = result
                 .filter(question => !question.user.is_Faculty)
                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
+
             setFilteredQuestions([...facultyQuestions, ...nonFacultyQuestions]);
         };
-    
+
         const displayTodayQuestionsFirst = () => {
             const today = new Date().toISOString().split("T")[0];
-            const todayQuestions = questions.filter(question => 
+            const todayQuestions = questions.filter(question =>
                 question.createdAt.startsWith(today)
             );
-    
+
             if (todayQuestions.length > 0) {
-                setQuestionTodayExists(true);
                 setFromDate(today);
 
                 // Separate and sort today's questions by faculty and non-faculty
                 const facultyQuestions = todayQuestions
                     .filter(question => question.user.is_Faculty)
                     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
+
                 const nonFacultyQuestions = todayQuestions
                     .filter(question => !question.user.is_Faculty)
                     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
+
                 setFilteredQuestions([...facultyQuestions, ...nonFacultyQuestions]);
             } else {
-                setQuestionTodayExists(false);
-                // Find the oldest date in "YYYY-MM-DD" format
-                const oldestDate = questions
-                    .map(question => new Date(question.createdAt).toISOString().split("T")[0])
-                    .sort()[0];
-
-                setFromDate(oldestDate);
                 applyDateFilter(); // Fallback to the standard date filtering if no questions today
             }
         };
-    
+
         displayTodayQuestionsFirst();
     }, [fromDate, toDate, questions]);
 
@@ -2566,9 +2557,13 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                         <div className='order-3 pl-3 z-20'>
                             <p className='text-xl mb-0 pb-1'>Questions Registered: {loadingQ ? "Loading" : questions.length}</p>
                             <p className='text-sm pb-3 text-zinc-500'>
-                                {questionTodayExists 
-                                    ? "Displaying today's questions (20 per page)" 
-                                    : `Displaying all questions (20 per page)`
+                                {fromDate && toDate
+                                    ? `Displaying questions from ${fromDate} to ${toDate}`
+                                    : fromDate
+                                        ? `Displaying questions from ${fromDate}`
+                                        : toDate
+                                            ? `Displaying questions until ${toDate}`
+                                            : 'Displaying all questions'
                                 }
                             </p>
                             {loadingQ ? (
