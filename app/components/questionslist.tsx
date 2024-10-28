@@ -200,6 +200,14 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
         setToDate(tDate);
     };
 
+    const formatDate = (date: string | number | Date) => {
+        return new Date(date).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        });
+    };
+
     const toggleVisibility = (questionId: string, state: boolean) => {
         setVisibility(prev => ({ ...prev, [questionId]: state }));
     }
@@ -2558,11 +2566,11 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                             <p className='text-xl mb-0 pb-1'>Questions Registered: {loadingQ ? "Loading" : questions.length}</p>
                             <p className='text-sm pb-3 text-zinc-500'>
                                 {fromDate && toDate
-                                    ? `Displaying questions from ${fromDate} to ${toDate}`
+                                    ? `Displaying questions from ${formatDate(fromDate)} to ${formatDate(toDate)}`
                                     : fromDate
-                                        ? `Displaying questions from ${fromDate}`
+                                        ? `Displaying questions from ${formatDate(fromDate)}`
                                         : toDate
-                                            ? `Displaying questions until ${toDate}`
+                                            ? `Displaying questions until ${formatDate(toDate)}`
                                             : 'Displaying all questions'
                                 }
                             </p>
