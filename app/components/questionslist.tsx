@@ -129,6 +129,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
 
     const questionsRef = useRef<HTMLDivElement>(null);
     const [rank, setRank] = useState<{ [key: string]: RankDetails }>({});
+    const [facultyQuestions, setFacultyQuestions] = useState<Question[]>([]);
 
     const [questions, setQuestions] = useState<Question[]>([]);
     const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([]);
@@ -153,6 +154,8 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
             const facultyQuestions = result
                 .filter(question => question.user.is_Faculty)
                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+            setFacultyQuestions(facultyQuestions);
 
             const nonFacultyQuestions = result
                 .filter(question => !question.user.is_Faculty)
@@ -579,7 +582,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
 
         } catch (error) {
             toast.error('Failed to generate AI response');
-            console.log('Error in handleAIGenerate:', error);
+            console.error('Error in handleAIGenerate:', error);
         }
     }
 
@@ -821,22 +824,23 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                             )}
                                                         </div>
 
-                                                        {/* Name */}
+                                                        {/* Name/Date/Rank */}
                                                         <div className='flex flex-col ml-1'>
                                                             <div>
                                                                 <div className='flex flex-row gap-x-2'>
+                                                                    {/* Name */}
                                                                     {question.user.is_Faculty ? (
                                                                         <div>
                                                                             {question.user.id == userId ? (
                                                                                 <div>
-                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : (question.user.name.length > 18
+                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : (question.user.name.length > 16
                                                                                         ? question.user.name.split(' ').slice(0, 2).join(' ')
                                                                                         : question.user.name)}</span>
                                                                                     <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
                                                                                 </div>
                                                                             ) : (
                                                                                 <div>
-                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : (question.user.name.length > 18
+                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : (question.user.name.length > 16
                                                                                         ? question.user.name.split(' ').slice(0, 2).join(' ')
                                                                                         : question.user.name)}</span>
                                                                                     <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
@@ -846,17 +850,18 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                     ) : (
                                                                         <div>
                                                                             {question.user.id == userId ? (
-                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : (question.user.name.length > 18
+                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : (question.user.name.length > 16
                                                                                     ? question.user.name.split(' ').slice(0, 2).join(' ')
                                                                                     : question.user.name)}</span>
                                                                             ) : (
-                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : (question.user.name.length > 18
+                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : (question.user.name.length > 16
                                                                                     ? question.user.name.split(' ').slice(0, 2).join(' ')
                                                                                     : question.user.name)}</span>
                                                                             )}
                                                                         </div>
                                                                     )}
 
+                                                                    {/* Rank */}
                                                                     {rank[question.user.id] && (
                                                                         <div>
                                                                             <Image src={`/${rank[question.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
@@ -864,6 +869,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                     )}
                                                                 </div>
                                                             </div>
+                                                            {/* Date */}
                                                             <span className="small ml-2">
                                                                 {new Date(question.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
                                                             </span>
@@ -1251,9 +1257,13 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                                     )}
                                                                                                 </div>
                                                                                             )}
-                                                                                            {rank[paltaQ.user.id] && (
+                                                                                            {rank[paltaQ.user.id] ? (
                                                                                                 <div>
                                                                                                     <Image src={`/${rank[paltaQ.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                                                                </div>
+                                                                                            ) : (
+                                                                                                <div>
+                                                                                                    <Image src={`/1.png`} alt="Rank Icon" width={25} height={25} />
                                                                                                 </div>
                                                                                             )}
                                                                                         </div>
@@ -1675,19 +1685,23 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                     ) : (
                                                                         <div>
                                                                             {question.user.id == userId ? (
-                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : (question.user.name.length > 18
+                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : (question.user.name.length > 16
                                                                                     ? question.user.name.split(' ').slice(0, 2).join(' ')
                                                                                     : question.user.name)}</span>
                                                                             ) : (
-                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : (question.user.name.length > 18
+                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : (question.user.name.length > 16
                                                                                     ? question.user.name.split(' ').slice(0, 2).join(' ')
                                                                                     : question.user.name)}</span>
                                                                             )}
                                                                         </div>
                                                                     )}
-                                                                    {rank[question.user.id] && (
+                                                                    {rank[question.user.id] ? (
                                                                         <div>
                                                                             <Image src={`/${rank[question.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div>
+                                                                            <Image src={`/1.png`} alt="Rank Icon" width={25} height={25} />
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -2520,7 +2534,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                             <div className="input-daterange datepicker flex flex-row">
 
                                 {/* From */}
-                                <div className="pl-3 pr-4 w-full">
+                                <div className="pl-3 pr-4 w-full min-w-[12em]">
                                     <label className="h6" htmlFor="startDate">From</label>
                                     <div className="form-group">
                                         <div className="input-group input-group-border">
@@ -2540,7 +2554,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                 </div>
 
                                 {/* To */}
-                                <div className="lg:pl-3 pl-0 pr-4 w-full">
+                                <div className="lg:pl-3 pl-0 pr-4 w-full min-w-[12em]">
                                     <div className="form-group">
                                         <label className="h6" htmlFor="endDate">To</label>
                                         <div className="input-group input-group-border">
@@ -2564,7 +2578,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                         {/* Info */}
                         <div className='order-3 pl-3 z-20'>
                             <p className='text-xl mb-0 pb-1'>Questions Registered: {loadingQ ? "Loading" : questions.length}</p>
-                            <p className='text-sm pb-3 text-zinc-500'>
+                            <p className='text-sm pb-0 mb-0 text-zinc-500'>
                                 {fromDate && toDate
                                     ? `Displaying questions from ${formatDate(fromDate)} to ${formatDate(toDate)}`
                                     : fromDate
@@ -2574,6 +2588,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                             : 'Displaying all questions'
                                 }
                             </p>
+                            <p className='text-sm pb-3 text-sky-800'>Faculty questions will be show first</p>
                             {loadingQ ? (
                                 <p className='mb-5'>Loading questions...</p>
 

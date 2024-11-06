@@ -512,7 +512,7 @@ export default function RecentQuestions() {
 
         } catch (error) {
             toast.error('Failed to generate AI response');
-            console.log('Error in handleAIGenerate:', error);
+            console.error('Error in handleAIGenerate:', error);
         }
     }
 
@@ -536,7 +536,7 @@ export default function RecentQuestions() {
                 throw new Error(`Error: Failed to get latest questions`);
             }
             const data = await response.json();
-            console.log('Questions:', data);
+            // console.log('Questions:', data);
             setQuestions(data);
         } catch (error) {
             console.error('Error fetching questions:', error);
@@ -720,7 +720,7 @@ export default function RecentQuestions() {
                                                                             <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>
                                                                                 {question.isAnonymous
                                                                                     ? `User@${question.user.id.slice(0, 8)} (You)`
-                                                                                    : (question.user.name.length > 18
+                                                                                    : (question.user.name.length > 16
                                                                                         ? question.user.name.split(' ').slice(0, 2).join(' ')
                                                                                         : question.user.name)}
                                                                             </span>
@@ -731,7 +731,7 @@ export default function RecentQuestions() {
                                                                             <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>
                                                                                 {question.isAnonymous
                                                                                     ? `User@${question.user.id.slice(0, 8)}`
-                                                                                    : (question.user.name.length > 18
+                                                                                    : (question.user.name.length > 16
                                                                                         ? question.user.name.split(' ').slice(0, 2).join(' ')
                                                                                         : question.user.name)}
                                                                             </span>
@@ -745,7 +745,7 @@ export default function RecentQuestions() {
                                                                         <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>
                                                                             {question.isAnonymous
                                                                                 ? `User@${question.user.id.slice(0, 8)} (You)`
-                                                                                : (question.user.name.length > 18
+                                                                                : (question.user.name.length > 16
                                                                                     ? question.user.name.split(' ').slice(0, 2).join(' ')
                                                                                     : question.user.name)}
                                                                         </span>
@@ -753,7 +753,7 @@ export default function RecentQuestions() {
                                                                         <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>
                                                                             {question.isAnonymous
                                                                                 ? `User@${question.user.id.slice(0, 8)}`
-                                                                                : (question.user.name.length > 18
+                                                                                : (question.user.name.length > 16
                                                                                     ? question.user.name.split(' ').slice(0, 2).join(' ')
                                                                                     : question.user.name)}
                                                                         </span>
