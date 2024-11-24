@@ -2451,7 +2451,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                         </div>
 
                         {/* Header */}
-                        <div className='flex flex-row justify-between mb-2 pb-2 order-first z-50'>
+                        <div className='flex flex-row justify-between mb-2 pb-2 order-first z-30'>
 
                             {/* Dropdown Section */}
                             <div className='flex flex-row order-first'>
