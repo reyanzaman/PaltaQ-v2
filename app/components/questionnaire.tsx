@@ -225,7 +225,7 @@ export default function QuestionnaireForm() {
 
                 {/* 1. Curiosity */}
                 <fieldset className="mb-4">
-                    <legend className="text-xl font-bold">1. How curious are you about your studies?</legend>
+                    <legend className="text-xl font-bold">1. How curious are you about this course?</legend>
                     <div className="flex flex-col lg:flex-row gap-x-4 mt-1">
                         <p className="pt-1">Not at all</p>
                         <div className="form-check py-1 w-fit">
