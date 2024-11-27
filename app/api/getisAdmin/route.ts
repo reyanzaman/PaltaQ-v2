@@ -1,7 +1,7 @@
 // pages/api/getUserId/route.ts
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getUserIDFromDatabase, getisAdmin } from '@/app/utils/getUtils';
+import { getisAdmin } from '@/app/utils/getUtils';
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {

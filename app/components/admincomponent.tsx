@@ -23,6 +23,36 @@ export default function AdminComponent() {
   const router = useRouter()
 
   useEffect(() => {
+    // Checking Admin Status
+    if (status === 'loading') {
+      return; // Wait for session to load
+    }
+    // If session is not available, redirect to login page
+    if (!session) {
+      router.push('/login');
+      return;
+    }
+    const checkAdminStatus = async () => {
+      try {
+        const response = await fetch(`/api/getisAdmin?email=${session?.user?.email}`);
+        const data = await response.json();
+
+        if (response.ok && data.message === 'true') {
+          // If user is an admin, you can allow access to the page or perform other actions
+          console.log('Access Granted to Admin');
+        } else {
+          // If not an admin, redirect to a different page
+          router.push('/');
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        router.push('/'); // Redirect to error page if there’s an issue
+      }
+    };
+    // Check admin status if session is available
+    if (session?.user?.email) {
+      checkAdminStatus();
+    }
 
     // Fetch user details and check admin status
     const fetchUser = async () => {
@@ -130,15 +160,15 @@ export default function AdminComponent() {
         <hr></hr>
         <Link href="/pages/admin/purge">
           <div className="">
-              <div className="flex flex-row items-start">
-                  <FontAwesomeIcon
-                      icon={faAngleRight}
-                      className="w-[1.5rem] text-blue-800 pt-2 lg:-translate-y-0.5 -translate-y-1"
-                  />
-                  <h2 className="lg:text-xl text-base font-bold text-right text-blue-800 mb-0">
-                      Go To Question Purge Management
-                  </h2>
-              </div>
+            <div className="flex flex-row items-start">
+              <FontAwesomeIcon
+                icon={faAngleRight}
+                className="w-[1.5rem] text-blue-800 pt-2 lg:-translate-y-0.5 -translate-y-1"
+              />
+              <h2 className="lg:text-xl text-base font-bold text-right text-blue-800 mb-0">
+                Go To Question Purge Management
+              </h2>
+            </div>
           </div>
         </Link>
         <hr></hr>

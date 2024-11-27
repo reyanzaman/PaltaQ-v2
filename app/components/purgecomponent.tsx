@@ -27,6 +27,36 @@ export default function PurgeComponent() {
     const router = useRouter();
 
     useEffect(() => {
+        // Checking Admin Status
+        if (status === 'loading') {
+            return; // Wait for session to load
+        }
+        // If session is not available, redirect to login page
+        if (!session) {
+            router.push('/login');
+            return;
+        }
+        const checkAdminStatus = async () => {
+            try {
+                const response = await fetch(`/api/getisAdmin?email=${session?.user?.email}`);
+                const data = await response.json();
+
+                if (response.ok && data.message === 'true') {
+                    // If user is an admin, you can allow access to the page or perform other actions
+                    console.log('Access Granted to Admin');
+                } else {
+                    // If not an admin, redirect to a different page
+                    router.push('/');
+                }
+            } catch (error) {
+                console.error('Error checking admin status:', error);
+                router.push('/'); // Redirect to error page if there’s an issue
+            }
+        };
+        // Check admin status if session is available
+        if (session?.user?.email) {
+            checkAdminStatus();
+        }
 
         const fetchClasses = async () => {
             try {
@@ -298,6 +328,7 @@ export default function PurgeComponent() {
 
                 </div>
 
+                {/* Purge Button */}
                 <div className='mt-4'>
                     <p className='text-danger pt-2 lg:text-left text-center'>
                         <b>WARNING:</b> This will delete all questions in that class belonging to the selected topic.
