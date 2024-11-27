@@ -8,6 +8,10 @@ import { useSession } from "next-auth/react";
 import UserImage from "@/app/components/userimage";
 import { useRouter } from 'next/navigation'
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faAngleRight } from "@fortawesome/free-solid-svg-icons";
+import Link from 'next/link';
+
 export default function AdminComponent() {
   const { data: users, loading, error, refetch } = useFetchUsers();
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,11 +23,6 @@ export default function AdminComponent() {
   const router = useRouter()
 
   useEffect(() => {
-    // Redirect if user is not logged in
-    if (!session) {
-      router.push('/');
-      return;
-    }
 
     // Fetch user details and check admin status
     const fetchUser = async () => {
@@ -126,7 +125,24 @@ export default function AdminComponent() {
       <UserImage />
 
       <div className="w-full p-4">
-        <h2 className="text-2xl font-bold mb-4">Users</h2>
+        <h1>Admin Panel</h1>
+        <h5 className='text-lg font-bold'>User Access Management</h5>
+        <hr></hr>
+        <Link href="/pages/admin/purge">
+          <div className="">
+              <div className="flex flex-row items-start">
+                  <FontAwesomeIcon
+                      icon={faAngleRight}
+                      className="w-[1.5rem] text-blue-800 pt-2 lg:-translate-y-0.5 -translate-y-1"
+                  />
+                  <h2 className="lg:text-xl text-base font-bold text-right text-blue-800 mb-0">
+                      Go To Question Purge Management
+                  </h2>
+              </div>
+          </div>
+        </Link>
+        <hr></hr>
+
         <input
           type="text"
           placeholder="Search by name or email"
