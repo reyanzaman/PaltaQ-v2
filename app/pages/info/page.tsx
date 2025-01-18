@@ -239,7 +239,7 @@ export default function Info(props) {
                             1. <a target="_blank" href="https://link.springer.com/chapter/10.1007/978-981-97-1961-7_11" className="text-blue-500">A Query-Based Approach to Mitigate the Shortcomings of Widely Used Learning Methods Through E-Learning</a>
                             <br></br>
                             Presented in the ICACIT-2023 Conference.
-                            <br></br>Published in the Scopus-Indexed (Q4) Springer Nature LNNS (Lecture Notes in Network & Systems) Journal.
+                            <br></br>Published in the Scopus-Indexed (Q4) Springer Nature LNNS (Lecture Notes in Network & Systems).
                             <br></br>This publication introduces the TI-QuBAN method, which is the concept behind PaltaQ and also the first version of PaltaQ.
                             <br></br>
                             <button className="btn btn-primary mt-3">
@@ -253,7 +253,7 @@ export default function Info(props) {
                             <br></br><br></br>
                             2. <a target="_blank" href="https://www.sciencedirect.com/science/article/pii/S2352340924000829" className="text-blue-500">Dataset of computer science course queries from students: Categorized and scored according to Bloom&apos;s taxonomy</a>
                             <br></br>
-                            Published in the Data in Brief journal (Q2) by Elsevier.
+                            Published in the Data in Brief (Q2) Journal by Elsevier.
                             <br></br>This publication provides a dataset of computer science course queries from students, categorized and scored according to Bloom&apos;s taxonomy.
                             <br></br>
                             <button className="btn btn-primary mt-3">

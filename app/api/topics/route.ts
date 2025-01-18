@@ -1,4 +1,3 @@
-import { Question } from '@prisma/client';
 import { NextApiResponse } from 'next';
 import prisma from '@/app/lib/prisma';
 
