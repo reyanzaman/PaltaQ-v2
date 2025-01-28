@@ -27,6 +27,7 @@ interface Class {
     code: string;
     createdAt: string;
     updatedAt: string;
+    endsAt: string;
     enrollments: ClassEnrollment[]
     faculties: ClassFaculty[]
     topics: Topic[]
@@ -117,6 +118,10 @@ export default function QuestionComponent({ user }: { user: User }) {
         const callQuestionnaire = async () => {
             try {
                 if (selectedClass) {
+                    if (selectedClass.code === 'FBA6B9') {
+                        return;
+                    }
+
                     const init_response = await fetch(`/api/classes/enrollment?code=${selectedClass.code}&uid=${user.id}`, {
                         method: 'GET',
                         headers: {
@@ -136,19 +141,35 @@ export default function QuestionComponent({ user }: { user: User }) {
                         );
                     }
 
-                    if (init_data.preQuestionnaire?.isCompleted == false) {
-                        if (!user.is_Faculty && !user.is_Admin) {
-                            // Show loading indicator
-                            toast.loading('Redirecting to questionnaire page...');
+                    const today = new Date();
+                    const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
 
-                            setTimeout(function() {
-                                window.location.href = `/pages/questionnaire?id=${user.id}&ceid=${init_data.id}&cname=${init_data.class.name}&type=pre`;
-                            }, 1000);  // Redirect after 1 second
+                    const endsAt = new Date(selectedClass.endsAt);
+                    const endsAtDateOnly = new Date(endsAt.getFullYear(), endsAt.getMonth(), endsAt.getDate(), 0, 0, 0, 0);
+
+                    if (todayDateOnly  >= endsAtDateOnly) {
+                        if (init_data.postQuestionnaire?.isCompleted == false) {
+                            if (!user.is_Faculty && !user.is_Admin) {
+                                // Show loading indicator
+                                toast.loading('Redirecting to post questionnaire page...');
+
+                                setTimeout(function() {
+                                    window.location.href = `/pages/questionnaire?id=${user.id}&ceid=${init_data.id}&cname=${init_data.class.name}&type=post`;
+                                }, 1000);  // Redirect after 1 second
+                            }
                         }
-                    } else if (init_data.postQuestionnaire?.isCompleted == false) {
-                        // window.location.href = `/pages/questionnaire?id=${user.id}&ceid=${init_data.id}&cname=${init_data.class.name}&type=post`;
-                    }
+                    } else {
+                        if (init_data.preQuestionnaire?.isCompleted == false) {
+                            if (!user.is_Faculty && !user.is_Admin) {
+                                // Show loading indicator
+                                toast.loading('Redirecting to pre questionnaire page...');
 
+                                setTimeout(function() {
+                                    window.location.href = `/pages/questionnaire?id=${user.id}&ceid=${init_data.id}&cname=${init_data.class.name}&type=pre`;
+                                }, 1000);  // Redirect after 1 second
+                            }
+                        }
+                    }
                 }
             } catch (error: any) {
                 console.error('Error fetching questions:', error);
@@ -208,7 +229,7 @@ export default function QuestionComponent({ user }: { user: User }) {
                 <hr className="border-b border-gray-400 mb-3"></hr>
 
                 <div className="">
-                    <QuestionBox classId={selectedClass?.id || ''} handleRefreshQs={handleRefreshQuestions}/>
+                    <QuestionBox classId={selectedClass?.id || ''} classCode={selectedClass?.code || ''} handleRefreshQs={handleRefreshQuestions}/>
                 </div>
 
                 <hr className="border-b border-gray-400 mt-5 mb-5"></hr>
@@ -321,6 +342,7 @@ export default function QuestionComponent({ user }: { user: User }) {
                                 value={classCode}
                                 onChange={(e) => setClassCode(e.target.value)}
                             />
+                            <p className="px-2 py-0 my-0 text-sm text-justify text-zinc-500">If you want to join a demo class and try it out, please use this code: <b>FBA6B9</b></p>
                             <button className="btn animate-down-2 text-info" type="submit">Join Class</button>
                         </form>
                     </div>

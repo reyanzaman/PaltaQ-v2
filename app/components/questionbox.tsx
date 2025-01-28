@@ -7,7 +7,6 @@ import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 
 import { Topic } from '@prisma/client';
-import GeneratedResponse from './generatedResponse';
 
 interface ClassEnrollment {
     id: string;
@@ -42,7 +41,7 @@ interface UserDetails {
     successfulReports: number;
 }
 
-export default function QuestionBox({ classId, handleRefreshQs}: { classId: string, handleRefreshQs: Function}) {
+export default function QuestionBox({ classId, classCode, handleRefreshQs}: { classId: string, classCode: string, handleRefreshQs: Function}) {
     const [question, setQuestion] = useState('');
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -140,7 +139,7 @@ export default function QuestionBox({ classId, handleRefreshQs}: { classId: stri
         // Show loading toast
         const loadingToastId = toast.loading('Submitting your question...');
 
-        const response = await fetch(`/api/questions?question=${question}&tid=${selectedTopicId}&tname=${selectedTopic}&cid=${classId}`, {
+        const response = await fetch(`/api/questions?question=${question}&tid=${selectedTopicId}&tname=${selectedTopic}&cid=${classId}&cCode=${classCode}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -348,7 +347,7 @@ export default function QuestionBox({ classId, handleRefreshQs}: { classId: stri
                     <h1 className="text-2xl font-bold">Loading...</h1>
                 ) : (
                     <div>
-                        <h5>Your progress for next ranking: {Math.round(progress) ? Math.round(progress) : "Loading"}% &nbsp;({progressNum ? progressNum : ""})</h5>
+                        <h5>Your progress for next ranking: {Math.round(progress) ? `${Math.round(progress)}%` : "Loading"} &nbsp;({progressNum ? progressNum : ""})</h5>
                         <div className="progress progress-xl lg:w-[96%]" style={{ height: '1.5em' }}>
                             <div
                                 className="progress-bar progress-bar-striped bg-info"

@@ -390,6 +390,7 @@ export default function Info(props) {
                                 <br></br>
                                 <hr></hr>
                                 <Image src="/information/join_class.png" width={800} height={800} alt="join_class"/>
+                                <p className="pt-2 text-justify">If you want to join a demo class and try it out, please use this code: <b>FBA6B9</b></p>
                             </section>
 
                             <section id="code" style={{ paddingTop: '150pt', marginTop: '-150pt' }}>

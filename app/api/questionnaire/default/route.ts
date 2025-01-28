@@ -73,7 +73,7 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
         console.log({ceid, type, uid});
 
         // Extract question data from the request body
-        const { univID, section, age, gender, curiosity, smallQues, nowQues, enjoyStudies, confidence, motivation } = await req.json();
+        const { univID, section, age, gender, curiosity, smallQues, nowQues, enjoyStudies, confidence, motivation, comments } = await req.json();
 
         try {
             if (ceid && type) {
@@ -100,7 +100,18 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
                 } else if (type == 'post') {
                     await prisma.postQuestionnaire.update({
                         data: {
-                            // Add the properties you want to update here
+                            isCompleted: true,
+                            universityId: univID,
+                            section: section,
+                            currentAge: age,
+                            gender: gender,
+                            curiosity: parseInt(curiosity),
+                            questionsNow: nowQues,
+                            enjoyStudies: parseInt(enjoyStudies),
+                            confidentStudies: parseInt(confidence),
+                            motivatedStudies: motivation,
+                            comments: comments
+
                         },
                         where: {
                             classId: ceid,

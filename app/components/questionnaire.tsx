@@ -32,6 +32,7 @@ export default function QuestionnaireForm() {
     const [enjoyStudies, setEnjoyStudies] = useState("");
     const [confidence, setConfidence] = useState("");
     const [motivation, setMotivation] = useState("");
+    const [comments, setComments] = useState("");
     const [terms, setTerms] = useState(false);
 
     const handleSubmit = async (e: any) => {
@@ -42,24 +43,42 @@ export default function QuestionnaireForm() {
                 toast.error("Please enter a valid university ID.");
                 return;
             }
-            if (univID === "" || section === "" || age === "" || gender === "" || curiosity === "" || smallQues === "" || nowQues === "" || enjoyStudies === "" || confidence === "" || motivation === "") {
-                toast.error("Please fill in all the fields.");
-                return;
+            if (type == 'pre') {
+                if (univID === "" || section === "" || age === "" || gender === "" || curiosity === "" || smallQues === "" || nowQues === "" || enjoyStudies === "" || confidence === "" || motivation === "") {
+                    toast.error("Please fill in all the fields.");
+                    return;
+                }
+            } else {
+                if (univID === "" || section === "" || age === "" || gender === "" || curiosity === "" || nowQues === "" || enjoyStudies === "" || confidence === "" || motivation === "") {
+                    toast.error("Please fill in all the fields.");
+                    return;
+                }
             }
             if (terms === false) {
                 toast.error("Please agree to the terms to proceed.");
                 return;
             }
 
-            const response = await fetch(`/api/questionnaire/default?type=pre&uid=${userId}&ceid=${classId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ univID: univID, section: section, age: age, gender: gender, curiosity: curiosity, smallQues: smallQues, nowQues: nowQues, enjoyStudies: enjoyStudies, confidence: confidence, motivation: motivation }),
-            });
+            let response;
+            if (type == 'pre') {
+                response = await fetch(`/api/questionnaire/default?type=pre&uid=${userId}&ceid=${classId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ univID: univID, section: section, age: age, gender: gender, curiosity: curiosity, smallQues: smallQues, nowQues: nowQues, enjoyStudies: enjoyStudies, confidence: confidence, motivation: motivation }),
+                });
+            } else {
+                response = await fetch(`/api/questionnaire/default?type=post&uid=${userId}&ceid=${classId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ univID: univID, section: section, age: age, gender: gender, curiosity: curiosity, smallQues: smallQues, nowQues: nowQues, enjoyStudies: enjoyStudies, confidence: confidence, motivation: motivation, comments: comments }),
+                });
+            }
 
-            const data = await response.json();
+            const data = await response?.json();
 
             if (data.error) {
                 toast.error(data.error);
@@ -85,15 +104,23 @@ export default function QuestionnaireForm() {
                 <h1>PaltaQ {type == 'pre' ? 'Pre-Questionnaire' : 'Post-Questionnaire'}</h1>
                 <h5><b>Classroom: </b>{className}</h5>
                 <hr className="border-b-2 border-gray-500"></hr>
+
+                <p className=""><b>Note: This questionnaire will not affect your grades! So, please be honest in your responses.</b></p>
                 <p>Please take some time to fill up this questionnaire.</p>
-                <p>The purpose of this form is to gauge your motivation and interest towards study and being creative.</p>
-                <p className="pt-3"><b className="text-rose-800">Note: This questionnaire will not affect your grades! So, please be honest in your responses.</b></p>
+                {type == 'pre' ?
+                    <p>The purpose of this form is to gauge your motivation and interest towards study and being creative.</p>
+                :
+                    <p>The purpose of this form is to gauge your motivation and interest towards study and being creative after using PaltaQ.</p>
+                }
+                <hr className="border-b-2 mb-2 border-gray-500"></hr>
             </div>
 
             <form onSubmit={handleSubmit} className="w-[95%] lg:w-[60%]">
+
                 {/* University ID */}
                 <div className="form-group mb-3 mt-4">
-                    <label className="text-xl font-bold py-1" htmlFor="text">Your university&apos;s student id</label>
+                    <label className="text-xl font-bold pt-1 mb-0" htmlFor="text">Your university&apos;s student id</label>
+                    <small id="emailHelp" className="form-text text-muted my-0 pb-2">We&apos;ll never share your ID with anyone else.</small>
                     <input 
                     type="text" 
                     className="form-control" 
@@ -102,7 +129,6 @@ export default function QuestionnaireForm() {
                     value={univID} 
                     placeholder="Enter your student id here . . ."
                     onChange={(event) => setUnivID(event.target.value)}/>
-                    <small id="emailHelp" className="form-text text-muted">We&apos;ll never share your ID with anyone else.</small>
                 </div>
 
                 {/* Section */}
@@ -119,7 +145,7 @@ export default function QuestionnaireForm() {
 
                 {/* Age */}
                 <fieldset className="mb-4">
-                    <legend className="text-xl py-1 font-bold">Your current age</legend><div className="form-check py-1 w-fit">
+                    <legend className="text-xl py-1 font-bold">Your current age group</legend><div className="form-check py-1 w-fit">
                         <input 
                             className="form-check-input" 
                             type="radio"
@@ -225,7 +251,11 @@ export default function QuestionnaireForm() {
 
                 {/* 1. Curiosity */}
                 <fieldset className="mb-4">
-                    <legend className="text-xl font-bold">1. How curious are you about this course?</legend>
+                    {type == 'pre' ? 
+                        <legend className="text-xl font-bold">1. How curious are you about this course?</legend> 
+                    : 
+                        <legend className="text-xl font-bold">1. After completing this course, how curious are you to learn more about its topics?</legend>
+                    }
                     <div className="flex flex-col lg:flex-row gap-x-4 mt-1">
                         <p className="pt-1">Not at all</p>
                         <div className="form-check py-1 w-fit">
@@ -263,57 +293,63 @@ export default function QuestionnaireForm() {
                 </fieldset>
 
                 {/* 2. 4 years old questions */}
-                <fieldset className="mb-4">
-                    <legend className="text-xl font-bold">2. When you were small, about 4 years old, on average, how many questions did you ask on a daily basis?</legend>
-                    <div className="flex flex-col mt-1">
-                        <div className="form-check py-1 w-fit">
-                            <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues1" value="No questions" checked={smallQues==='No questions'} onChange={(event) => setSmallQues(event.target.value)}/>
-                            <label className="form-check-label text-base" htmlFor="RadiosSmallQues1">
-                                No questions
-                            </label>
+                {type == 'pre' && (
+                    <fieldset className="mb-4">
+                        <legend className="text-xl font-bold">2. When you were small, about 4 years old, on average, how many questions did you ask on a daily basis?</legend>
+                        <div className="flex flex-col mt-1">
+                            <div className="form-check py-1 w-fit">
+                                <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues1" value="No questions" checked={smallQues==='No questions'} onChange={(event) => setSmallQues(event.target.value)}/>
+                                <label className="form-check-label text-base" htmlFor="RadiosSmallQues1">
+                                    No questions
+                                </label>
+                            </div>
+                            <div className="form-check py-1 w-fit">
+                                <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues2" value="1 to 5 questions" checked={smallQues==='1 to 5 questions'} onChange={(event) => setSmallQues(event.target.value)}/>
+                                <label className="form-check-label text-base" htmlFor="RadiosSmallQues2">
+                                    1 to 5 questions
+                                </label>
+                            </div>
+                            <div className="form-check py-1 w-fit">
+                                <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues3" value="6 to 10 questions" checked={smallQues==='6 to 10 questions'} onChange={(event) => setSmallQues(event.target.value)}/>
+                                <label className="form-check-label text-base" htmlFor="RadiosSmallQues3">
+                                    6 to 10 questions
+                                </label>
+                            </div>
+                            <div className="form-check py-1 w-fit">
+                                <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues4" value="11 to 20 questions" checked={smallQues==='11 to 20 questions'} onChange={(event) => setSmallQues(event.target.value)}/>
+                                <label className="form-check-label text-base" htmlFor="RadiosSmallQues4">
+                                    11 to 20 questions
+                                </label>
+                            </div>
+                            <div className="form-check py-1 w-fit">
+                                <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues5" value="21 to 30 questions" checked={smallQues==='21 to 30 questions'} onChange={(event) => setSmallQues(event.target.value)}/>
+                                <label className="form-check-label text-base" htmlFor="RadiosSmallQues5">
+                                    21 to 30 questions
+                                </label>
+                            </div>
+                            <div className="form-check py-1 w-fit">
+                                <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues6" value="More than 30 questions" checked={smallQues==='More than 30 questions'} onChange={(event) => setSmallQues(event.target.value)}/>
+                                <label className="form-check-label text-base" htmlFor="RadiosSmallQues6">
+                                    More than 30 questions
+                                </label>
+                            </div>
+                            <div className="form-check py-1 w-fit">
+                                <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues7" value="Do not remember at all" checked={smallQues==='Do not remember at all'} onChange={(event) => setSmallQues(event.target.value)}/>
+                                <label className="form-check-label text-base" htmlFor="RadiosSmallQues7">
+                                    Don&apos;t remember at all
+                                </label>
+                            </div>
                         </div>
-                        <div className="form-check py-1 w-fit">
-                            <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues2" value="1 to 5 questions" checked={smallQues==='1 to 5 questions'} onChange={(event) => setSmallQues(event.target.value)}/>
-                            <label className="form-check-label text-base" htmlFor="RadiosSmallQues2">
-                                1 to 5 questions
-                            </label>
-                        </div>
-                        <div className="form-check py-1 w-fit">
-                            <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues3" value="6 to 10 questions" checked={smallQues==='6 to 10 questions'} onChange={(event) => setSmallQues(event.target.value)}/>
-                            <label className="form-check-label text-base" htmlFor="RadiosSmallQues3">
-                                6 to 10 questions
-                            </label>
-                        </div>
-                        <div className="form-check py-1 w-fit">
-                            <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues4" value="11 to 20 questions" checked={smallQues==='11 to 20 questions'} onChange={(event) => setSmallQues(event.target.value)}/>
-                            <label className="form-check-label text-base" htmlFor="RadiosSmallQues4">
-                                11 to 20 questions
-                            </label>
-                        </div>
-                        <div className="form-check py-1 w-fit">
-                            <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues5" value="21 to 30 questions" checked={smallQues==='21 to 30 questions'} onChange={(event) => setSmallQues(event.target.value)}/>
-                            <label className="form-check-label text-base" htmlFor="RadiosSmallQues5">
-                                21 to 30 questions
-                            </label>
-                        </div>
-                        <div className="form-check py-1 w-fit">
-                            <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues6" value="More than 30 questions" checked={smallQues==='More than 30 questions'} onChange={(event) => setSmallQues(event.target.value)}/>
-                            <label className="form-check-label text-base" htmlFor="RadiosSmallQues6">
-                                More than 30 questions
-                            </label>
-                        </div>
-                        <div className="form-check py-1 w-fit">
-                            <input className="form-check-input" type="radio" name="exampleRadios4" id="RadiosSmallQues7" value="Do not remember at all" checked={smallQues==='Do not remember at all'} onChange={(event) => setSmallQues(event.target.value)}/>
-                            <label className="form-check-label text-base" htmlFor="RadiosSmallQues7">
-                                Don&apos;t remember at all
-                            </label>
-                        </div>
-                    </div>
-                </fieldset>
+                    </fieldset>
+                )}
 
                 {/* 3. Questions asked yesterday */}
                 <fieldset className="mb-4">
-                    <legend className="text-xl font-bold">3. Approximately how many questions did you ask yesterday?</legend>
+                    {type == 'pre' ?
+                        <legend className="text-xl font-bold">3. Approximately how many questions did you ask yesterday?</legend>
+                    :
+                        <legend className="text-xl font-bold">2. After using PaltaQ, approximately how many questions do you ask now on a daily basis?</legend>
+                    }
                     <div className="flex flex-col mt-1">
                         <div className="form-check py-1 w-fit">
                             <input className="form-check-input" type="radio" name="exampleRadios5" id="RadiosNowQues1" value="No questions" checked={nowQues==='No questions'} onChange={(event) => setNowQues(event.target.value)}/>
@@ -356,7 +392,11 @@ export default function QuestionnaireForm() {
 
                 {/* 4. Enjoy studies */}
                 <fieldset className="mb-4">
-                    <legend className="text-xl font-bold">4. Evaluate the following statement: I enjoy my studies.</legend>
+                    {type == 'pre' ?
+                        <legend className="text-xl font-bold">4. Evaluate the following statement: I enjoy my studies.</legend>
+                    :
+                        <legend className="text-xl font-bold">3. Evaluate the following statement: I enjoy my studies.</legend>
+                    }
                     <div className="flex flex-col lg:flex-row gap-x-4 mt-1">
                         <p className="pt-1">No, not at all</p>
                         <div className="form-check py-1 w-fit">
@@ -395,7 +435,11 @@ export default function QuestionnaireForm() {
 
                 {/* 5. Confidence */}
                 <fieldset className="mb-4">
-                    <legend className="text-xl font-bold">5. Evaluate the following statement: I am confident about my studies.</legend>
+                    {type == 'pre' ?
+                        <legend className="text-xl font-bold">5. Evaluate the following statement: I feel confident about this course.</legend>
+                    :
+                        <legend className="text-xl font-bold">4. Evaluate the following statement: I feel confident in my understanding of the topics covered in this course.</legend>
+                    }
                     <div className="flex flex-col lg:flex-row gap-x-4 mt-1">
                         <p className="pt-1">No, not confident at all</p>
                         <div className="form-check py-1 w-fit">
@@ -434,7 +478,11 @@ export default function QuestionnaireForm() {
 
                 {/* 6. Motivation */}
                 <fieldset className="mb-4">
-                    <legend className="text-xl font-bold">6. Evaluate the following statement: I am motivated towards my studies</legend>
+                    {type == 'pre' ?
+                        <legend className="text-xl font-bold">6. Evaluate the following statement: I am motivated to do this course.</legend>
+                    :
+                        <legend className="text-xl font-bold">5. Evaluate the following statement: I am motivated to continue learning more about the topics of this course.</legend>
+                    }
                     <div className="flex flex-col mt-1">
                         <div className="form-check py-1 w-fit">
                             <input className="form-check-input" type="radio" name="exampleRadios8" id="RadiosMotivation1" value="Strongly disagree" checked={motivation==='Strongly disagree'} onChange={(event) => setMotivation(event.target.value)}/>
@@ -468,6 +516,21 @@ export default function QuestionnaireForm() {
                         </div>
                     </div>
                 </fieldset>
+
+                {/* 7. Comments */}
+                {type == 'post' && (
+                    <fieldset className="mb-4">
+                        <div className="form-group mb-3">
+                            <label className="text-xl font-bold py-1" htmlFor="number">Comments (Optional)</label>
+                            <textarea 
+                            className="form-control" 
+                            id="comments" 
+                            value={comments}
+                            onChange={(event) => setComments(event.target.value)}
+                            placeholder="Leave a comment about the PaltaQ app . . . "/>
+                        </div>
+                    </fieldset>
+                )}
 
                 <hr className="border-b-2 border-gray-500 w-full"></hr>
 

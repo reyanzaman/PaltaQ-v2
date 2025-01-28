@@ -140,6 +140,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
       const qid = url?.searchParams.get('qid') || '';
       const Mqid = url?.searchParams.get('Mqid') || '';
       const tname = url?.searchParams.get('tname') || '';
+      const cCode = url?.searchParams.get('cCode') || '';
 
       question = question.trim();
       question = question.charAt(0).toUpperCase() + question.slice(1);
@@ -176,12 +177,15 @@ async function postHandler(req: Request, res: NextApiResponse) {
       });
 
       // Check if the question is off-topic
-      const llama_response4 = await fetch(`${baseUrl}/api/groq?question=${question}&version=4&topic=${tname}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-      });
+      let llama_response4 = new Response(JSON.stringify("yes"));
+      if (cCode !== 'FBA6B9') {
+        llama_response4 = await fetch(`${baseUrl}/api/groq?question=${question}&version=4&topic=${tname}`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          }
+        });
+      }
 
       const data = await llama_response.json();
       const is_valid_question = data.toLowerCase();
