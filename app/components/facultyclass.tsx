@@ -29,7 +29,9 @@ interface Class {
     creatorId: string;
     createdAt: string;
     updatedAt: string;
+    endsAt: string;
     enrollments: ClassEnrollment[]
+    questionnaire: boolean;
 }
 
 interface ClassFaculty {
@@ -67,11 +69,13 @@ export default function FacultyClass({ user }: { user: User }) {
 
     const [toggleDelete, setToggleDelete] = useState(null as any);
     const [toggleTopicDelete, setToggleTopicDelete] = useState(null as any);
+    const [sortConfig, setSortConfig] = useState({ key: "name", direction: "asc" });
     const [toggleRemove, setToggleRemove] = useState(null as any);
     const [editIndex, setEditIndex] = useState(null);
 
     const [newClassName, setNewClassName] = useState('' as string);
     const [newClassDate, setNewClassDate] = useState('' as string);
+    const [newClassQuestionnaire, setNewClassQuestionnaire] = useState(false as boolean);
     const [toggleUpdate, setToggleUpdate] = useState(null as any);
 
     useEffect(() => {
@@ -231,8 +235,13 @@ export default function FacultyClass({ user }: { user: User }) {
             return;
         }
 
+        if (newClassQuestionnaire == null) {
+            toast.error('Questionnaire status cannot be blank');
+            return;
+        }
+
         try {
-            const response = await fetch(`/api/classes?cid=${classes[index].class.id}&cname=${newClassName}&cdate=${newClassDate}`, {
+            const response = await fetch(`/api/classes?cid=${classes[index].class.id}&cname=${newClassName}&cdate=${newClassDate}&qstatus=${newClassQuestionnaire}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -402,6 +411,27 @@ export default function FacultyClass({ user }: { user: User }) {
     };
 
     const displayStudents = () => {
+
+        const sortedEnrollments = [...(selectedClass?.enrollments || [])].sort((a, b) => {
+            const { key, direction } = sortConfig;
+            let valueA = key === "status" ? (a.user.is_Faculty ? (a.user.id === selectedClass?.creatorId ? "Admin" : "Faculty") : "Student") : a[key];
+            let valueB = key === "status" ? (b.user.is_Faculty ? (b.user.id === selectedClass?.creatorId ? "Admin" : "Faculty") : "Student") : b[key];
+            
+            if (typeof valueA === "string") valueA = valueA.toLowerCase();
+            if (typeof valueB === "string") valueB = valueB.toLowerCase();
+            
+            if (valueA < valueB) return direction === "asc" ? -1 : 1;
+            if (valueA > valueB) return direction === "asc" ? 1 : -1;
+            return 0;
+        });
+    
+        const handleSort = (key: any) => {
+            setSortConfig(prevConfig => ({
+                key,
+                direction: prevConfig.key === key && prevConfig.direction === "asc" ? "desc" : "asc"
+            }));
+        };
+
         if (selectedClass) {
             if (selectedClass.enrollments.length <= 1) {
                 return (
@@ -424,28 +454,28 @@ export default function FacultyClass({ user }: { user: User }) {
                                 <p>Faculty Count: {selectedClass.enrollments.filter(enrollment => enrollment.user.is_Faculty).length}</p>
                             </div>
                         </div>
-
+            
                         <table className="table table-responsive-sm lg:mr-0 pr-4">
                             <thead>
                                 <tr>
-                                    <th className="border-0" scope="col" id="className">Name</th>
-                                    <th className="border-0" scope="col" id="className">Status</th>
-                                    <th className="border-0" scope="col" id="classCode">Score</th>
-                                    <th className="border-0" scope="col" id="classCode">Questions</th>
-                                    <th className="border-0" scope="col" id="classCode">PaltaQ Asked</th>
-                                    <th className="border-0" scope="col" id="classCode">Rank</th>
-                                    <th className="border-0" scope="col" id="classCode">Actions</th>
+                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("name")}>Name</th>
+                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("status")}>Status</th>
+                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("score")}>Score</th>
+                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("questionCount")}>Questions</th>
+                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("paltaQCount")}>PaltaQ Asked</th>
+                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("rank")}>Rank</th>
+                                    <th className="border-0">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {selectedClass.enrollments.map((student, index) => (
+                                {sortedEnrollments.map((student, index) => (
                                     student.user.id !== user.id && (
                                         <React.Fragment key={index}>
                                             <tr>
                                                 <td>{student.user.name}</td>
                                                 <td>
                                                     {student.user.is_Faculty
-                                                        ? (student.user.id == selectedClass.creatorId ? "Admin" : "Faculty")
+                                                        ? (student.user.id === selectedClass.creatorId ? "Admin" : "Faculty")
                                                         : "Student"
                                                     }
                                                 </td>
@@ -459,7 +489,7 @@ export default function FacultyClass({ user }: { user: User }) {
                                                     )}
                                                 </td>
                                             </tr>
-
+            
                                             {toggleRemove === index && (
                                                 <tr key={`${index}-confirm`}>
                                                     <td colSpan={7} className="w-full">
@@ -503,7 +533,7 @@ export default function FacultyClass({ user }: { user: User }) {
             return (
                 <div className="flex lg:flex-row flex-col mt-4 mb-4 lg:w-75 w-full ">
 
-                    <div className="border border-gray-400 rounded-lg px-2 py-4 w-full lg:h-[23.8em] h-[24em] overflow-y-auto scrollbar-thin scrollbar-webkit lg:order-first order-last">
+                    <div className="border border-gray-400 rounded-lg px-2 py-4 w-full lg:h-[23.8em] h-[24em] overflow-y-auto scrollbar-thin scrollbar-webkit lg:order-last">
                         <h5 className="pad-l1">Topics of {selectedClass?.name}</h5>
 
 
@@ -631,7 +661,7 @@ export default function FacultyClass({ user }: { user: User }) {
 
                     </div>
 
-                    <div className="lg:w-50 w-full lg:mb-0 mb-5">
+                    <div className="lg:w-50 w-full lg:mb-0 mb-2 lg:mt-0 mt-4">
 
                         <h5 className="text-neutral-700 pad-l1">Set the topics in your classroom</h5>
                         <p className="pad-l1">Students will only be able to ask questions on the topics you set</p>
@@ -657,7 +687,7 @@ export default function FacultyClass({ user }: { user: User }) {
             )
         } else {
             return (
-                <div>
+                <div className="">
                     <h5 className="pad-l1">Set topics for your students to ask question on</h5>
                     <p className="pad-l1">Select a class to set topics.</p>
                 </div>
@@ -674,10 +704,11 @@ export default function FacultyClass({ user }: { user: User }) {
             <h5 className="font-bold pad-l1">Welcome {user.name}</h5>
 
             {/* Create/Join/View Classrooms */}
-            <div className="flex lg:flex-row flex-col my-4 w-full ">
+            <div className="w-full ">
+                <hr></hr>
 
                 {/* Right Part */}
-                <div className="border border-gray-400 rounded-lg px-2 py-4 w-full lg:h-[28em] h-[24em] overflow-y-auto scrollbar-thin scrollbar-webkit lg:order-first order-last">
+                <div className="border border-gray-400 rounded-lg px-2 py-4 lg:w-full w-[95%] mx-auto lg:h-[28em] h-[23.5em] overflow-y-auto scrollbar-thin scrollbar-webkit">
                     <h5 className="pl-3">Classes taught by you</h5>
 
 
@@ -689,6 +720,7 @@ export default function FacultyClass({ user }: { user: User }) {
                                     <th className="border-0" scope="col" id="className">Class Name</th>
                                     <th className="border-0" scope="col" id="classCode">Class Code</th>
                                     <th className="border-0" scope="col" id="classCode">Semester End</th>
+                                    <th className="border-0" scope="col" id="classCode">Questionnaire</th>
                                     <th className="border-0" scope="col" id="classCode">Actions</th>
                                 </tr>
 
@@ -725,22 +757,62 @@ export default function FacultyClass({ user }: { user: User }) {
                                                 )
                                             )}
                                         </td>
+                                        <td>
+                                            {toggleUpdate === index ? (
+                                                <select
+                                                    value={newClassQuestionnaire.toString()}
+                                                    onChange={(e) => setNewClassQuestionnaire(e.target.value === "true")}
+                                                    className="form-control"
+                                                >
+                                                    <option value="true">Active</option>
+                                                    <option value="false">Inactive</option>
+                                                </select>
+                                            ) : (
+                                                classItem.class.questionnaire ? (
+                                                    <div className="text-green-800">Active</div>
+                                                ) : (
+                                                    <div className="text-rose-800">Inactive</div>
+                                                )
+                                            )}
+                                        </td>
+                                        {/* Actions Tab */}
                                         <td className="">
-
                                             <div className="flex-col">
                                                 <div className="flex lg:flex-row flex-col items-center">
                                                     <button
                                                         className="hover:text-blue-800 transition-colors duration-500 -translate-y-2 lg:block hidden"
                                                         onClick={() => { selectClass(index); setRefresh(!refresh); }}>
-                                                        View
+                                                        Select
                                                     </button>
                                                     <button
                                                         className="hover:text-blue-800 transition-colors duration-500 lg:hidden block mb-2"
                                                         onClick={() => { selectClass(index); setRefresh(!refresh); }}>
-                                                        View
+                                                        Select
                                                     </button>
 
                                                     <p className="lg:block hidden mx-2">|</p>
+
+                                                    {user.id === classItem.class.creatorId && (
+                                                        <div>
+                                                            {classItem.class.endsAt && (
+                                                                <div className="flex flex-row items-center">
+                                                                    <button
+                                                                        className="hover:text-lime-800 transition-colors duration-500 lg:-translate-y-2 -translate-y-1"
+                                                                        onClick={() => {
+                                                                            setNewClassName(classItem.class.name);
+                                                                            setNewClassDate(formatDate(classItem.class.endsAt));
+                                                                            setNewClassQuestionnaire(classItem.class.questionnaire);
+                                                                            setToggleUpdate(index);
+                                                                            setToggleDelete(null);
+                                                                        }}>
+                                                                        Edit
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {classItem.class.code !=="0E8E5F" && (<p className="lg:block hidden mx-2">|</p>)}
 
                                                     {user.id === classItem.class.creatorId ? (
                                                         <div>
@@ -769,26 +841,6 @@ export default function FacultyClass({ user }: { user: User }) {
                                                                 onClick={() => setToggleDelete(index)}>
                                                                 Unenroll
                                                             </button>
-                                                        </div>
-                                                    )}
-
-                                                    {user.id === classItem.class.creatorId && (
-                                                        <div>
-                                                            {classItem.class.endsAt && (
-                                                                <div className="flex flex-row items-center">
-                                                                    <p className="lg:block hidden mx-2">|</p>
-                                                                    <button
-                                                                        className="hover:text-lime-800 transition-colors duration-500 lg:-translate-y-2 translate-y-2"
-                                                                        onClick={() => {
-                                                                            setNewClassName(classItem.class.name);
-                                                                            setNewClassDate(formatDate(classItem.class.endsAt));
-                                                                            setToggleUpdate(index);
-                                                                            setToggleDelete(null);
-                                                                        }}>
-                                                                        Edit
-                                                                    </button>
-                                                                </div>
-                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
@@ -868,7 +920,7 @@ export default function FacultyClass({ user }: { user: User }) {
                 </div>
 
                 {/* Left Part */}
-                <div className="w-full">
+                <div className="w-full my-4">
                     <hr className="lg:hidden block"></hr>
                     <h5 className="text-neutral-700 pad-l1">Get started by creating your own class</h5>
                     <form onSubmit={createClass} className="flex flex-col lg:pr-20 px py-4 gap-4 mb-2 pad-x1">
@@ -881,20 +933,9 @@ export default function FacultyClass({ user }: { user: User }) {
                         />
                         <button className="btn animate-down-2" type="submit">Create Class</button>
                     </form>
-
-                    <h5 className="text-neutral-700 pad-l1">Or you can join someone else's class</h5>
-                    <form onSubmit={joinClass} className="flex flex-col lg:pr-20 px py-4 gap-4 pad-x1">
-                        <input
-                            id="classCode"
-                            className="form-control pr-5o5 resize-none py-3 pl-3"
-                            placeholder="Enter a class code"
-                            value={classCode}
-                            onChange={(e) => setClassCode(e.target.value)}
-                        />
-                        <button className="btn animate-down-2 text-info" type="submit">Join Class</button>
-                    </form>
                     <hr className="lg:hidden block"></hr>
                 </div>
+
             </div>
 
             {/* Classroom Title */}
@@ -902,11 +943,16 @@ export default function FacultyClass({ user }: { user: User }) {
                 <hr className="border-b border-gray-400"></hr>
 
                 <div className="flex flex-row justify-between">
-                    <div><h4 className="lg:pl-2 text-sky-800 pad-l1">{selectedClass?.name} Classroom</h4></div>
+                    <div>
+                        <h4 className="lg:pl-2 text-sky-800 pad-l1">{selectedClass?.name} Classroom</h4>
+                        {!selectedClass && (
+                            <p className="lg:pl-2 pad-l1 my-0">{ "Please select a class from the table above"}</p>
+                        )}
+                    </div>
                     {selectedClass && (
                         <div>
                             <button onClick={handleCollapse} className="animate-down-2 font-bold mt-2 mr-4 h-fit lg:block hidden">
-                                Close
+                                Deselect
                                 <FontAwesomeIcon className="px-2" icon={faCircleChevronUp} />
                             </button>
                             <button onClick={handleCollapse} className="lg:hidden block text-xl mr-[0.5em]">
@@ -918,15 +964,21 @@ export default function FacultyClass({ user }: { user: User }) {
                 <hr className="border-b border-gray-400"></hr>
             </div>
 
-            {/* Display Topics */}
-            <div className="mb-4 w-full">
-                {displayTopics()}
-            </div>
+            {selectedClass ? (
+                <div>
+                    {/* Display Topics */}
+                    <div className="mb-4 w-full">
+                        {displayTopics()}
+                    </div>
+                    
+                    <hr className="lg:block hidden"></hr>
 
-            {/* Display Students */}
-            <div className="border border-gray-400 rounded-lg py-4 mb-8 w-full">
-                {displayStudents()}
-            </div>
+                    {/* Display Students */}
+                    <div className="border border-gray-400 rounded-lg py-4 mb-8 w-full">
+                        {displayStudents()}
+                    </div>
+                </div>
+            ): <div className="my-4"></div>}
 
         </div>
     );

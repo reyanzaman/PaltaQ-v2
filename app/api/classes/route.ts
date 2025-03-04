@@ -27,7 +27,8 @@ export async function postHandler(req: Request, res: NextApiResponse) {
                     name: className,
                     code: code,
                     creatorId: facultyId,
-                    endsAt: endsAtDate
+                    endsAt: endsAtDate,
+                    questionnaire: true
                 }
             });
 
@@ -255,9 +256,10 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
         const cid = url?.searchParams.get('cid');
         const cname = url?.searchParams.get('cname');
         const cdate = url?.searchParams.get('cdate');
+        const qstatus = url?.searchParams.get('qstatus');
 
-        if (!cid || (!cname && !cdate)) {
-            return new Response(JSON.stringify({ error: 'cid and cname/cdate are required' }), {
+        if (!cid || (!cname && !cdate && !qstatus)) {
+            return new Response(JSON.stringify({ error: 'cid and cname/cdate/qstatus are required' }), {
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json'
@@ -287,7 +289,8 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
                         },
                         data: {
                             name: cname,
-                            endsAt: endsAt
+                            endsAt: endsAt,
+                            questionnaire: qstatus === 'true' ? true : false
                         }
                     });
                     return new Response(JSON.stringify({ message: 'Class details updated' }), {

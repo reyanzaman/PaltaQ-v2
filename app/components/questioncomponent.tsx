@@ -32,6 +32,7 @@ interface Class {
     faculties: ClassFaculty[]
     topics: Topic[]
     questions: Question[]
+    questionnaire: boolean
 }
 
 interface User {
@@ -119,6 +120,10 @@ export default function QuestionComponent({ user }: { user: User }) {
             try {
                 if (selectedClass) {
                     if (selectedClass.code === 'FBA6B9') {
+                        return;
+                    }
+
+                    if (selectedClass.questionnaire == false) {
                         return;
                     }
 

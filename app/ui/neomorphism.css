@@ -190,6 +190,14 @@ label {
     margin-bottom: .5rem
 }
 
+/* Targeting the sidebar specifically */
+.sidebar-desktop {
+    transform: scale(1);
+    /* Prevent zooming on the sidebar */
+    transform-origin: top left;
+    /* Ensure the scaling happens from the top-left corner */
+}
+
 button {
     border-radius: 0
 }
@@ -26590,7 +26598,8 @@ button.section-slack:hover {
 
 #doc-index:not(.collapse.show),
 .doc-sidebar {
-    display: none
+    display: none;
+    transform: none !important;
 }
 
 @media (min-width: 992px) {
@@ -26604,17 +26613,20 @@ button.section-slack:hover {
         overflow-y: scroll;
         position: -webkit-sticky;
         position: sticky;
-        top: 2rem
+        top: 2rem;
+        transform: none !important;
     }
 
     .doc-sidebar .nav-link[data-toggle=collapse]>.icon {
         transform: rotateZ(-90deg);
         position: relative;
-        right: .25rem
+        right: .25rem;
+        transform: none !important;
     }
 
     .doc-sidebar .nav .nav-item {
-        font-size: .875rem
+        font-size: .875rem;
+        transform: none !important;
     }
 }
 
@@ -33891,54 +33903,56 @@ article a:hover {
     width: 1ch;
     animation: flicker 0.7s infinite;
     margin-bottom: 4px;
-  }
+}
 
-  @keyframes flicker {
+@keyframes flicker {
     0% {
-      opacity: 0;
+        opacity: 0;
     }
+
     50% {
-      opacity: 1;
+        opacity: 1;
     }
+
     100% {
-      opacity: 0;
+        opacity: 0;
     }
-  }
+}
 
-  .pad-l1 {
+.pad-l1 {
     padding-left: 0.75rem;
-  }
+}
 
-  .pad-x1 {
+.pad-x1 {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
-  }
+}
 
-  .pad-x2 {
+.pad-x2 {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
-  }
+}
 
-  .mar-x1 {
+.mar-x1 {
     margin-left: 0.75rem;
     margin-right: 0.75rem;
-  }
+}
 
-  .mar-ly {
+.mar-ly {
     margin-left: 1.5rem;
     margin-top: 0.5rem;
     margin-bottom: 0.1rem;
-  }
+}
 
-  .mar-ly2 {
+.mar-ly2 {
     margin-left: 0;
     padding-top: 0;
     margin-bottom: 0.35rem;
 }
-  
-  @media (min-width: 1024px) {
+
+@media (min-width: 1024px) {
     .pad-l1 {
-      padding-left: 0;
+        padding-left: 0;
     }
 
     .pad-x1 {
@@ -33967,4 +33981,4 @@ article a:hover {
         padding-top: 0.6rem;
         margin-bottom: 0rem;
     }
-  }
+}

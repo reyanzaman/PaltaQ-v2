@@ -321,10 +321,10 @@ export default function QuestionBox({ classId, classCode, handleRefreshQs}: { cl
             </div>
 
             {/* Question */}
-            <div className="mb-4">
+            <div className="mb-4 relative">
                 <textarea
                     id="questionMain"
-                    className="form-control pr-5o5 resize-none pl-3"
+                    className="form-control pr-5o5 resize-none pl-3 w-full"
                     style={{ height: '6em' }}
                     placeholder="Throw a question to your peers!"
                     value={question}
@@ -332,11 +332,11 @@ export default function QuestionBox({ classId, classCode, handleRefreshQs}: { cl
                 />
                 <button
                     type="submit"
-                    className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
+                    className="absolute right-[1.6em] bottom-[2.3em] scale-[1.4]"
                 >
                     <FontAwesomeIcon
                         icon={faPaperPlane}
-                        className="w-[1.5rem] text-[#31344b] -translate-y-2"
+                        className="w-[1.5rem] text-[#31344b]"
                     />
                 </button>
             </div>

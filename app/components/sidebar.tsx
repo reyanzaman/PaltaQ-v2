@@ -102,7 +102,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
   }
 
   return (
-    <div>
+    <div className="">
 
       {/* Mobile Menu */}
       {isMobile && isMobileMenuOpen && (
@@ -221,9 +221,14 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
 
       {/* Desktop */}
       {!isMobileMenuOpen && (
-        <div className="lg:flex hidden fixed left-0 top-0 h-screen" style={{ width: '110px' }}>
-          <div className="flex-col justify-between items-center pt-8 pb-5 card btn bg-[#e6e7ee] max-w-[110px]" style={{ width: '110px' }}>
-            <div className="space-y-6">
+        <div 
+          className="lg:flex hidden fixed left-0 top-0 h-screen max-w-[100px] sidebar-desktop"
+        >
+          <div 
+            className="flex-col justify-between items-center card btn" 
+            style={{paddingTop: '202px', paddingBottom: '50px' }}
+          >
+            <div className="space-y-[26px]">
 
               {/* Home */}
               <Link
@@ -236,12 +241,12 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
                 {isHomeActive ? (
                   <FontAwesomeIcon
                     icon={faHouseChimney}
-                    className="text-3xl bg-white hover:text-black p-3 icon shadow-inset border border-light rounded-circle max-w-[35px]"
+                    className="text-[28px] p-[16px] bg-white hover:text-black icon shadow-inset border border-light rounded-circle"
                   />
                 ) : (
                   <FontAwesomeIcon
                     icon={faHouseChimney}
-                    className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                    className="text-[28px] p-[16px] text-zinc-500 hover:text-black icon shadow-inset border border-light rounded-circle"
                   />
                 )}
               </Link>
@@ -259,13 +264,13 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
                   <FontAwesomeIcon
                     icon={faUserTie}
                     width={30}
-                    className="text-3xl bg-white hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                    className="text-[28px] p-[16px] bg-white hover:text-black icon shadow-inset border border-light rounded-circle"
                   />
                 ) : (
                   <FontAwesomeIcon
                     icon={faUserTie}
                     width={30}
-                    className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                    className="text-[28px] p-[16px] text-zinc-500 hover:text-black icon shadow-inset border border-light rounded-circle"
                   />
                 )}
               </Link>
@@ -283,13 +288,13 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
                   <FontAwesomeIcon
                     icon={faQ}
                     width={30}
-                    className="text-3xl bg-white hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                    className="text-[28px] p-[16px] bg-white hover:text-black icon shadow-inset border border-light rounded-circle"
                   />
                 ) : (
                   <FontAwesomeIcon
                     icon={faQ}
                     width={30}
-                    className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                    className="text-[28px] p-[16px] text-zinc-500 hover:text-black icon shadow-inset border border-light rounded-circle"
                   />
                 )}
               </Link>
@@ -306,13 +311,13 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
                   <FontAwesomeIcon
                     icon={faInfo}
                     width={30}
-                    className="text-3xl bg-white hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                    className="text-[30px] p-[14px] bg-white hover:text-black icon shadow-inset border border-light rounded-circle"
                   />
                 ) : (
                   <FontAwesomeIcon
                     icon={faInfo}
                     width={30}
-                    className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                    className="text-[30px] p-[14px] text-zinc-500 hover:text-black icon shadow-inset border border-light rounded-circle"
                   />
                 )}
               </Link>
@@ -330,13 +335,13 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
                     <FontAwesomeIcon
                       icon={faScrewdriverWrench}
                       width={30}
-                      className="text-3xl bg-white hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                      className="text-[30px] p-[14px] bg-white hover:text-black icon shadow-inset border border-light rounded-circle"
                     />
                   ) : (
                     <FontAwesomeIcon
                       icon={faScrewdriverWrench}
                       width={30}
-                      className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                      className="text-[28px] p-[16px] text-zinc-500 hover:text-black icon shadow-inset border border-light rounded-circle"
                     />
                   )}
                 </Link>
@@ -358,7 +363,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
                 <FontAwesomeIcon
                   icon={faArrowRightFromBracket}
                   width={30}
-                  className="text-3xl hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                  className="text-[30px] p-[14px] hover:text-black icon shadow-inset border border-light rounded-circle"
                 />
               </button>
             ) : (
@@ -374,7 +379,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
                 <FontAwesomeIcon
                   icon={faArrowRightToBracket}
                   width={30}
-                  className="text-3xl hover:text-black p-3 icon shadow-inset border border-light rounded-circle"
+                  className="text-[30px] p-[14px] hover:text-black icon shadow-inset border border-light rounded-circle"
                 />
               </Link>
             )}

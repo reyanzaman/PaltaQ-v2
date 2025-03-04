@@ -92,11 +92,11 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
   };
 
   return (
-    <form className="lg:w-[100%] w-[93%] mx-auto" onSubmit={handleSubmit}>
-      <div className="mb-4">
+    <form className="lg:w-[100%] w-[93%] mx-auto relative" onSubmit={handleSubmit}>
+      <div className="mb-4 relative">
         <textarea
           id="questionMain"
-          className="form-control pr-5o5 resize-none py-3 pl-3"
+          className="form-control pr-5o5 resize-none py-3 pl-3 w-full"
           style={{ height: '6em' }}
           placeholder="Throw a question to your peers!"
           value={question}
@@ -104,7 +104,7 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
             setQuestion(e.target.value);
           }}
         />
-        <div className='flex flex-row float-end -translate-y-[3.7em] -translate-x-6 scale-[1.4]'>
+        <div className='absolute bottom-[2.3em] right-[1.6em] scale-[1.3]'>
           {session?.user?.email && (
             <button
               type="button"

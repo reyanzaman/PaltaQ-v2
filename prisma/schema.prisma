@@ -40,13 +40,14 @@ model UserDetails {
 }
 
 model Classes {
-  id          String          @id @default(uuid())
-  name        String          @unique
-  code        String          @unique
-  creatorId   String
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  endsAt      DateTime?
+  id              String          @id @default(uuid())
+  name            String          @unique
+  code            String          @unique
+  creatorId       String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  endsAt          DateTime?
+  questionnaire   Boolean        @default(false)
 
   faculties   ClassFaculty[]  // Many-to-many relationship with Users for faculty members
   enrollments ClassEnrollment[] // Many-to-many relationship with Users
