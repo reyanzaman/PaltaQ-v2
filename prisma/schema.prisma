@@ -230,20 +230,56 @@ model PaltaQ {
 }
 
 model PreQuestionnaire {
-  id                Int      @id @default(autoincrement())
-  isCompleted       Boolean  @default(false)
-  userId            String   
-  classId           String   @unique
-  universityId      String   @default("")
-  section           String   @default("")
-  currentAge        String   @default("")
-  gender            String   @default("")
-  curiosity         Int      @default(0)
-  questionsAtAge4   String   @default("")
-  questionsYesterday String  @default("")
-  enjoyStudies      Int      @default(0)
-  confidentStudies  Int      @default(0)
-  motivatedStudies  String   @default("")
+  id                      Int      @id @default(autoincrement())
+  isCompleted             Boolean  @default(false)
+  userId                  String   
+  classId                 String   @unique
+  studentId               String   @default("")
+
+  // Demographics
+  age                     Int      @default(0)
+  gender                  String   @default("")
+  schoolLocation          String   @default("")
+  maritalStatus           String   @default("")
+  // Academic
+  studyMotivation         String   @default("")
+  studyCuriosity          String   @default("")
+  quesionsAsked           String @default("")
+  questionExample         String @default("")
+  subjectILike            String @default("")
+  dontEnjoyStudying       String @default("")
+  cgpa                    String @default("")
+  extraCurricular         String @default("")
+  studyTime               String @default("")
+  leisureTime             String @default("")
+  // Curiosity
+  questionArises          String @default("")
+  courageToAsk            String @default("")
+  curiousToKnow           String @default("")
+  whyChildrenAskQuestions String @default("")
+  // Motivation
+  desireToLearn           String @default("")
+  askTeacher              String @default("")
+  askPeer                 String @default("")
+  askMyself               String @default("")
+  askGPT                  String @default("")
+  askResearch             String @default("")
+  askAvoid                String @default("")
+  motivatedToAsk          String @default("")
+  // Engagement
+  multQuesAskStudents     String @default("")
+  multQuesAskGroup        String @default("")
+  multQuesAskMyself       String @default("")
+  multQuesAvoid           String @default("")
+  multQuesResearch        String @default("")
+  multQuesMemorize        String @default("")
+  // Confidence
+  quesHelpsUnderstand     String @default("")
+  easierToMemorize        String @default("")
+  opinionAskingQues       String @default("")
+  opinionMemorizing       String @default("")
+  opinionPracticing       String @default("")
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   user              User     @relation(fields: [userId], references: [id])
@@ -251,20 +287,54 @@ model PreQuestionnaire {
 }
 
 model PostQuestionnaire {
-  id                Int      @id @default(autoincrement())
-  isCompleted       Boolean  @default(false)
-  userId            String   
-  classId           String   @unique
-  universityId      String   @default("")
-  section           String   @default("")
-  currentAge        String   @default("")
-  gender            String   @default("")
-  curiosity         Int      @default(0)
-  questionsNow      String  @default("")
-  enjoyStudies      Int      @default(0)
-  confidentStudies  Int      @default(0)
-  motivatedStudies  String   @default("")
-  comments          String   @default("")
+  id                      Int      @id @default(autoincrement())
+  isCompleted             Boolean  @default(false)
+  userId                  String   
+  classId                 String   @unique
+  studentId               String   @default("")
+  
+  // Opinion about PaltaQ
+  interestPaltaQ          String @default("")
+  suggestionsPaltaQ       String @default("")
+  // Academic
+  studyMotivation         String @default("")
+  studyCuriosity          String @default("")
+  quesionsAsked           String @default("")
+  questionExample         String @default("")
+  subjectILike            String @default("")
+  dontEnjoyStudying       String @default("")
+  cgpa                    String @default("")
+  extraCurricular         String @default("")
+  studyTime               String @default("")
+  leisureTime             String @default("")
+  // Curiosity
+  questionArises          String @default("")
+  courageToAsk            String @default("")
+  curiousToKnow           String @default("")
+  whyChildrenAskQuestions String @default("")
+  // Motivation
+  desireToLearn           String @default("")
+  askTeacher              String @default("")
+  askPeer                 String @default("")
+  askMyself               String @default("")
+  askGPT                  String @default("")
+  askResearch             String @default("")
+  askAvoid                String @default("")
+  motivatedToAsk          String @default("")
+  // Engagement
+  multQuesAskStudents     String @default("")
+  multQuesAskGroup        String @default("")
+  multQuesAskMyself       String @default("")
+  multQuesAvoid           String @default("")
+  multQuesResearch        String @default("")
+  multQuesMemorize        String @default("")
+  // Confidence
+  quesHelpsUnderstand     String @default("")
+  easierToMemorize        String @default("")
+  opinionAskingQues       String @default("")
+  opinionMemorizing       String @default("")
+  opinionPracticing       String @default("")
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   user              User     @relation(fields: [userId], references: [id])
