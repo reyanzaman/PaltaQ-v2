@@ -481,7 +481,7 @@ export default function QuestionnaireForm() {
                         {/* Study Motivation */}
                         <fieldset className="my-4 pb-2">
                             <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:<br></br>
-                                <legend className="text-rose-900 text-base md:text-xl font-bold">"I like to study"</legend>
+                                <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;I like to study&quot;</legend>
                             </legend><div className="form-check py-1 w-fit">
                                 <input
                                     className="form-check-input"
@@ -553,7 +553,7 @@ export default function QuestionnaireForm() {
                         {/* Study Curiosity */}
                         <fieldset className="my-4 pb-2">
                             <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:<br></br>
-                                <legend className="text-rose-900 text-base md:text-xl font-bold">"I am curious about everything - I like to ask questions"</legend>
+                                <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;I am curious about everything - I like to ask questions&quot;</legend>
                             </legend><div className="form-check py-1 w-fit">
                                 <input
                                     className="form-check-input"
@@ -722,7 +722,7 @@ export default function QuestionnaireForm() {
                         {/* Subject I Like */}
                         <fieldset className="my-4 pb-2">
                             <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:<br></br>
-                                <legend className="text-rose-900 text-base md:text-xl font-bold">"I have a subject that I like studying very much"</legend>
+                                <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;I have a subject that I like studying very much&quot;</legend>
                             </legend><div className="form-check py-1 w-fit">
                                 <input
                                     className="form-check-input"
@@ -794,7 +794,7 @@ export default function QuestionnaireForm() {
                         {/* I Dont Enjoy Studying at the University */}
                         <fieldset className="my-4 pb-2">
                             <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:<br></br>
-                                <legend className="text-rose-900 text-base md:text-xl font-bold">"I don't enjoy studying subjects at the university"</legend>
+                                <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;I don't enjoy studying subjects at the university&quot;</legend>
                             </legend><div className="form-check py-1 w-fit">
                                 <input
                                     className="form-check-input"
@@ -865,9 +865,12 @@ export default function QuestionnaireForm() {
 
                         {/* CGPA */}
                         <fieldset className="my-4 pb-2">
-                            <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:<br></br>
-                                <legend className="text-rose-900 text-base md:text-xl font-bold">"I don't enjoy studying subjects at the university"</legend>
-                            </legend><div className="form-check py-1 w-fit">
+                            {type == 'pre' ? (
+                                <legend className="text-base md:text-xl pt-2 font-bold">Please select the range of your current CGPA:</legend>
+                            ) : (
+                                <legend className="text-base md:text-xl pt-2 font-bold">Please select the range of your expected CGPA in the upcoming semester:</legend>
+                            )}
+                            <div className="form-check py-1 w-fit">
                                 <input
                                     className="form-check-input"
                                     type="radio"
@@ -1081,7 +1084,7 @@ export default function QuestionnaireForm() {
                     {/* Question Arises */}
                     <fieldset className="my-4 pb-2">
                         <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:<br></br>
-                            <legend className="text-rose-900 text-base md:text-xl font-bold">"When a teacher teaches, questions arise in my head."</legend>
+                            <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;When a teacher teaches, questions arise in my head.&quot;</legend>
                         </legend><div className="form-check py-1 w-fit">
                             <input
                                 className="form-check-input"
@@ -1153,7 +1156,7 @@ export default function QuestionnaireForm() {
                     {/* Courage To Ask Questions */}
                     <fieldset className="my-4 pb-2">
                         <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:<br></br>
-                            <legend className="text-rose-900 text-base md:text-xl font-bold">"If a question arises in my head, I have the courage to ask the teacher the question."</legend>
+                            <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;If a question arises in my head, I have the courage to ask the teacher the question.&quot;</legend>
                         </legend><div className="form-check py-1 w-fit">
                             <input
                                 className="form-check-input"
@@ -1225,7 +1228,7 @@ export default function QuestionnaireForm() {
                     {/* Curious To Know What the Teacher Will Teach */}
                     <fieldset className="my-4 pb-2">
                         <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:<br></br>
-                            <legend className="text-rose-900 text-base md:text-xl font-bold">"When I sit in a lecture a class, I am curious about what the teacher will teach."</legend>
+                            <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;When I sit in a lecture a class, I am curious about what the teacher will teach.&quot;</legend>
                         </legend><div className="form-check py-1 w-fit">
                             <input
                                 className="form-check-input"
@@ -1313,7 +1316,7 @@ export default function QuestionnaireForm() {
                     {/* Desire to Learn */}
                     <fieldset className="my-4 pb-2">
                         <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:<br></br>
-                            <legend className="text-rose-900 text-base md:text-xl font-bold">"When a class starts, I sit with a desire to learn."</legend>
+                            <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;When a class starts, I sit with a desire to learn.&quot;</legend>
                         </legend><div className="form-check py-1 w-fit">
                             <input
                                 className="form-check-input"
@@ -1385,7 +1388,7 @@ export default function QuestionnaireForm() {
                     {/* Ask Questions To Who */}
                     <fieldset className="my-4 pb-2">
                         <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:</legend>
-                        <legend className="text-rose-900 text-base md:text-xl font-bold">"When a question comes to my mind, I ask:"</legend>
+                        <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;When a question comes to my mind, I ask:&quot;</legend>
 
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-sm md:text-lg mt-4 mb-4">
@@ -1430,7 +1433,7 @@ export default function QuestionnaireForm() {
                     {/* Motivated to Ask Questions For Grade */}
                     <fieldset className="my-4 pb-2">
                         <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:<br></br>
-                            <legend className="text-rose-900 text-base md:text-xl font-bold">"To get a good grade I am motivated to ask questions."</legend>
+                            <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;To get a good grade I am motivated to ask questions.&quot;</legend>
                         </legend><div className="form-check py-1 w-fit">
                             <input
                                 className="form-check-input"
@@ -1505,7 +1508,7 @@ export default function QuestionnaireForm() {
                     {/* Ask Multiple Questions To */}
                     <fieldset className="my-4 pb-2">
                         <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:</legend>
-                        <legend className="text-rose-900 text-base md:text-xl font-bold">"To understand a topic better, I ask multiple questions:"</legend>
+                        <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;To understand a topic better, I ask multiple questions:&quot;</legend>
 
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-sm md:text-lg mt-4 mb-4">
@@ -1553,7 +1556,7 @@ export default function QuestionnaireForm() {
                     {/* Asking Questions Helps Undestand Topic Better */}
                     <fieldset className="my-4 pb-2">
                         <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:<br></br>
-                            <legend className="text-rose-900 text-base md:text-xl font-bold">"Asking questions helps me understand the topic better."</legend>
+                            <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;Asking questions helps me understand the topic better.&quot;</legend>
                         </legend><div className="form-check py-1 w-fit">
                             <input
                                 className="form-check-input"
@@ -1625,7 +1628,7 @@ export default function QuestionnaireForm() {
                     {/* Easier To Memorize Notes */}
                     <fieldset className="my-4 pb-2">
                         <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:<br></br>
-                            <legend className="text-rose-900 text-base md:text-xl font-bold">"I don&apos;t like asking questions, it is easier to memorize the notes."</legend>
+                            <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;I don&apos;t like asking questions, it is easier to memorize the notes.&quot;</legend>
                         </legend><div className="form-check py-1 w-fit">
                             <input
                                 className="form-check-input"
@@ -1697,7 +1700,7 @@ export default function QuestionnaireForm() {
                     {/* Opinion */}
                     <fieldset className="my-4 pb-2">
                         <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:</legend>
-                        <legend className="text-rose-900 text-base md:text-xl font-bold">"When a question comes to my mind, I ask:"</legend>
+                        <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;When a question comes to my mind, I ask:&quot;</legend>
 
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-sm md:text-lg mt-4 mb-4">
