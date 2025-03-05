@@ -708,7 +708,7 @@ export default function QuestionnaireForm() {
                         {/* Question Example */}
                         <div className="form-group mt-2 pb-2">
                             <label className="text-base md:text-xl font-bold pt-1 mb-0" htmlFor="text">Can you give an example of a curiosity question that you asked yourself yesterday?</label>
-                            <small id="questionExample" className="form-text text-muted my-0 pb-3 pt-1 text-base">If you did not ask yourself any curiosity question, please write "No questions"</small>
+                            <small id="questionExample" className="form-text text-muted my-0 pb-3 pt-1 text-base">If you did not ask yourself any curiosity question, please write &quot;No questions&quot;</small>
                             <input
                                 type="text"
                                 className="form-control"
@@ -794,7 +794,7 @@ export default function QuestionnaireForm() {
                         {/* I Dont Enjoy Studying at the University */}
                         <fieldset className="my-4 pb-2">
                             <legend className="text-base md:text-xl pt-2 font-bold">Evaluate the following statement for yourself:<br></br>
-                                <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;I don't enjoy studying subjects at the university&quot;</legend>
+                                <legend className="text-rose-900 text-base md:text-xl font-bold">&quot;I don&apos;t enjoy studying subjects at the university&quot;</legend>
                             </legend><div className="form-check py-1 w-fit">
                                 <input
                                     className="form-check-input"
