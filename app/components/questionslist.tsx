@@ -2455,7 +2455,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
 
                             {/* Dropdown Section */}
                             <div className='flex flex-row order-first'>
-                                <h3 className='pl-3 lg:block hidden'>Topic: </h3>
+                                <h3 className='pl-3 lg:block hidden text-lg pt-1'>Filter Displayed Questions By Topic: </h3>
 
                                 {/* DropDown */}
                                 <div className='ml-3 -translate-y-1'>
@@ -2578,7 +2578,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                         {/* Info */}
                         <div className='order-3 pl-3 z-20'>
                             <p className='text-xl mb-0 pb-1'>Questions Registered: {loadingQ ? "Loading" : questions.length}</p>
-                            <p className='text-sm pb-0 mb-0 text-zinc-500'>
+                            <p className='text-sm pb-3 mb-0 text-zinc-500'>
                                 {fromDate && toDate
                                     ? `Displaying questions from ${formatDate(fromDate)} to ${formatDate(toDate)}`
                                     : fromDate
@@ -2588,7 +2588,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                             : 'Displaying all questions'
                                 }
                             </p>
-                            <p className='text-sm pb-3 text-sky-800'>Faculty questions will be show first</p>
+                            {/* <p className='text-sm pb-3 text-sky-800'>Faculty questions will be show first</p> */}
                             {loadingQ ? (
                                 <p className='mb-5'>Loading questions...</p>
 

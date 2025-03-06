@@ -225,8 +225,8 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
           className="lg:flex hidden fixed left-0 top-0 h-screen max-w-[100px] sidebar-desktop"
         >
           <div 
-            className="flex-col justify-between items-center card btn" 
-            style={{paddingTop: '202px', paddingBottom: '50px' }}
+            className="flex-col justify-between items-center card btn"  
+            style={{paddingTop: '15vh', paddingBottom: '50px' }}
           >
             <div className="space-y-[26px]">
 

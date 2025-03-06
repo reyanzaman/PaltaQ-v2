@@ -276,7 +276,7 @@ export default function QuestionBox({ classId, classCode, handleRefreshQs}: { cl
                     </label>
 
                     {/* DropDown */}
-                    <div className='-translate-y-2'>
+                    <div className='-translate-y-2 relative z-20'>
                         <label className='lg:hidden block pb-2 text-base font-bold'>Select your topic</label>
 
                         <span className='dropdown'>

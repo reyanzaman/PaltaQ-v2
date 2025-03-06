@@ -3,6 +3,7 @@ import Groq from "groq-sdk";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+// Verify if the text is a question
 export async function getGroqChatCompletion1(question: string) {
   return groq.chat.completions.create({
     messages: [
@@ -15,6 +16,7 @@ export async function getGroqChatCompletion1(question: string) {
   });
 }
 
+// Scoring
 export async function getGroqChatCompletion2(question: string) {
     return groq.chat.completions.create({
       messages: [
@@ -27,6 +29,7 @@ export async function getGroqChatCompletion2(question: string) {
     });
   }
 
+  // Suggestions
   export async function getGroqChatCompletion3(question: string) {
     return groq.chat.completions.create({
       messages: [
@@ -39,6 +42,7 @@ export async function getGroqChatCompletion2(question: string) {
     });
   }
 
+  // Topic Detection
   export async function getGroqChatCompletion4(question: string, topic: string) {
     return groq.chat.completions.create({
       messages: [
