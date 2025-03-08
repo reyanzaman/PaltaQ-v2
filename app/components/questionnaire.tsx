@@ -84,38 +84,179 @@ export default function QuestionnaireForm() {
                 toast.error("Please enter a valid university ID.");
                 return;
             }
+            if (questionExample.length < 10) {
+                toast.error("Please provide a valid question example.");
+                return;
+            }
+            if (whyChildrenAskQuestions.length < 5) {
+                toast.error("Please provide a valid answer.");
+                return;
+            }
             if (type == 'pre') {
-                if (studentId === "") {
-                    toast.error("Please fill in all the fields.");
+                if (age === "") {
+                    toast.error("Please select your age.");
                     return;
+                } else if (gender === "") {
+                    toast.error("Please select your gender.");
+                } else if (schoolLocation === "") {
+                    toast.error("Please select your school location.");
+                } else if (maritalStatus === "") {
+                    toast.error("Please select your marital status.");
                 }
             } else {
-                if (studentId === "") {
-                    toast.error("Please fill in all the fields.");
+                if (interestPaltaQ === "") {
+                    toast.error("Please select your interest in PaltaQ.");
                     return;
                 }
             }
-            if (terms === false) {
+            if (studentId === "") {
+                toast.error("Please fill in all the fields.");
+                return;
+            } if (studyMotivation === "") {
+                toast.error("Please select your study motivation.");
+                return;
+            } if (studyCuriosity === "") {
+                toast.error("Please select your study curiosity.");
+                return;
+            } if (questionsAsked === "") {
+                toast.error("Please select the number of questions asked.");
+                return;
+            } if (questionExample === "") {
+                toast.error("Please provide an example question.");
+                return;
+            } if (subjectILike === "") {
+                toast.error("Please select if you have a subject you like.");
+                return;
+            } if (dontEnjoyStudying === "") {
+                toast.error("Please select if you enjoy studying.");
+                return;
+            } if (cgpa === "") {
+                toast.error("Please select your CGPA range.");
+                return;
+            } if (extraCurricular === "") {
+                toast.error("Please select if you participate in extra-curricular activities.");
+                return;
+            } if (studyTime === "") {
+                toast.error("Please select your study time.");
+                return;
+            } if (leisureTime === "") {
+                toast.error("Please select your leisure time.");
+                return;
+            } if (questionArises === "") {
+                toast.error("Please select if questions arise in your mind.");
+                return;
+            } if (courageToAsk === "") {
+                toast.error("Please select if you have the courage to ask questions.");
+                return;
+            } if (curiousToKnow === "") {
+                toast.error("Please select if you are curious to know.");
+                return;
+            } if (whyChildrenAskQuestions === "") {
+                toast.error("Please select why children ask questions.");
+                return;
+            } if (desireToLearn === "") {
+                toast.error("Please select your desire to learn.");
+                return;
+            } if (askTeachers === "") {
+                toast.error("Please select if you ask teachers questions.");
+                return;
+            } if (askPeer === "") {
+                toast.error("Please select if you ask peers questions.");
+                return;
+            } if (askMyself === "") {
+                toast.error("Please select if you ask yourself questions.");
+                return;
+            } if (askGPT === "") {
+                toast.error("Please select if you ask GPT questions.");
+                return;
+            } if (askResearch === "") {
+                toast.error("Please select if you research and answer your questions.");
+                return;
+            } if (askAvoid === "") {
+                toast.error("Please select if you avoid asking questions.");
+                return;
+            } if (motivatedToAsk === "") {
+                toast.error("Please select if you are motivated to ask questions.");
+                return;
+            } if (multQuesAskStudents === "") {
+                toast.error("Please select if you ask multiple questions to students.");
+                return;
+            } if (multQuesAskGroup === "") {
+                toast.error("Please select if you ask multiple questions to groups.");
+                return;
+            } if (multQuesAskMyself === "") {
+                toast.error("Please select if you ask multiple questions to yourself.");
+                return;
+            } if (multQuesAvoid === "") {
+                toast.error("Please select if you avoid asking multiple questions.");
+                return;
+            } if (multQuesResearch === "") {
+                toast.error("Please select if you research and answer multiple questions.");
+                return;
+            } if (multQuesMemorize === "") {
+                toast.error("Please select if you memorize your notes to multiple questions.");
+                return;
+            } if (quesHelpsUnderstand === "") {
+                toast.error("Please select if questions help you understand.");
+                return;
+            } if (easierToMemorize === "") {
+                toast.error("Please select if you think it is easier to memorize.");
+                return;
+            } if (opinionAskingQues === "") {
+                toast.error("Please select your opinion on asking questions.");
+                return;
+            } if (opinionMemorizing === "") {
+                toast.error("Please select your opinion on memorizing.");
+                return;
+            } if (opinionPracticing === "") {
+                toast.error("Please select your opinion on practicing.");
+                return;
+            } if (terms === false) {
                 toast.error("Please agree to the terms to proceed.");
                 return;
             }
 
+            // console.log("Frontend: ", {studentId}, {userId}, {classId}, {className}, {type},
+            //     {age}, {gender}, {schoolLocation}, {maritalStatus},
+            //     {studyMotivation}, {studyCuriosity}, {questionsAsked}, {questionExample}, {subjectILike}, {dontEnjoyStudying}, {cgpa}, {extraCurricular}, {studyTime}, {leisureTime},
+            //     {questionArises}, {courageToAsk}, {curiousToKnow}, {whyChildrenAskQuestions},
+            //     {desireToLearn}, {askTeachers}, {askPeer}, {askMyself}, {askGPT}, {askResearch}, {askAvoid}, {motivatedToAsk},
+            //     {multQuesAskStudents}, {multQuesAskGroup}, {multQuesAskMyself}, {multQuesAvoid}, {multQuesResearch}, {multQuesMemorize},
+            //     {quesHelpsUnderstand}, {easierToMemorize}, {opinionAskingQues}, {opinionMemorizing}, {opinionPracticing},
+            //     {interestPaltaQ}, {suggestionsPaltaQ},
+            //     {terms}
+            // );
+
             let response;
             if (type == 'pre') {
+                // Pre-Questionnaire Submit
                 response = await fetch(`/api/questionnaire/default?type=pre&uid=${userId}&ceid=${classId}`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ univID: studentId, }),
+                    body: JSON.stringify({ studentId, age, schoolLocation, maritalStatus,
+                        studyMotivation, studyCuriosity, questionsAsked, questionExample, subjectILike, dontEnjoyStudying, cgpa, extraCurricular, studyTime, leisureTime,
+                        questionArises, courageToAsk, curiousToKnow, whyChildrenAskQuestions,
+                        desireToLearn, askTeachers, askPeer, askMyself, askGPT, askResearch, askAvoid, motivatedToAsk,
+                        multQuesAskStudents, multQuesAskGroup, multQuesAskMyself, multQuesAvoid, multQuesResearch, multQuesMemorize,
+                        quesHelpsUnderstand, easierToMemorize, opinionAskingQues, opinionMemorizing, opinionPracticing
+                     }),
                 });
             } else {
+                // Post-Questionnaire Submit
                 response = await fetch(`/api/questionnaire/default?type=post&uid=${userId}&ceid=${classId}`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ univID: studentId, }),
+                    body: JSON.stringify({ studentId: studentId, interestPaltaQ, suggestionsPaltaQ,
+                        studyMotivation, studyCuriosity, questionsAsked, questionExample, subjectILike, dontEnjoyStudying, cgpa, extraCurricular, studyTime, leisureTime,
+                        questionArises, courageToAsk, curiousToKnow, whyChildrenAskQuestions,
+                        desireToLearn, askTeachers, askPeer, askMyself, askGPT, askResearch, askAvoid, motivatedToAsk,
+                        multQuesAskStudents, multQuesAskGroup, multQuesAskMyself, multQuesAvoid, multQuesResearch, multQuesMemorize,
+                        quesHelpsUnderstand, easierToMemorize, opinionAskingQues, opinionMemorizing, opinionPracticing
+                     }),
                 });
             }
 
@@ -125,8 +266,6 @@ export default function QuestionnaireForm() {
                 toast.error(data.error);
                 return;
             }
-
-            // console.log({ univID, section, age, gender, curiosity, smallQues, nowQues, enjoyStudies, confidence, motivation, terms });
 
             toast.success("Submitted");
 
@@ -939,13 +1078,13 @@ export default function QuestionnaireForm() {
                                 <input
                                     className="form-check-input"
                                     type="radio"
-                                    name="RadioCGPA5"
-                                    id="RadioCGPA5"
+                                    name="RadioCGPA6"
+                                    id="RadioCGPA6"
                                     value="3.5 to 4"
                                     checked={cgpa === "3.5 to 4"}
                                     onChange={(event) => setCGPA(event.target.value)}
                                 />
-                                <label className="form-check-label text-lg pl-4" htmlFor="RadioCGPA5">
+                                <label className="form-check-label text-lg pl-4" htmlFor="RadioCGPA6">
                                     3.5 to 4
                                 </label>
                             </div>
@@ -1419,7 +1558,7 @@ export default function QuestionnaireForm() {
                                                         value={option}
                                                         checked={state === option}
                                                         onChange={() => handleChange(setter)(option)}
-                                                        className="h-4 w-4"
+                                                        className="h-5 w-5"
                                                     />
                                                 </td>
                                             ))}
@@ -1539,7 +1678,7 @@ export default function QuestionnaireForm() {
                                                         value={option}
                                                         checked={state === option}
                                                         onChange={() => handleChange(setter)(option)}
-                                                        className="h-4 w-4"
+                                                        className="h-5 w-5"
                                                     />
                                                 </td>
                                             ))}
@@ -1716,7 +1855,7 @@ export default function QuestionnaireForm() {
                                     {[
                                         { label: "Asking questions helps me get a better grade", state: opinionAskingQues, setter: setOpinionAskingQues },
                                         { label: "Memorizing notes helps me get better grades", state: opinionMemorizing, setter: setOpinionMemorizing },
-                                        { label: "Practicing questions and answers helps to get a better gradePracticing questions and answers helps to get a better grade", state: opinionPracticing, setter: setOpinionPracticing }
+                                        { label: "Practicing questions and answers helps to get a better grade", state: opinionPracticing, setter: setOpinionPracticing }
                                     ].map(({ label, state, setter }) => (
                                         <tr key={label}>
                                             <td className="px-2 md:px-4 py-2">{label}</td>
@@ -1750,6 +1889,7 @@ export default function QuestionnaireForm() {
                         <label className="form-check-label text-base" htmlFor="agree">
                             I agree to let this data be used for research purposes.
                         </label>
+                        <small className="block pl-4 text-zinc-600 mt-1">We will not reveal your name, cgpa or other sensitive information.</small>
                     </div>
                 </div>
 
