@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "PreQuestionnaire" ALTER COLUMN "age" SET DEFAULT '',
+ALTER COLUMN "age" SET DATA TYPE TEXT;

@@ -232,8 +232,8 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
                 });
             }
         } catch (error) {
-            console.error('Failed to get class enrollments:', error);
-            return new Response(JSON.stringify({ error: 'Failed to get class enrollments' }), {
+            console.error('Failed to submit questionnaire:', error);
+            return new Response(JSON.stringify({ error: 'Failed to submit questionnaire' }), {
                 status: 500,
                 headers: {
                     'Content-Type': 'application/json'
