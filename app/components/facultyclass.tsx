@@ -51,6 +51,8 @@ interface ClassEnrollment {
     rank: string;
     questionCount: number;
     paltaQCount: number;
+    preQuestionnaire?: { isCompleted: boolean };
+    postQuestionnaire?: { isCompleted: boolean };
 }
 
 export default function FacultyClass({ user }: { user: User }) {
@@ -60,7 +62,6 @@ export default function FacultyClass({ user }: { user: User }) {
     const [topics, setTopics] = useState<Topic[]>([]);
 
     const [className, setClassName] = useState('' as string);
-    const [classCode, setClassCode] = useState('' as string);
     const [classTopic, setClassTopic] = useState('' as string);
     const [topicName, setTopicName] = useState('' as string);
 
@@ -77,6 +78,18 @@ export default function FacultyClass({ user }: { user: User }) {
     const [newClassDate, setNewClassDate] = useState('' as string);
     const [newClassQuestionnaire, setNewClassQuestionnaire] = useState(false as boolean);
     const [toggleUpdate, setToggleUpdate] = useState(null as any);
+
+    const handleSort = (key: string) => {
+        setSortConfig((prevConfig) => {
+            if (prevConfig.key === key) {
+                return {
+                    key,
+                    direction: prevConfig.direction === "asc" ? "desc" : "asc"
+                };
+            }
+            return { key, direction: "asc" };
+        });
+    };
 
     useEffect(() => {
         const fetchClasses = async () => {
@@ -157,41 +170,6 @@ export default function FacultyClass({ user }: { user: User }) {
         } catch (error) {
             console.error('Error creating class:', error);
         }
-    };
-
-    const joinClass = async (e: any) => {
-        e.preventDefault()
-        if (classCode == '') {
-            toast.error('Please enter a class code');
-            return;
-        }
-        setLoading(true);
-
-        try {
-            const response = await fetch(`/api/classes?code=${classCode}&uid=${user.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            const responseText = await response.json();
-
-            if (response.ok) {
-                setClassCode('');
-                setRefresh(!refresh);
-                toast.success(responseText.message);
-            } else {
-                // Handle error
-                console.error('Failed to submit class details');
-                toast.error(responseText.message);
-                setLoading(false);
-            }
-        } catch (error) {
-            console.error('Error fetching questions:', error);
-            setLoading(false);
-        }
-        setLoading(false);
     };
 
     const selectClass = (index: any) => {
@@ -414,17 +392,21 @@ export default function FacultyClass({ user }: { user: User }) {
 
         const sortedEnrollments = [...(selectedClass?.enrollments || [])].sort((a, b) => {
             const { key, direction } = sortConfig;
-            let valueA = key === "status" ? (a.user.is_Faculty ? (a.user.id === selectedClass?.creatorId ? "Admin" : "Faculty") : "Student") : a[key];
-            let valueB = key === "status" ? (b.user.is_Faculty ? (b.user.id === selectedClass?.creatorId ? "Admin" : "Faculty") : "Student") : b[key];
-            
+            let valueA = key === "status" 
+                ? (a.user.is_Faculty ? (a.user.id === selectedClass?.creatorId ? "Admin" : "Faculty") : "Student") 
+                : (key in a ? (a as any)[key] : undefined);
+            let valueB = key === "status" 
+                ? (b.user.is_Faculty ? (b.user.id === selectedClass?.creatorId ? "Admin" : "Faculty") : "Student") 
+                : (key in b ? (b as any)[key] : undefined);
+
             if (typeof valueA === "string") valueA = valueA.toLowerCase();
             if (typeof valueB === "string") valueB = valueB.toLowerCase();
-            
+
             if (valueA < valueB) return direction === "asc" ? -1 : 1;
             if (valueA > valueB) return direction === "asc" ? 1 : -1;
             return 0;
         });
-    
+
         const handleSort = (key: any) => {
             setSortConfig(prevConfig => ({
                 key,
@@ -454,7 +436,7 @@ export default function FacultyClass({ user }: { user: User }) {
                                 <p>Faculty Count: {selectedClass.enrollments.filter(enrollment => enrollment.user.is_Faculty).length}</p>
                             </div>
                         </div>
-            
+
                         <table className="table table-responsive-sm lg:mr-0 pr-4">
                             <thead>
                                 <tr>
@@ -489,7 +471,7 @@ export default function FacultyClass({ user }: { user: User }) {
                                                     )}
                                                 </td>
                                             </tr>
-            
+
                                             {toggleRemove === index && (
                                                 <tr key={`${index}-confirm`}>
                                                     <td colSpan={7} className="w-full">
@@ -513,6 +495,105 @@ export default function FacultyClass({ user }: { user: User }) {
                                         </React.Fragment>
                                     )
                                 ))}
+                            </tbody>
+                        </table>
+                    </div>
+                );
+            }
+        } else {
+            return (
+                <div>
+                    <h5 className="lg:pl-4 pl-2">Manage students enrolled in your classroom</h5>
+                    <p className="lg:pl-4 pl-2">Select a class to view enrolled students.</p>
+                </div>
+            )
+        }
+    };
+
+    const questionnaireStatus = () => {
+        if (selectedClass) {
+            const enrollments = selectedClass.enrollments as ClassEnrollment[];
+
+            if (enrollments.length <= 1) {
+                return (
+                    <div>
+                        <div>
+                            <h5 className="pl-3">Student list of {selectedClass.name}</h5>
+                            <p className="lg:pb-3 pb-1 pl-3">Users Enrolled: {selectedClass.enrollments.length}</p>
+                        </div>
+                        <p className="lg:ml-4 ml-3">No students or faculties except you have enrolled to this classroom yet.</p>
+                    </div>
+                )
+            } else {
+                return (
+                    <div className="lg:w-full w-[85vw] overflow-x-auto scrollbar-thin scrollbar-webkit">
+                        <div>
+                            <h5 className="pl-3">Questionnaire Status List of {selectedClass.name}</h5>
+                            <div className="flex flex-row flex-wrap gap-x-6 pl-3 pb-3">
+                                <p>
+                                    Pre-Completed: {enrollments.filter(e => !e.user.is_Faculty && e.preQuestionnaire?.isCompleted).length}
+                                </p>
+                                <p>
+                                    Pre-Incomplete: {enrollments.filter(e => !e.user.is_Faculty && !e.preQuestionnaire?.isCompleted).length}
+                                </p>
+                                <p>
+                                    Post-Completed: {enrollments.filter(e => !e.user.is_Faculty && e.postQuestionnaire?.isCompleted).length}
+                                </p>
+                                <p>
+                                    Post-Incomplete: {enrollments.filter(e => !e.user.is_Faculty && !e.postQuestionnaire?.isCompleted).length}
+                                </p>
+                            </div>
+                        </div>
+
+                        <table className="table table-responsive-sm lg:mr-0 pr-4">
+                            <thead>
+                                <tr>
+                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("name")}>Name</th>
+                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("prestatus")}>Pre-Questionnaire Status</th>
+                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("poststatus")}>Post-Questionnaire Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {enrollments
+                                    .filter(e => !e.user.is_Faculty && e.user.id !== user.id)
+                                    .sort((a, b) => {
+                                        const direction = sortConfig.direction === "asc" ? 1 : -1;
+                                        const key = sortConfig.key;
+
+                                        if (key === "name") {
+                                            return a.user.name.localeCompare(b.user.name) * direction;
+                                        } else if (key === "prestatus") {
+                                            return (
+                                                ((a.preQuestionnaire?.isCompleted ? 1 : 0) -
+                                                    (b.preQuestionnaire?.isCompleted ? 1 : 0)) * direction
+                                            );
+                                        } else if (key === "poststatus") {
+                                            return (
+                                                ((a.postQuestionnaire?.isCompleted ? 1 : 0) -
+                                                    (b.postQuestionnaire?.isCompleted ? 1 : 0)) * direction
+                                            );
+                                        }
+                                        return 0;
+                                    })
+                                    .map((student, index) => (
+                                        <tr key={index}>
+                                            <td>{student.user.name || "Unnamed"}</td>
+                                            <td>
+                                                {student.preQuestionnaire?.isCompleted ? (
+                                                    <span className="text-green-600">Completed</span>
+                                                ) : (
+                                                    <span className="text-red-600">Incomplete</span>
+                                                )}
+                                            </td>
+                                            <td>
+                                                {student.postQuestionnaire?.isCompleted ? (
+                                                    <span className="text-green-600">Completed</span>
+                                                ) : (
+                                                    <span className="text-red-600">Incomplete</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
                             </tbody>
                         </table>
                     </div>
@@ -812,7 +893,7 @@ export default function FacultyClass({ user }: { user: User }) {
                                                         </div>
                                                     )}
 
-                                                    {classItem.class.code !=="0E8E5F" && (<p className="lg:block hidden mx-2">|</p>)}
+                                                    {classItem.class.code !== "0E8E5F" && (<p className="lg:block hidden mx-2">|</p>)}
 
                                                     {user.id === classItem.class.creatorId ? (
                                                         <div>
@@ -848,24 +929,24 @@ export default function FacultyClass({ user }: { user: User }) {
                                                 {/* Update Toggle */}
                                                 {user.id == classItem.class.creatorId && (
                                                     <div>
-                                                        { toggleUpdate === index && (
-                                                        <div>
-                                                            <td className="w-full flex gap-x-4">
-                                                                <button
-                                                                    className="hover:text-red-800 transition-colors duration-500"
-                                                                    onClick={() => { 
-                                                                        setToggleUpdate(null);
-                                                                        updateClass(index); 
-                                                                    }}>
-                                                                    Confirm
-                                                                </button>
-                                                                <button
-                                                                    className="hover:text-red-800 transition-colors duration-500"
-                                                                    onClick={() => setToggleUpdate(null)}>
-                                                                    Cancel
-                                                                </button>
-                                                            </td>
-                                                        </div>
+                                                        {toggleUpdate === index && (
+                                                            <div>
+                                                                <td className="w-full flex gap-x-4">
+                                                                    <button
+                                                                        className="hover:text-red-800 transition-colors duration-500"
+                                                                        onClick={() => {
+                                                                            setToggleUpdate(null);
+                                                                            updateClass(index);
+                                                                        }}>
+                                                                        Confirm
+                                                                    </button>
+                                                                    <button
+                                                                        className="hover:text-red-800 transition-colors duration-500"
+                                                                        onClick={() => setToggleUpdate(null)}>
+                                                                        Cancel
+                                                                    </button>
+                                                                </td>
+                                                            </div>
                                                         )}
                                                     </div>
                                                 )}
@@ -946,7 +1027,7 @@ export default function FacultyClass({ user }: { user: User }) {
                     <div>
                         <h4 className="lg:pl-2 text-sky-800 pad-l1">{selectedClass?.name} Classroom</h4>
                         {!selectedClass && (
-                            <p className="lg:pl-2 pad-l1 my-0">{ "Please select a class from the table above"}</p>
+                            <p className="lg:pl-2 pad-l1 my-0">{"Please select a class from the table above"}</p>
                         )}
                     </div>
                     {selectedClass && (
@@ -970,15 +1051,22 @@ export default function FacultyClass({ user }: { user: User }) {
                     <div className="mb-4 w-full">
                         {displayTopics()}
                     </div>
-                    
+
+                    <hr className="lg:block hidden"></hr>
+
+                    {/* Display Questionnaire Status */}
+                    <div className="border border-gray-400 rounded-lg py-4 mb-5 w-full">
+                        {questionnaireStatus()}
+                    </div>
+
                     <hr className="lg:block hidden"></hr>
 
                     {/* Display Students */}
-                    <div className="border border-gray-400 rounded-lg py-4 mb-8 w-full">
+                    <div className="border border-gray-400 rounded-lg py-4 mt-5 mb-5 w-full">
                         {displayStudents()}
                     </div>
                 </div>
-            ): <div className="my-4"></div>}
+            ) : <div className="my-4"></div>}
 
         </div>
     );

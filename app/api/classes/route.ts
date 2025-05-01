@@ -101,7 +101,9 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                                             include: {
                                                 userDetails: true
                                             }
-                                        }
+                                        },
+                                        preQuestionnaire: true,
+                                        postQuestionnaire: true
                                     }
                                 }
                             }
