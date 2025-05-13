@@ -1,8 +1,36 @@
 import { NextApiResponse } from 'next';
 
+// Helper to parse cookies
+function parseCookies(header: string | null): Record<string, string> {
+  const cookies: Record<string, string> = {};
+  if (!header) return cookies;
+
+  header.split(';').forEach(cookie => {
+    const [key, value] = cookie.trim().split('=');
+    if (key && value) cookies[key] = decodeURIComponent(value);
+  });
+  return cookies;
+}
+
+const RATE_LIMIT_MS = 30 * 60 * 1000; // 30 minutes
+
 async function postHandler(req: Request, res: NextApiResponse) {
     if (req.method === 'POST') {
       try {
+        // Check for rate limiting
+        const cookies = parseCookies(req.headers.get('cookie'));
+        const now = Date.now();
+        const lastTime = parseInt(cookies['last_request_time'] || '0');
+
+        if (lastTime && now - lastTime < RATE_LIMIT_MS) {
+          const remaining = RATE_LIMIT_MS - (now - lastTime);
+          const minutes = Math.floor(remaining / 60000);
+          const seconds = Math.floor((remaining % 60000) / 1000)
+          return new Response(JSON.stringify({ message: 'AI Response Successful', improvement_suggestion: `You have exceeded your AI Quota. Please wait before submitting another request try again in ${minutes}m ${seconds}s.` }), {
+            status: 200,
+          })
+        }
+
         // Extract question data from the request body
         const { question } = await req.json();
   
@@ -34,8 +62,16 @@ async function postHandler(req: Request, res: NextApiResponse) {
         } else {
           improvement_message = `AI Response Successful`;
         }
+
+        // Set the last request time cookie
+        const responseHeaders = new Headers({
+          'Set-Cookie': `last_request_time=${now}; Path=/; Max-Age=${RATE_LIMIT_MS / 1000}; HttpOnly`,
+          'Content-Type': 'application/json',
+        });
+
         return new Response(JSON.stringify({ message: improvement_message, improvement_suggestion }), {
           status: 200,
+          headers: responseHeaders,
         })
   
       } catch (error) {
