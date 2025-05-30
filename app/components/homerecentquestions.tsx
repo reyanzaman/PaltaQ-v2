@@ -522,9 +522,6 @@ export default function RecentQuestions() {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Cache-Control': 'public, no-cache',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
                 },
                 next: {
                     tags: ['questions']
@@ -572,7 +569,7 @@ export default function RecentQuestions() {
         fetchUserID();
         fetchQuestions();
 
-        const intervalId = setInterval(fetchQuestions, 10000); // Fetch every ten seconds
+        const intervalId = setInterval(fetchQuestions, 30000); // Fetch every ten seconds
 
         return () => clearInterval(intervalId); // Cleanup function to clear interval
 
