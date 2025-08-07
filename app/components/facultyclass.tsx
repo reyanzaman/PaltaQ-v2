@@ -788,6 +788,23 @@ export default function FacultyClass({ user }: { user: User }) {
             <div className="w-full ">
                 <hr></hr>
 
+                {/* Left Part */}
+                <div className="w-full my-4">
+                    <hr className="lg:hidden block"></hr>
+                    <h5 className="text-neutral-700 pad-l1">Get started by creating your own class</h5>
+                    <form onSubmit={createClass} className="flex flex-col lg:pr-20 px py-4 gap-4 mb-2 pad-x1">
+                        <input
+                            id="className"
+                            className="form-control pr-5o5 resize-none py-3 pl-3"
+                            placeholder="Enter your class name"
+                            value={className}
+                            onChange={(e) => setClassName(e.target.value)}
+                        />
+                        <button className="btn animate-down-2" type="submit">Create Class</button>
+                    </form>
+                    <hr className="lg:hidden block"></hr>
+                </div>
+
                 {/* Right Part */}
                 <div className="border border-gray-400 rounded-lg px-2 py-4 lg:w-full w-[95%] mx-auto lg:h-[28em] h-[23.5em] overflow-y-auto scrollbar-thin scrollbar-webkit">
                     <h5 className="pl-3">Classes taught by you</h5>
@@ -998,23 +1015,6 @@ export default function FacultyClass({ user }: { user: User }) {
                     )}
 
                     {classes.length === 0 && <p className="lg:pl-4 pl-3">No classes created yet.</p>}
-                </div>
-
-                {/* Left Part */}
-                <div className="w-full my-4">
-                    <hr className="lg:hidden block"></hr>
-                    <h5 className="text-neutral-700 pad-l1">Get started by creating your own class</h5>
-                    <form onSubmit={createClass} className="flex flex-col lg:pr-20 px py-4 gap-4 mb-2 pad-x1">
-                        <input
-                            id="className"
-                            className="form-control pr-5o5 resize-none py-3 pl-3"
-                            placeholder="Enter your class name"
-                            value={className}
-                            onChange={(e) => setClassName(e.target.value)}
-                        />
-                        <button className="btn animate-down-2" type="submit">Create Class</button>
-                    </form>
-                    <hr className="lg:hidden block"></hr>
                 </div>
 
             </div>
