@@ -58,14 +58,6 @@ export default function QuestionBox({ classId, classCode, handleRefreshQs}: { cl
     const [progress, setProgress] = useState(0);
     const [progressNum, setProgressNum] = useState('');
 
-    const [response, setResponse] = useState('');
-    const [lastQuestion, setLastQuestion] = useState('');
-    const [visibility, setVisibility] = useState(false);
-
-    const toggleVisibility = (state: boolean) => {
-        setVisibility(state);
-    }
-
     useEffect(() => {
         setLoading(true);
 
@@ -251,7 +243,7 @@ export default function QuestionBox({ classId, classCode, handleRefreshQs}: { cl
         <form className="lg:w-3/4 pl-3 pt-2 pr-3" onSubmit={handleSubmit}>
 
             <h4 className='py-1 pl-2'>Try asking a question here:</h4>
-            <p className='mb- pl-2'>Select a topic, decide if you want to stay anonymous and then ask your question</p>
+            <p className='mb-6 pl-2'>Select a topic and ask your question</p>
 
             {/* Topic, Anonymity */}
             <div className='lg:pt-2 pl-2 mb-4'>
@@ -277,8 +269,6 @@ export default function QuestionBox({ classId, classCode, handleRefreshQs}: { cl
 
                     {/* DropDown */}
                     <div className='-translate-y-2 relative z-20'>
-                        <label className='lg:hidden block pb-2 text-base font-bold'>Select your topic</label>
-
                         <span className='dropdown'>
                             <div className='btn-group mr-2 mb-2'>
                                 <button type='button' className='btn btn-primary' onClick={handleDropdown}>{selectedTopic}</button>
@@ -321,7 +311,7 @@ export default function QuestionBox({ classId, classCode, handleRefreshQs}: { cl
             </div>
 
             {/* Question */}
-            <div className="mb-4 relative">
+            <div className="mb-4 relative lg:ml-2">
                 <textarea
                     id="questionMain"
                     className="form-control pr-5o5 resize-none pl-3 w-full"
@@ -344,11 +334,11 @@ export default function QuestionBox({ classId, classCode, handleRefreshQs}: { cl
             {/* Progress Bar */}
             <div>
                 {loading ? (
-                    <h1 className="text-2xl font-bold">Loading...</h1>
+                    <h1 className="text-2xl font-bold px-2">Loading...</h1>
                 ) : (
                     <div>
-                        <h5>Your progress for next ranking: {Math.round(progress) ? `${Math.round(progress)}%` : "Loading"} &nbsp;({progressNum ? progressNum : ""})</h5>
-                        <div className="progress progress-xl lg:w-[96%]" style={{ height: '1.5em' }}>
+                        <h5 className='lg:px-3 px-2'>Progress to next ranking: {Math.round(progress) ? `${Math.round(progress)}%` : "Loading"} ({progressNum ? progressNum : ""})</h5>
+                        <div className="progress progress-xl lg:w-[96%] lg:mx-3 mx-2" style={{ height: '1.5em' }}>
                             <div
                                 className="progress-bar progress-bar-striped bg-info"
                                 role="progressbar"

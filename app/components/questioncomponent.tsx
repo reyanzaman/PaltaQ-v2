@@ -2,7 +2,7 @@
 "use client";
 
 import { nunito } from "@/app/ui/fonts";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { toast } from 'react-toastify';
 
 import { Question, ClassFaculty, Topic, PreQuestionnaire, PostQuestionnaire, } from '@prisma/client';
@@ -68,6 +68,8 @@ export default function QuestionComponent({ user }: { user: User }) {
     const [refresh, setRefresh] = useState(false);
     const [refreshQuestions, setRefreshQuestions] = useState(false);
 
+    const topRef = useRef<HTMLDivElement | null>(null);
+
     const handleRefreshQuestions = () => {
         setRefreshQuestions(!refreshQuestions);
     }
@@ -87,7 +89,7 @@ export default function QuestionComponent({ user }: { user: User }) {
                 // Handle error
                 console.error('Failed to create default questionnaire');
             }
-            
+
         } catch (error: any) {
             console.error('Error fetching questions:', error);
         }
@@ -152,13 +154,13 @@ export default function QuestionComponent({ user }: { user: User }) {
                     const endsAt = new Date(selectedClass.endsAt);
                     const endsAtDateOnly = new Date(endsAt.getFullYear(), endsAt.getMonth(), endsAt.getDate(), 0, 0, 0, 0);
 
-                    if (todayDateOnly  >= endsAtDateOnly) {
+                    if (todayDateOnly >= endsAtDateOnly) {
                         if (init_data.postQuestionnaire?.isCompleted == false) {
                             if (!user.is_Faculty && !user.is_Admin) {
                                 // Show loading indicator
                                 toast.loading('Redirecting to post questionnaire page...');
 
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.location.href = `/pages/questionnaire?id=${user.id}&ceid=${init_data.id}&cname=${init_data.class.name}&type=post`;
                                 }, 1000);  // Redirect after 1 second
                             }
@@ -169,7 +171,7 @@ export default function QuestionComponent({ user }: { user: User }) {
                                 // Show loading indicator
                                 toast.loading('Redirecting to pre questionnaire page...');
 
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.location.href = `/pages/questionnaire?id=${user.id}&ceid=${init_data.id}&cname=${init_data.class.name}&type=pre`;
                                 }, 1000);  // Redirect after 1 second
                             }
@@ -184,6 +186,30 @@ export default function QuestionComponent({ user }: { user: User }) {
         callQuestionnaire();
 
     }, [selectedClass]);
+
+    useLayoutEffect(() => {
+    // Run after DOM mutations but before paint, then again on next frame.
+    // This avoids Safari/iOS jumping when layout expands after fetch/render.
+    let raf1 = 0, raf2 = 0;
+
+    const scrollToTop = () => {
+        // Anchor-first
+        topRef.current?.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
+        // Hard fallback for various mobile browsers
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        window.scrollTo(0, 0);
+    };
+
+    raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(scrollToTop);
+    });
+
+    return () => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+    };
+}, [selectedClass]);
 
     const joinClass = async (e: any) => {
         e.preventDefault()
@@ -217,13 +243,13 @@ export default function QuestionComponent({ user }: { user: User }) {
     };
 
     const selectClass = (e: React.MouseEvent<HTMLButtonElement>, index: number) => {
-        e.preventDefault()
+        e.preventDefault();
         setLoading(true);
         setSelectedClass(classes[index].class);
         if (selectedClass === classes[index].class) {
             setSelectedClass(undefined);
         }
-        setRefresh(!refresh);
+        // setRefresh(!refresh);
         setLoading(false);
     };
 
@@ -234,12 +260,12 @@ export default function QuestionComponent({ user }: { user: User }) {
                 <hr className="border-b border-gray-400 mb-3"></hr>
 
                 <div className="">
-                    <QuestionBox classId={selectedClass?.id || ''} classCode={selectedClass?.code || ''} handleRefreshQs={handleRefreshQuestions}/>
+                    <QuestionBox classId={selectedClass?.id || ''} classCode={selectedClass?.code || ''} handleRefreshQs={handleRefreshQuestions} />
                 </div>
 
                 <hr className="border-b border-gray-400 mt-5 mb-5"></hr>
 
-                <QuestionsList classId={selectedClass?.id || ''} refresh={refreshQuestions} handleRefresh={handleRefreshQuestions}/>
+                <QuestionsList classId={selectedClass?.id || ''} refresh={refreshQuestions} handleRefresh={handleRefreshQuestions} />
             </div>
         );
     };
@@ -250,23 +276,24 @@ export default function QuestionComponent({ user }: { user: User }) {
 
     return (
         <div className={`${nunito.className} antialiased flex flex-col`}>
+            <div ref={topRef} />
 
             {/* Select Another Class Header */}
             <div className="flex lg:flex-row flex-col justify-between lg:items-end">
                 <div className="lg:mt-4">
                     <h1 className="ml-4">Questions</h1>
-                    <p className="font-bold text-lg ml-4 pl-1 mb-0 pl-0">{selectedClass ? `${selectedClass.name} Classroom` : 'Please select a class'}</p>
+                    <p className="font-bold text-lg ml-4 pl-1 mb-0">{selectedClass ? `${selectedClass.name} Classroom` : 'Please select a class'}</p>
                 </div>
 
                 {selectedClass && (
-                <div className="lg:-translate-y-2 lg:mr-4 mt-4">
-                    <button
-                        className="pl-3 btn btn-primary text-success ml-4 mb-0 w-fit"
-                        type="button"
-                        onClick={() => setSelectedClass(undefined)}>
-                        Select Another Class
-                    </button>
-                </div>
+                    <div className="lg:-translate-y-2 lg:mr-4 mt-4">
+                        <button
+                            className="pl-3 btn btn-primary text-success ml-4 mb-0 w-fit"
+                            type="button"
+                            onClick={() => setSelectedClass(undefined)}>
+                            Select Another Class
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -353,7 +380,7 @@ export default function QuestionComponent({ user }: { user: User }) {
                     </div>
                 </div>
             ) : (
-                <div className="py-2 ml-1 pr-2 mb-8 w-full">
+                <div className="py-2 mb-8 w-full">
                     {/* Display/Post Questions */}
                     {displayQuestions()}
                 </div>

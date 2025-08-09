@@ -1,4 +1,3 @@
-import { width } from "@fortawesome/free-solid-svg-icons/fa0";
 import type { Config } from "tailwindcss";
 
 const config: Config = {

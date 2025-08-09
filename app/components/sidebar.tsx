@@ -106,20 +106,20 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
 
       {/* Mobile Menu */}
       {isMobile && isMobileMenuOpen && (
-        <div className="lg:hidden fixed right-0 top-0 h-screen bg-[#e6e7ee] w-full z-50"> {/* Adjusted z-index */}
-          <div className="flex flex-col justify-start items-start pl-4 pt-7 pb-5 space-y-6">
+        <div className="lg:hidden fixed right-0 top-0 h-screen bg-[#e6e7ee] w-full z-50 mt-12"> {/* Adjusted z-index */}
+          <div className="flex flex-col justify-center items-start pl-4 pt-7 pb-5 space-y-6">
             {/* Links */}
 
             <Link href="/" onClick={handleLinkClick} className="">
               {isHomeActive ? (
                 <div className="flex flex-row space-x-1 items-center">
                   <FontAwesomeIcon icon={faHouseChimney} className="text-3xl bg-white text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
-                  <span className="text-3xl ml-3 font-bold text-neutral-700">Home</span>
+                  <span className="text-3xl px-2 font-bold text-neutral-700">Home</span>
                 </div>
               ) : (
                 <div className="flex flex-row space-x-1 items-center">
                   <FontAwesomeIcon icon={faHouseChimney} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
-                  <span className="text-3xl ml-3 font-bold text-neutral-500">Home</span>
+                  <span className="text-3xl px-2 font-bold text-neutral-500">Home</span>
                 </div>
               )}
             </Link>
@@ -130,12 +130,12 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
               {isDashboardActive ? (
                 <div className="flex flex-row space-x-1 items-center">
                   <FontAwesomeIcon icon={faUserTie} width={30} className="text-3xl bg-white text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle" />
-                  <span className="text-3xl ml-3 font-bold text-neutral-700">Dashboard</span>
+                  <span className="text-3xl px-2 font-bold text-neutral-700">Dashboard</span>
                 </div>
               ) : (
                 <div className="flex flex-row space-x-1 items-center">
                   <FontAwesomeIcon icon={faUserTie} width={30} className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle" />
-                  <span className="text-3xl ml-3 font-bold text-neutral-500">Dashboard</span>
+                  <span className="text-3xl px-2 font-bold text-neutral-500">Dashboard</span>
                 </div>
               )}
             </Link>
@@ -146,12 +146,12 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
               {isQuestionsActive ? (
                 <div className="flex flex-row space-x-1 items-center">
                   <FontAwesomeIcon icon={faQ} width={30} className="text-3xl bg-white text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
-                  <span className="text-3xl ml-3 font-bold text-neutral-700">Questions</span>
+                  <span className="text-3xl px-2 font-bold text-neutral-700">Questions</span>
                 </div>
               ) : (
                 <div className="flex flex-row space-x-1 items-center">
                   <FontAwesomeIcon icon={faQ} width={30} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
-                  <span className="text-3xl ml-3 font-bold text-neutral-500">Questions</span>
+                  <span className="text-3xl px-2 font-bold text-neutral-500">Questions</span>
                 </div>
               )}
             </Link>
@@ -162,12 +162,12 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
               {isInfoActive ? (
                 <div className="flex flex-row space-x-1 items-center">
                   <FontAwesomeIcon icon={faInfo} width={30} className="text-3xl bg-white text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
-                  <span className="text-3xl ml-3 font-bold text-neutral-700">Info</span>
+                  <span className="text-3xl px-2 font-bold text-neutral-700">Info</span>
                 </div>
               ) : (
                 <div className="flex flex-row space-x-1 items-center">
                   <FontAwesomeIcon icon={faInfo} width={30} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
-                  <span className="text-3xl ml-3 font-bold text-neutral-500">Info</span>
+                  <span className="text-3xl px-2 font-bold text-neutral-500">Info</span>
                 </div>
               )}
             </Link>
@@ -181,12 +181,12 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
                   {isDashboardActive ? (
                     <div className="flex flex-row space-x-1 items-center">
                       <FontAwesomeIcon icon={faScrewdriverWrench} width={30} className="text-3xl bg-white text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle" />
-                      <span className="text-3xl ml-3 font-bold text-neutral-700">Admin Panel</span>
+                      <span className="text-3xl px-2 font-bold text-neutral-700">Admin Panel</span>
                     </div>
                   ) : (
                     <div className="flex flex-row space-x-1 items-center">
                       <FontAwesomeIcon icon={faScrewdriverWrench} width={30} className="text-3xl text-zinc-500 hover:text-black p-3 icon shadow-inset border border-light rounded-circle" />
-                      <span className="text-3xl ml-3 font-bold text-neutral-500">Admin Panel</span>
+                      <span className="text-3xl px-2 font-bold text-neutral-500">Admin Panel</span>
                     </div>
                   )}
                 </Link>
@@ -199,13 +199,13 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
               // Signout
               <button type="button" onClick={() => { openModal(); handleLinkClick() }} className="flex flex-row space-x-1 items-center">
                 <FontAwesomeIcon icon={isLoggedIn ? faArrowRightFromBracket : faArrowRightToBracket} width={30} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
-                <span className="text-3xl ml-3 font-bold text-neutral-500">{ "Logout" }</span>
+                <span className="text-3xl px-2 font-bold text-neutral-500">{ "Logout" }</span>
               </button>
             ) : (
               // Signin
               <Link href="#" onClick={() => { signIn('google'); handleLinkClick() }} className="flex flex-row space-x-1 items-center">
                 <FontAwesomeIcon icon={isLoggedIn ? faArrowRightFromBracket : faArrowRightToBracket} width={30} className="text-3xl text-neutral-500 p-3 icon shadow-inset border border-light rounded-circle" />
-                <span className="text-3xl ml-3 font-bold text-neutral-500">{ "Login" }</span>
+                <span className="text-3xl px-2 font-bold text-neutral-500">{ "Login" }</span>
               </Link>
             )}
           </div>

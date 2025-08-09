@@ -7,7 +7,6 @@ import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleChevronUp } from "@fortawesome/free-solid-svg-icons";
 
-
 import { Topic } from "@prisma/client";
 
 interface User {
@@ -427,7 +426,7 @@ export default function FacultyClass({ user }: { user: User }) {
                 )
             } else {
                 return (
-                    <div className="lg:w-full w-[85vw] overflow-x-auto scrollbar-thin scrollbar-webkit">
+                    <div className="lg:w-full w-full overflow-x-auto scrollbar-thin scrollbar-webkit px-2">
                         <div>
                             <h5 className="pl-3">Enrollment List of {selectedClass.name}</h5>
                             <div className="flex flex-row">
@@ -444,7 +443,7 @@ export default function FacultyClass({ user }: { user: User }) {
                                     <th className="border-0 cursor-pointer" onClick={() => handleSort("status")}>Status</th>
                                     <th className="border-0 cursor-pointer" onClick={() => handleSort("score")}>Score</th>
                                     <th className="border-0 cursor-pointer" onClick={() => handleSort("questionCount")}>Questions</th>
-                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("paltaQCount")}>PaltaQ Asked</th>
+                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("paltaQCount")}>PaltaQ</th>
                                     <th className="border-0 cursor-pointer" onClick={() => handleSort("rank")}>Rank</th>
                                     <th className="border-0">Actions</th>
                                 </tr>
@@ -527,7 +526,7 @@ export default function FacultyClass({ user }: { user: User }) {
             } else {
                 return (
                     <div className="lg:w-full w-[85vw] overflow-x-auto scrollbar-thin scrollbar-webkit">
-                        <div>
+                        <div className="px-2">
                             <h5 className="pl-3">Questionnaire Status List of {selectedClass.name}</h5>
                             <div className="flex flex-row flex-wrap gap-x-6 pl-3 pb-3">
                                 <p>
@@ -545,12 +544,12 @@ export default function FacultyClass({ user }: { user: User }) {
                             </div>
                         </div>
 
-                        <table className="table table-responsive-sm lg:mr-0 pr-4">
+                        <table className="table table-responsive-sm lg:mr-0 px-2">
                             <thead>
                                 <tr>
                                     <th className="border-0 cursor-pointer" onClick={() => handleSort("name")}>Name</th>
-                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("prestatus")}>Pre-Questionnaire Status</th>
-                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("poststatus")}>Post-Questionnaire Status</th>
+                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("prestatus")}>Pre-Questionnaire</th>
+                                    <th className="border-0 cursor-pointer" onClick={() => handleSort("poststatus")}>Post-Questionnaire</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -612,8 +611,31 @@ export default function FacultyClass({ user }: { user: User }) {
     const displayTopics = () => {
         if (selectedClass) {
             return (
-                <div className="flex lg:flex-row flex-col mt-4 mb-4 lg:w-75 w-full ">
+                <div className="flex lg:flex-row flex-col mt-4 mb-4 lg:w-75 w-full px-2">
+                    {/* Topic Create */}
+                    <div className="lg:w-50 w-full lg:mb-0 mb-2 lg:mt-0 mt-4">
 
+                        <h5 className="text-neutral-700 pad-l1">Set the topics in your classroom</h5>
+                        <p className="pad-l1">Students will only be able to ask questions on the topics you set</p>
+                        <form onSubmit={createTopic} className="flex flex-col lg:pr-20 gap-6 py-2 mb-2">
+                            <div>
+                                <label className="pad-l1">Topic Name</label>
+                                <div className="mar-x1">
+                                    <input
+                                        id="classTopic"
+                                        className="form-control pr-5o5 resize-none py-3 pl-3"
+                                        placeholder="Create a class topic here"
+                                        value={classTopic}
+                                        onChange={(e) => setClassTopic(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <button className="btn animate-down-2 mar-x1" type="submit">Create Topic</button>
+                        </form>
+
+                    </div>
+                    {/* Topic List */}
                     <div className="border border-gray-400 rounded-lg px-2 py-4 w-full lg:h-[23.8em] h-[24em] overflow-y-auto scrollbar-thin scrollbar-webkit lg:order-last">
                         <h5 className="pad-l1">Topics of {selectedClass?.name}</h5>
 
@@ -741,29 +763,6 @@ export default function FacultyClass({ user }: { user: User }) {
                         {topics.length === 0 && <p className="pad-l1">No topics set yet.</p>}
 
                     </div>
-
-                    <div className="lg:w-50 w-full lg:mb-0 mb-2 lg:mt-0 mt-4">
-
-                        <h5 className="text-neutral-700 pad-l1">Set the topics in your classroom</h5>
-                        <p className="pad-l1">Students will only be able to ask questions on the topics you set</p>
-                        <form onSubmit={createTopic} className="flex flex-col lg:pr-20 gap-6 py-2 mb-2">
-                            <div>
-                                <label className="pad-l1">Topic Name</label>
-                                <div className="mar-x1">
-                                    <input
-                                        id="classTopic"
-                                        className="form-control pr-5o5 resize-none py-3 pl-3"
-                                        placeholder="Create a class topic here"
-                                        value={classTopic}
-                                        onChange={(e) => setClassTopic(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-
-                            <button className="btn animate-down-2 mar-x1" type="submit">Create Topic</button>
-                        </form>
-
-                    </div>
                 </div>
             )
         } else {
@@ -777,7 +776,7 @@ export default function FacultyClass({ user }: { user: User }) {
     }
 
     if (loading) {
-        return <div className=""><h1 className="text-2xl font-bold">Loading...</h1></div>;
+        return <div className=""><h1 className="text-2xl font-bold px-2">Loading...</h1></div>;
     }
 
     return (
@@ -1025,9 +1024,9 @@ export default function FacultyClass({ user }: { user: User }) {
 
                 <div className="flex flex-row justify-between">
                     <div>
-                        <h4 className="lg:pl-2 text-sky-800 pad-l1">{selectedClass?.name} Classroom</h4>
+                        <h4 className="text-sky-800 pl-5 lg:pl-2">{selectedClass?.name} Classroom</h4>
                         {!selectedClass && (
-                            <p className="lg:pl-2 pad-l1 my-0">{"Please select a class from the table above"}</p>
+                            <p className="lg:pl-2 pl-5 my-0">{"Please select a class from the table above"}</p>
                         )}
                     </div>
                     {selectedClass && (
@@ -1036,7 +1035,7 @@ export default function FacultyClass({ user }: { user: User }) {
                                 Deselect
                                 <FontAwesomeIcon className="px-2" icon={faCircleChevronUp} />
                             </button>
-                            <button onClick={handleCollapse} className="lg:hidden block text-xl mr-[0.5em]">
+                            <button onClick={handleCollapse} className="lg:hidden block text-xl mr-[1em]">
                                 <FontAwesomeIcon icon={faCircleChevronUp} />
                             </button>
                         </div>

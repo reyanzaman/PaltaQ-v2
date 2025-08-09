@@ -726,10 +726,10 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
     let facultyQuestionsStarted = false;
 
     return (
-        <div ref={questionsRef}>
+        <div ref={questionsRef} className='lg:px-3'>
             <div onClick={() => setViewQuestions(!viewQuestions)} className='flex flex-row mb-5 ml-3 w-fit pb-1 pt-2 active:-translate-y-3 active:duration-500'>
                 <h5 className='text-gray-900'>Questions Asked On This Class</h5>
-                {viewQuestions ? <FontAwesomeIcon icon={faAngleUp} className="w-[1.5rem] text-zinc-800 translate-y-1" /> : <FontAwesomeIcon icon={faAngleDown} className="w-[1.5rem] translate-y-1 text-zinc-800" />}
+                {viewQuestions ? <FontAwesomeIcon icon={faAngleUp} className="w-[1.5rem] text-zinc-800 translate-y-1 pl-1" /> : <FontAwesomeIcon icon={faAngleDown} className="w-[1.5rem] translate-y-1 text-zinc-800" />}
             </div>
 
             {viewQuestions && (
@@ -737,7 +737,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                     <div className='flex flex-col items-start'>
 
                         {/* Pagination-bottom */}
-                        <div className='order-last'>
+                        <div className='order-last mx-auto'>
                             {questions.length > 0 && (
                                 <div className='pl-3 py-4 max-w-[90vw]'>
                                     <nav aria-label="Questions page navigation">
@@ -760,7 +760,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                         </div>
 
                         {/* Questions List */}
-                        <div className='order-5'>
+                        <div className='order-5 lg:w-fit w-[95%]'>
                             {currentQuestions.map((question: Question, index: number) => (
                                 <div key={question.id}>
                                     {/* Check if current question is non-faculty and student questions haven't started */}
@@ -789,7 +789,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                     {question.user.is_Faculty && viewFacultyQs ? (
                                         // Question Component
                                         <div
-                                            className={`card bg-primary shadow-sm ${question.user.is_Faculty == true ? 'shadow-secondary' : 'border-light'}  lg:w-fit w-full lg:mx-4 mb-4`}
+                                            className={`card bg-primary shadow-sm ${question.user.is_Faculty == true ? 'shadow-secondary' : 'border-light'} w-full lg:mx-3 mx-2 mb-4`}
                                             style={{
                                                 minWidth: '50vw',
                                                 border: question.user.is_Faculty == true ? '1px solid rgba(233, 233, 233, 0.8)' : '2px solid rgba(54, 176, 233, 0.5)',
