@@ -28,7 +28,7 @@ export async function postHandler(req: Request, res: NextApiResponse) {
                     code: code,
                     creatorId: facultyId,
                     endsAt: endsAtDate,
-                    questionnaire: true
+                    questionnaire: false
                 }
             });
 
