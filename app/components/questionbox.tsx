@@ -41,7 +41,7 @@ interface UserDetails {
     successfulReports: number;
 }
 
-export default function QuestionBox({ classId, classCode, handleRefreshQs}: { classId: string, classCode: string, handleRefreshQs: Function}) {
+export default function QuestionBox({ classId, classCode, handleRefreshQs }: { classId: string, classCode: string, handleRefreshQs: Function }) {
     const [question, setQuestion] = useState('');
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -131,7 +131,7 @@ export default function QuestionBox({ classId, classCode, handleRefreshQs}: { cl
         // Show loading toast
         const loadingToastId = toast.loading('Submitting your question...');
 
-        const response = await fetch(`/api/questions?question=${question}&tid=${selectedTopicId}&tname=${selectedTopic}&cid=${classId}&cCode=${classCode}`, {
+        const response = await fetch(`/api/questions?question=${encodeURIComponent(question)}&tid=${encodeURIComponent(selectedTopicId)}&tname=${encodeURIComponent(selectedTopic)}&cid=${encodeURIComponent(classId)}&cCode=${encodeURIComponent(classCode)}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -239,105 +239,139 @@ export default function QuestionBox({ classId, classCode, handleRefreshQs}: { cl
         setProgressNum(progressNum);
     }, [enrollment]);
 
+    const toggleAnonymity: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+        setIsAnonymous(!isAnonymous);
+    };
+
     return (
-        <form className="lg:w-3/4 pl-3 pt-2 pr-3" onSubmit={handleSubmit}>
+        <form className="lg:w-[90%] lg:px-3 pt-2" onSubmit={handleSubmit}>
 
-            <h4 className='py-1 pl-2'>Try asking a question here:</h4>
-            <p className='mb-6 pl-2'>Select a topic and ask your question</p>
-
-            {/* Topic, Anonymity */}
-            <div className='lg:pt-2 pl-2 mb-4'>
-                <div className='flex lg:flex-row flex-col lg:gap-x-12 gap-y-3 lg:pt-0 pt-2 items-start'>
-
-                    {/* Anonymity */}
-                    <label className='inline-flex items-center cursor-pointer order-last'>
-                        <input type="checkbox" value={isAnonymous.toString()} className="sr-only peer" onChange={() => setIsAnonymous(!isAnonymous)} />
-                        <div className="relative w-16 h-6 bg-zinc-800 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-5 after:w-7 after:transition-all peer-checked:bg-zinc-500-800"></div>
-                        {isAnonymous ? (
-                            <FontAwesomeIcon
-                                icon={faEyeSlash}
-                                className={`ml-3 lg:hidden text-lg text-[#31344b]`}
-                            />
-                        ) : (
-                            <FontAwesomeIcon
-                                icon={faEye}
-                                className={`ml-3 lg:hidden text-lg text-[#31344b]`}
-                            />
-                        )}
-                        <span className="ms-2 text-lg font-bold">Toggle Anonymity ({isAnonymous == false ? "Off" : "On"})</span>
-                    </label>
-
+            {/* Topic Dropdown*/}
+            <div className='px-2 my-4'>
+                <div className='lg:pt-0 pt-2 items-start'>
                     {/* DropDown */}
-                    <div className='-translate-y-2 relative z-20'>
-                        <span className='dropdown'>
-                            <div className='btn-group mr-2 mb-2'>
-                                <button type='button' className='btn btn-primary' onClick={handleDropdown}>{selectedTopic}</button>
-                                <button
-                                    type='button'
-                                    className='btn btn-primary dropdown-toggle dropdown-toggle-split'
-                                    data-toggle='dropdown'
-                                    aria-haspopup='true'
-                                    aria-expanded='false'
-                                    onClick={handleDropdown}
-                                >
-                                    <FontAwesomeIcon
-                                        icon={faAngleDown}
-                                        className="w-[1.5rem] text-[#31344b]"
-                                    />
-                                </button>
+                    <div className='flex flex-row gap-4'>
+                        <h4 className='py-1 pl-2 mb-4'>Topic:</h4>
+                        <div className='relative z-20 lg:-translate-y-0 -translate-y-1'>
+                            <span className='dropdown'>
+                                <div className='btn-group mr-2 mb-2'>
+                                    <button type='button' className='btn btn-primary' onClick={handleDropdown}>{selectedTopic}</button>
+                                    <button
+                                        type='button'
+                                        className='btn btn-primary dropdown-toggle dropdown-toggle-split'
+                                        data-toggle='dropdown'
+                                        aria-haspopup='true'
+                                        aria-expanded='false'
+                                        onClick={handleDropdown}
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={faAngleDown}
+                                            className="w-[1.5rem] text-[#31344b]"
+                                        />
+                                    </button>
 
-                                <div className={`dropdown-menu ${showDropdown ? 'show' : ''}`} id='dropdown' x-placement="bottom-start" style={{ position: 'absolute', willChange: 'transform', top: '0px', left: '0px', transform: 'translate3d(0px,40px,0px)' }}>
-                                    {topics?.map((topic: Topic, index: any) => (
-                                        <a
-                                            key={index}
-                                            className='dropdown-item'
-                                            href="#"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                setSelectedTopic(topic.name);
-                                                setSelectedTopicId(topic.id);
-                                                setShowDropdown(false);
-                                            }}
-                                        >
-                                            {topic.name}
-                                        </a>
-                                    ), [])}
+                                    <div className={`dropdown-menu ${showDropdown ? 'show' : ''}`} id='dropdown' x-placement="bottom-start" style={{ position: 'absolute', willChange: 'transform', top: '0px', left: '0px', transform: 'translate3d(0px,40px,0px)' }}>
+                                        {topics?.map((topic: Topic, index: any) => (
+                                            <a
+                                                key={index}
+                                                className='dropdown-item'
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    setSelectedTopic(topic.name);
+                                                    setSelectedTopicId(topic.id);
+                                                    setShowDropdown(false);
+                                                }}
+                                            >
+                                                {topic.name}
+                                            </a>
+                                        ), [])}
+                                    </div>
                                 </div>
-                            </div>
-                        </span>
+                            </span>
+                        </div>
                     </div>
-
                 </div>
             </div>
 
-            {/* Question */}
-            <div className="mb-4 relative lg:ml-2">
-                <textarea
-                    id="questionMain"
-                    className="form-control pr-5o5 resize-none pl-3 w-full"
-                    style={{ height: '6em' }}
-                    placeholder="Throw a question to your peers!"
-                    value={question}
-                    onChange={(e) => {setQuestion(e.target.value);}}
-                />
-                <button
-                    type="submit"
-                    className="absolute right-[1.6em] bottom-[2.3em] scale-[1.4]"
-                >
-                    <FontAwesomeIcon
-                        icon={faPaperPlane}
-                        className="w-[1.5rem] text-[#31344b]"
-                    />
-                </button>
+            {/* Question Box */}
+            <div
+                className="lg:w-[100%] w-[93%] mx-auto relative lg:pl-3"
+            >
+                <div className="mb-6">
+                    <div className="relative">
+                        <textarea
+                            id="questionMain"
+                            className="w-full resize-none rounded-2xl px-5 py-4 lg:text-base text-sm text-zinc-700 placeholder-zinc-400 bg-[#e6e7ee] shadow-[inset_4px_4px_6px_#c5c6cb,inset_-4px_-4px_6px_#ffffff] focus:outline-none focus:shadow-[inset_2px_2px_4px_#c5c6cb,inset_-2px_-2px_4px_#ffffff] lg:pr-[7rem] lg:pb-[3.75rem] overflow-y-auto break-words max-h-[50vh]"
+                            style={{ height: '6.5em' }}
+                            placeholder="Throw a question to your peers!"
+                            value={question}
+                            onChange={(e) => setQuestion(e.target.value)}
+                        />
+
+                        {/* Desktop: floating icon buttons inside textarea */}
+                        <div className="absolute bottom-[2.5em] right-[2.5em] scale-[1.5] hidden lg:flex items-center gap-1 z-10">
+                            <button
+                                type="button"
+                                onClick={toggleAnonymity}
+                                aria-label={isAnonymous ? 'Disable anonymity' : 'Enable anonymity'}
+                                className="p-2 rounded-full"
+                            >
+                                <FontAwesomeIcon
+                                    icon={isAnonymous ? faEyeSlash : faEye}
+                                    className={`w-4 h-4 ${isAnonymous ? 'text-rose-700' : 'text-zinc-600'}`}
+                                />
+                            </button>
+
+                            <button
+                                type="submit"
+                                aria-label="Submit question"
+                                className="p-2 rounded-full"
+                            >
+                                <FontAwesomeIcon
+                                    icon={faPaperPlane}
+                                    className="w-4 h-4 text-[#31344b]"
+                                />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Mobile buttons below textarea */}
+                    <div className="mt-4 flex gap-3 lg:hidden px-1">
+                        <button
+                            type="button"
+                            onClick={toggleAnonymity}
+                            className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+                         ${isAnonymous
+                                    ? 'bg-[#e6e7ee] shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] text-rose-700'
+                                    : 'bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] text-zinc-600'
+                                }`}
+                        >
+                            <FontAwesomeIcon
+                                icon={isAnonymous ? faEyeSlash : faEye}
+                                className={`w-4 ${isAnonymous ? 'text-rose-700' : 'text-zinc-600'}`}
+                            />
+                            <span>{isAnonymous ? 'Anonymous' : 'Anonymous'}</span>
+                        </button>
+
+                        <button
+                            type="submit"
+                            className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-[#31344b] bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] active:shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] transition"
+                        >
+                            <FontAwesomeIcon icon={faPaperPlane} className="w-4" />
+                            <span>Submit</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Progress Bar */}
-            <div>
+            <div className='lg:pb-3 pb-1'>
                 {loading ? (
                     <h1 className="text-2xl font-bold px-2">Loading...</h1>
                 ) : (
                     <div>
-                        <h5 className='lg:px-3 px-2'>Progress to next ranking: {Math.round(progress) ? `${Math.round(progress)}%` : "Loading"} ({progressNum ? progressNum : ""})</h5>
+                        <h5 className='lg:px-3 px-2 lg:text-lg text-base'>Progress to next ranking: {Math.round(progress) ? `${Math.round(progress)}%` : "Loading"} ({progressNum ? progressNum : ""})</h5>
                         <div className="progress progress-xl lg:w-[96%] lg:mx-3 mx-2" style={{ height: '1.5em' }}>
                             <div
                                 className="progress-bar progress-bar-striped bg-info"

@@ -776,7 +776,7 @@ export default function FacultyClass({ user }: { user: User }) {
     }
 
     if (loading) {
-        return <div className=""><h1 className="text-2xl font-bold px-2">Loading...</h1></div>;
+        return <div className=""><h1 className="text-2xl font-bold px-0">Loading...</h1></div>;
     }
 
     return (
@@ -890,26 +890,28 @@ export default function FacultyClass({ user }: { user: User }) {
                                                     <p className="lg:block hidden mx-2">|</p>
 
                                                     {user.id === classItem.class.creatorId && (
-                                                        <div>
-                                                            {classItem.class.endsAt && (
-                                                                <div className="flex flex-row items-center">
-                                                                    <button
-                                                                        className="hover:text-lime-800 transition-colors duration-500 lg:-translate-y-2 -translate-y-1"
-                                                                        onClick={() => {
-                                                                            setNewClassName(classItem.class.name);
-                                                                            setNewClassDate(formatDate(classItem.class.endsAt));
-                                                                            setNewClassQuestionnaire(classItem.class.questionnaire);
-                                                                            setToggleUpdate(index);
-                                                                            setToggleDelete(null);
-                                                                        }}>
-                                                                        Edit
-                                                                    </button>
-                                                                </div>
-                                                            )}
-                                                        </div>
+                                                        <>
+                                                            <div>
+                                                                {classItem.class.endsAt && (
+                                                                    <div className="flex flex-row items-center">
+                                                                        <button
+                                                                            className="hover:text-lime-800 transition-colors duration-500 lg:-translate-y-2 -translate-y-1"
+                                                                            onClick={() => {
+                                                                                setNewClassName(classItem.class.name);
+                                                                                setNewClassDate(formatDate(classItem.class.endsAt));
+                                                                                setNewClassQuestionnaire(classItem.class.questionnaire);
+                                                                                setToggleUpdate(index);
+                                                                                setToggleDelete(null);
+                                                                            }}>
+                                                                            Edit
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        
+                                                            {classItem.class.code !== "0E8E5F" && (<p className="lg:block hidden mx-2">|</p>)}
+                                                        </>
                                                     )}
-
-                                                    {classItem.class.code !== "0E8E5F" && (<p className="lg:block hidden mx-2">|</p>)}
 
                                                     {user.id === classItem.class.creatorId ? (
                                                         <div>
@@ -949,13 +951,14 @@ export default function FacultyClass({ user }: { user: User }) {
                                                             <div>
                                                                 <td className="w-full flex gap-x-4">
                                                                     <button
-                                                                        className="hover:text-red-800 transition-colors duration-500"
+                                                                        className="hover:text-green-800 transition-colors duration-500"
                                                                         onClick={() => {
                                                                             setToggleUpdate(null);
                                                                             updateClass(index);
                                                                         }}>
                                                                         Confirm
                                                                     </button>
+                                                                    <span>|</span>
                                                                     <button
                                                                         className="hover:text-red-800 transition-colors duration-500"
                                                                         onClick={() => setToggleUpdate(null)}>
@@ -973,10 +976,11 @@ export default function FacultyClass({ user }: { user: User }) {
                                                         {toggleDelete === index && (
                                                             <td className="w-full flex gap-x-4">
                                                                 <button
-                                                                    className="hover:text-red-800 transition-colors duration-500"
+                                                                    className="hover:text-green-800 transition-colors duration-500"
                                                                     onClick={() => { unenroll(index); setToggleDelete(null) }}>
                                                                     Confirm
                                                                 </button>
+                                                                <span>|</span>
                                                                 <button
                                                                     className="hover:text-red-800 transition-colors duration-500"
                                                                     onClick={() => setToggleDelete(null)}>
@@ -990,10 +994,11 @@ export default function FacultyClass({ user }: { user: User }) {
                                                         {toggleDelete === index && (
                                                             <td className="w-full flex gap-x-4">
                                                                 <button
-                                                                    className="hover:text-red-800 transition-colors duration-500"
+                                                                    className="hover:text-green-800 transition-colors duration-500"
                                                                     onClick={() => { deleteClass(index); setToggleDelete(null) }}>
                                                                     Confirm
                                                                 </button>
+                                                                <span>|</span>
                                                                 <button
                                                                     className="hover:text-red-800 transition-colors duration-500"
                                                                     onClick={() => setToggleDelete(null)}>

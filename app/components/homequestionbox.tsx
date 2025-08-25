@@ -92,40 +92,76 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
   };
 
   return (
-    <form className="lg:w-[100%] w-[93%] mx-auto relative" onSubmit={handleSubmit}>
-      <div className="mb-4 relative">
-        <textarea
-          id="questionMain"
-          className="form-control pr-5o5 resize-none py-3 pl-3 w-full"
-          style={{ height: '6em' }}
-          placeholder="Throw a question to your peers!"
-          value={question}
-          onChange={(e) => {
-            setQuestion(e.target.value);
-          }}
-        />
-        <div className='absolute bottom-[2.3em] right-[1.6em] scale-[1.3]'>
+    <form
+      className="lg:w-[100%] w-[93%] mx-auto relative"
+      onSubmit={handleSubmit}
+    >
+      <div className="mb-6">
+        <div className="relative">
+          <textarea
+            id="questionMain"
+            className="w-full resize-none rounded-2xl px-5 py-4 lg:text-base text-sm text-zinc-700 placeholder-zinc-400 bg-[#e6e7ee] shadow-[inset_4px_4px_6px_#c5c6cb,inset_-4px_-4px_6px_#ffffff] focus:outline-none focus:shadow-[inset_2px_2px_4px_#c5c6cb,inset_-2px_-2px_4px_#ffffff] lg:pr-[7rem] lg:pb-[3.75rem] overflow-y-auto break-words max-h-[50vh]"
+            style={{ height: '6.5em' }}
+            placeholder="Throw a question to your peers!"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+          />
+
+          {/* Desktop: floating icon buttons inside textarea */}
+          <div className="absolute bottom-[2.5em] right-[2.5em] scale-[1.5] hidden lg:flex items-center gap-1 z-10">
+            {session?.user?.email && (
+              <button
+                type="button"
+                onClick={toggleAnonymity}
+                aria-label={isAnonymous ? 'Disable anonymity' : 'Enable anonymity'}
+                className="p-2 rounded-full"
+              >
+                <FontAwesomeIcon
+                  icon={isAnonymous ? faEyeSlash : faEye}
+                  className={`w-4 h-4 ${isAnonymous ? 'text-rose-700' : 'text-zinc-600'}`}
+                />
+              </button>
+            )}
+
+            <button
+              type="submit"
+              aria-label="Submit question"
+              className="p-2 rounded-full"
+            >
+              <FontAwesomeIcon
+                icon={faPaperPlane}
+                className="w-4 h-4 text-[#31344b]"
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile buttons below textarea */}
+        <div className="mt-4 flex gap-3 lg:hidden px-1">
           {session?.user?.email && (
             <button
               type="button"
               onClick={toggleAnonymity}
-              className=""
+              className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+      ${isAnonymous
+                  ? 'bg-[#e6e7ee] shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] text-rose-700'
+                  : 'bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] text-zinc-600'
+                }`}
             >
               <FontAwesomeIcon
                 icon={isAnonymous ? faEyeSlash : faEye}
-                className={`w-[1.5rem] ${isAnonymous ? 'text-rose-700' : 'text-zinc-500'} mr-1`}
+                className={`w-4 ${isAnonymous ? 'text-rose-700' : 'text-zinc-600'}`}
               />
+              <span>{isAnonymous ? 'Anonymous' : 'Anonymous'}</span>
             </button>
           )}
 
           <button
             type="submit"
-            className=""
+            className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-[#31344b] bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] active:shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] transition"
           >
-            <FontAwesomeIcon
-              icon={faPaperPlane}
-              className="w-[1.5rem] text-[#31344b]"
-            />
+            <FontAwesomeIcon icon={faPaperPlane} className="w-4" />
+            <span>Submit</span>
           </button>
         </div>
       </div>

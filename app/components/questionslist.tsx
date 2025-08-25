@@ -9,7 +9,8 @@ import {
     faEye,
     faEyeSlash,
     faWandMagicSparkles,
-    faCalendar
+    faCalendar,
+    faComments
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
@@ -100,7 +101,7 @@ interface QuestionType {
     creating: boolean;
 }
 
-export default function QuestionsList({ classId, refresh, handleRefresh }: { classId: string, refresh: boolean, handleRefresh: any }) {
+export default function QuestionsList({ classId, refresh, handleRefresh, toggleRefresh }: { classId: string, refresh: boolean, handleRefresh: any, toggleRefresh: any }) {
 
     const { data: session, status } = useSession();
     const [userId, setUserId] = useState<string>('');
@@ -139,57 +140,86 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 20;
 
+    const fromInputRef = useRef<HTMLInputElement>(null);
+    const toInputRef = useRef<HTMLInputElement>(null);
+
+    // Update date filter
     useEffect(() => {
-        const applyDateFilter = () => {
-            let result = questions;
-
-            if (fromDate) {
-                result = result.filter(question => new Date(question.createdAt) >= new Date(fromDate));
-            }
-            if (toDate) {
-                result = result.filter(question => new Date(question.createdAt) <= new Date(toDate));
-            }
-
-            // Separate and sort questions
-            const facultyQuestions = result
-                .filter(question => question.user.is_Faculty)
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-            setFacultyQuestions(facultyQuestions);
-
-            const nonFacultyQuestions = result
-                .filter(question => !question.user.is_Faculty)
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-            setFilteredQuestions([...facultyQuestions, ...nonFacultyQuestions]);
+        // Helper: inclusive date bounds
+        const getStartOfDay = (d: Date) => {
+            const x = new Date(d);
+            x.setHours(0, 0, 0, 0);
+            return x;
+        };
+        const getEndOfDay = (d: Date) => {
+            const x = new Date(d);
+            x.setHours(23, 59, 59, 999);
+            return x;
         };
 
-        const displayTodayQuestionsFirst = () => {
-            const today = new Date().toISOString().split("T")[0];
-            const todayQuestions = questions.filter(question =>
-                question.createdAt.startsWith(today)
-            );
+        // If user hasn't chosen any filters yet, default to "today" only ONCE if there are today's questions.
+        if (!fromDate && !toDate) {
+            const now = new Date();
+            const startToday = getStartOfDay(now);
+            const endToday = getEndOfDay(now);
 
-            if (todayQuestions.length > 0) {
-                setFromDate(today);
+            const hasToday = questions.some(q => {
+                const d = new Date(q.createdAt);
+                return d >= startToday && d <= endToday;
+            });
 
-                // Separate and sort today's questions by faculty and non-faculty
-                const facultyQuestions = todayQuestions
-                    .filter(question => question.user.is_Faculty)
-                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            if (hasToday) {
+                // Build YYYY-MM-DD in local time
+                const yyyy = now.getFullYear();
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const dd = String(now.getDate()).padStart(2, '0');
+                const todayStr = `${yyyy}-${mm}-${dd}`;
 
-                const nonFacultyQuestions = todayQuestions
-                    .filter(question => !question.user.is_Faculty)
-                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-                setFilteredQuestions([...facultyQuestions, ...nonFacultyQuestions]);
-            } else {
-                applyDateFilter(); // Fallback to the standard date filtering if no questions today
+                // Set once, then let the same effect re-run and apply the unified filter below
+                setFromDate(todayStr);
+                return;
             }
-        };
+            // Fall through to unified filter with no bounds if no today items
+        }
 
-        displayTodayQuestionsFirst();
-    }, [fromDate, toDate, questions]);
+        // Unified filter path (applies whether user picked dates or default was set)
+        let result = questions;
+
+        if (fromDate) {
+            const from = getStartOfDay(new Date(fromDate));
+            result = result.filter(q => new Date(q.createdAt) >= from);
+        }
+        if (toDate) {
+            const to = getEndOfDay(new Date(toDate));
+            result = result.filter(q => new Date(q.createdAt) <= to);
+        }
+
+        // Separate and sort
+        const facultyQs = result
+            .filter(q => q.user.is_Faculty)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        const nonFacultyQs = result
+            .filter(q => !q.user.is_Faculty)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        setFacultyQuestions(facultyQs);
+        setFilteredQuestions([...facultyQs, ...nonFacultyQs]);
+    }, [questions, fromDate, toDate]);
+
+    const openDatePicker = (el: HTMLInputElement | null) => {
+        if (!el) return;
+        // Prefer native showPicker if supported
+        // @ts-ignore
+        if (typeof el.showPicker === 'function') {
+            // @ts-ignore
+            el.showPicker();
+        } else {
+            // Fallback for Safari/Firefox/iOS: user-gesture click after focus
+            el.focus({ preventScroll: true });
+            setTimeout(() => el.click(), 0);
+        }
+    };
 
     // Pagination
     const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
@@ -197,10 +227,26 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
     const indexOfFirstQuestion = indexOfLastQuestion - itemsPerPage;
     const currentQuestions = filteredQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
 
-    // Update date filter
-    const updateFilteredQuestions = (fDate: string | undefined, tDate: string | undefined) => {
-        setFromDate(fDate);
-        setToDate(tDate);
+    // Update date filter (sets state, validates, then refreshes list)
+    const updateFilteredQuestions = (fDate?: string, tDate?: string) => {
+        const from = fDate ?? '';
+        const to = tDate ?? '';
+
+        // quick guard for invalid range (optional toast)
+        if (from && to && new Date(from) > new Date(to)) {
+            toast.error('From date cannot be after To date');
+            // still set the states so the user sees what they picked
+            setFromDate(from);
+            setToDate(to);
+            return;
+        }
+
+        setFromDate(from);
+        setToDate(to);
+
+        // trigger your existing reload/filter path
+        // (same idea you use after topic change)
+        handleRefresh();
     };
 
     const formatDate = (date: string | number | Date) => {
@@ -728,8 +774,8 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
     return (
         <div ref={questionsRef} className='lg:px-3'>
             <div onClick={() => setViewQuestions(!viewQuestions)} className='flex flex-row mb-5 ml-3 w-fit pb-1 pt-2 active:-translate-y-3 active:duration-500'>
-                <h5 className='text-gray-900'>Questions Asked On This Class</h5>
-                {viewQuestions ? <FontAwesomeIcon icon={faAngleUp} className="w-[1.5rem] text-zinc-800 translate-y-1 pl-1" /> : <FontAwesomeIcon icon={faAngleDown} className="w-[1.5rem] translate-y-1 text-zinc-800" />}
+                <h5 className='text-gray-800 font-bold lg:text-2xl text-lg'>Classroom Questions</h5>
+                {viewQuestions ? <FontAwesomeIcon icon={faAngleUp} className="w-[2em] text-gray-800 lg:translate-y-2 translate-y-1 pl-1" /> : <FontAwesomeIcon icon={faAngleDown} className="w-[2em] translate-y-2 text-gray-800" />}
             </div>
 
             {viewQuestions && (
@@ -743,7 +789,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                     <nav aria-label="Questions page navigation">
                                         <ul className="pagination">
                                             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                                                <a className="page-link mb-3" href="#" onClick={(e) => handlePageChange(currentPage - 1, e)}>Previous</a>
+                                                <a className="page-link mb-3" href="#" onClick={(e) => handlePageChange(currentPage - 1, e)}>Back</a>
                                             </li>
                                             {[...Array(totalPages)].map((_, i) => (
                                                 <li key={i} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
@@ -760,19 +806,19 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                         </div>
 
                         {/* Questions List */}
-                        <div className='order-5 lg:w-fit w-[95%]'>
+                        <div className='order-3 w-full'>
                             {currentQuestions.map((question: Question, index: number) => (
                                 <div key={question.id}>
                                     {/* Check if current question is non-faculty and student questions haven't started */}
                                     <div className='mb-2'>
                                         {!question.user.is_Faculty && !studentQuestionsStarted && (
-                                            <h4 className="text-lg font-bold text-gray-800 mt-2 mb-3 ml-3 border-b-2 border-gray-600 w-fit pr-2">
+                                            <h4 className="text-lg font-bold text-gray-800 pt-4 mb-3 ml-3 border-b-2 border-gray-600 w-fit pr-2">
                                                 Student Questions
                                             </h4>
                                         )}
                                         {question.user.is_Faculty && !facultyQuestionsStarted && (
                                             <span className='flex flex-row items-center' onClick={() => setViewFacultyQs(!viewFacultyQs)}>
-                                                <h4 className="text-lg font-bold text-gray-800 mt-2 mb-3 ml-3 border-b-2 border-gray-600 w-fit pr-2">
+                                                <h4 className="text-lg font-bold text-gray-800 pt-2 mb-3 ml-3 border-b-2 border-gray-600 w-fit pr-2">
                                                     Faculty Questions
                                                 </h4>
                                                 {viewFacultyQs ? <FontAwesomeIcon icon={faAngleUp} className="w-[1.5rem] text-gray-800 -translate-y-1" /> : <FontAwesomeIcon icon={faAngleDown} className="w-[1.5rem] -translate-y-1 text-gray-800" />}
@@ -782,36 +828,30 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
 
                                     {/* Update the flag once student questions have started */}
                                     {!question.user.is_Faculty && (studentQuestionsStarted = true)}
-
                                     {/* Update the flag once student questions have started */}
                                     {question.user.is_Faculty && (facultyQuestionsStarted = true)}
 
                                     {question.user.is_Faculty && viewFacultyQs ? (
                                         // Question Component
                                         <div
-                                            className={`card bg-primary shadow-sm ${question.user.is_Faculty == true ? 'shadow-secondary' : 'border-light'} w-full lg:mx-3 mx-2 mb-4`}
-                                            style={{
-                                                minWidth: '50vw',
-                                                border: question.user.is_Faculty == true ? '1px solid rgba(233, 233, 233, 0.8)' : '2px solid rgba(54, 176, 233, 0.5)',
-                                            }}
+                                            className={`card bg-primary ${question.user.is_Faculty ? 'border-secondary border-gray-500 shadow-lg' : 'border-light shadow-sm'} lg:w-fit w-full lg:ml-2 mb-4 lg:pr-4 lg:pl-2 lg:pb-1 pb-0 lg:pt-1 pt-1`}
                                         >
-
                                             {/* Question card top part */}
                                             <div className="px-4 pt-3 pb-2">
 
-                                                {/* Main Question User Details */}
+                                                {/* User Details */}
                                                 <div className="flex flex-row justify-between mb-2">
-                                                    <div className="flex items-center">
+                                                    <div className="flex w-full items-start sm:items-center gap-1">
 
-                                                        {/* Image */}
-                                                        <div className='icon shadow-inset border border-light rounded-circle p-1'>
+                                                        {/* Avatar */}
+                                                        <div className="icon shadow-inset border border-light rounded-full p-1 shrink-0">
                                                             {question.isAnonymous ? (
                                                                 <Image
                                                                     src="/default_image.png"
                                                                     alt="Anonymous Image"
                                                                     width={30}
                                                                     height={30}
-                                                                    className='rounded-full'
+                                                                    className='rounded-full w-[24px] h-[24px] sm:w-[28px] sm:h-[28px] md:w-[32px] md:h-[32px]'
                                                                 ></Image>
                                                             ) : (
                                                                 <Image
@@ -819,74 +859,84 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                     alt="User Image"
                                                                     width={30}
                                                                     height={30}
-                                                                    className='rounded-full'
+                                                                    className='rounded-full w-[24px] h-[24px] sm:w-[28px] sm:h-[28px] md:w-[32px] md:h-[32px]'
                                                                 ></Image>
                                                             )}
                                                         </div>
 
-                                                        {/* Name/Date/Rank */}
-                                                        <div className='flex flex-col ml-1'>
-                                                            <div>
-                                                                <div className='flex flex-row gap-x-2'>
-                                                                    {/* Name */}
-                                                                    {question.user.is_Faculty ? (
-                                                                        <div>
-                                                                            {question.user.id == userId ? (
-                                                                                <div>
-                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : (question.user.name.length > 16
-                                                                                        ? question.user.name.split(' ').slice(0, 2).join(' ')
-                                                                                        : question.user.name)}</span>
-                                                                                    <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                                </div>
-                                                                            ) : (
-                                                                                <div>
-                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : (question.user.name.length > 16
-                                                                                        ? question.user.name.split(' ').slice(0, 2).join(' ')
-                                                                                        : question.user.name)}</span>
-                                                                                    <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div>
-                                                                            {question.user.id == userId ? (
-                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : (question.user.name.length > 16
-                                                                                    ? question.user.name.split(' ').slice(0, 2).join(' ')
-                                                                                    : question.user.name)}</span>
-                                                                            ) : (
-                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : (question.user.name.length > 16
-                                                                                    ? question.user.name.split(' ').slice(0, 2).join(' ')
-                                                                                    : question.user.name)}</span>
-                                                                            )}
-                                                                        </div>
-                                                                    )}
+                                                        {/* Name / Rank / Date */}
+                                                        <div className="flex flex-col min-w-0">
+                                                            {/* Top row: Name + Rank icon + Faculty tag*/}
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                {/* Name */}
+                                                                {(() => {
+                                                                    const isSelf = question.user.id === userId;             // append (You) if needed
+                                                                    const isFaculty = !!question.user.is_Faculty;
+                                                                    const userRank = rank?.[question.user.id];              // { colorCode, icon }
 
-                                                                    {/* Rank */}
-                                                                    {rank[question.user.id] && (
-                                                                        <div>
-                                                                            <Image src={`/${rank[question.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                                    const baseName = question.isAnonymous
+                                                                        ? `User@${question.user.id.slice(0, 8)}${isSelf ? ' (You)' : ''}`
+                                                                        : (question.user.name.length > 16
+                                                                            ? question.user.name.split(' ').slice(0, 2).join(' ')
+                                                                            : question.user.name);
+
+                                                                    // Do NOT color Guest User. Otherwise use rank color.
+                                                                    const nameStyle = { color: `#${userRank?.colorCode || ''}` };
+
+                                                                    return (
+                                                                        <div className="flex items-center gap-1 min-w-0">
+                                                                            {/* Name */}
+                                                                            <span
+                                                                                className="font-bold text-sm sm:text-base lg:text-lg ml-2 truncate"
+                                                                                style={nameStyle}
+                                                                                title={baseName}
+                                                                            >
+                                                                                {baseName}
+                                                                            </span>
+
+                                                                            {/* Faculty badge (style preserved) */}
+                                                                            {isFaculty && (
+                                                                                <span className="font-bold text-sm sm:text-base text-sky-800">
+                                                                                    (Faculty)
+                                                                                </span>
+                                                                            )}
+
+                                                                            {/* Rank Icon (hide when viewing as guest per your logic) */}
+                                                                            {userRank && (
+                                                                                <Image
+                                                                                    src={`/${userRank.icon}`}
+                                                                                    alt="Rank Icon"
+                                                                                    width={25}
+                                                                                    height={25}
+                                                                                    className="min-w-[20px] min-h-[20px] w-[20px] h-[20px] sm:w-[25px] sm:h-[25px]"
+                                                                                />
+                                                                            )}
                                                                         </div>
-                                                                    )}
-                                                                </div>
+                                                                    );
+                                                                })()}
                                                             </div>
-                                                            {/* Date */}
-                                                            <span className="small ml-2">
-                                                                {new Date(question.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
+
+                                                            {/* Date (kept your exact formatting, just aligned and smaller on mobile) */}
+                                                            <span className="small ml-2 text-xs sm:text-sm text-gray-800">
+                                                                {new Date(question.createdAt).toLocaleDateString('en-GB', {
+                                                                    day: '2-digit',
+                                                                    month: '2-digit',
+                                                                    year: 'numeric'
+                                                                })}
+                                                                {', '}
+                                                                {new Date(question.createdAt)
+                                                                    .toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                                                                    .replace(/:\\d+ /, ' ')}
                                                             </span>
+
                                                         </div>
 
                                                     </div>
-
-                                                    {/* <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
-                                                        <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
-                                                        <span className="font-bold lg:block hidden">Report</span>
-                                                    </button> */}
-
                                                 </div>
 
                                                 {/* Main Question */}
-                                                <div className="flex flex-row pt-2 pb-1">
-                                                    <h4 className="lg:text-lg text-base text-justify">
+                                                <div className="flex flex-row pt-2 lg:pb-2 pb-0 mb-0 px-1">
+                                                    <h4 className="lg:text-lg text-base lg:text-justify text-left p-0 m-0">
                                                         {question.question}
                                                     </h4>
                                                 </div>
@@ -897,236 +947,268 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                             <div className=''>
 
                                                 {/* Main Question Badges */}
-                                                <div className='pb-2 -translate-x-1'>
-                                                    <div className={`ml-4 badge  ${question.score >= 100
-                                                        ? "text-danger"
-                                                        : question.score >= 50
-                                                            ? "text-secondary"
-                                                            : "text-success"
-                                                        }`}>
-                                                        {question.score >= 100
-                                                            ? <span className='font-bold text-sm px-1'>HIGH LEVEL QUESTION</span>
-                                                            : question.score >= 50
-                                                                ? <span className='font-bold text-sm px-1'>MID LEVEL QUESTION</span>
-                                                                : <span className='font-bold text-sm px-1'>LOW LEVEL QUESTION</span>}
-                                                    </div>
+                                                <div className="lg:pb-2 pb-5 lg:pl-2 pl-4 lg:pt-0 pt-1">
+                                                    <div className="flex flex-wrap items-center gap-2">
 
-                                                    <div className='badge ml-2 px-2'>
-                                                        <span className="font-bold text-sm items-end p-1">
-                                                            SCORE: {question.score}
-                                                        </span>
-                                                    </div>
+                                                        {/* Level */}
+                                                        <div
+                                                            className={`order-2 sm:order-1 badge ${question.score >= 100
+                                                                ? 'text-danger'
+                                                                : question.score >= 50
+                                                                    ? 'text-secondary'
+                                                                    : 'text-success'
+                                                                }`}
+                                                        >
+                                                            {question.score >= 100 ? (
+                                                                <span className="font-bold text-xs sm:text-sm px-1">HIGH LEVEL</span>
+                                                            ) : question.score >= 50 ? (
+                                                                <span className="font-bold text-xs sm:text-sm px-1">MID LEVEL</span>
+                                                            ) : (
+                                                                <span className="font-bold text-xs sm:text-sm px-1">LOW LEVEL</span>
+                                                            )}
+                                                        </div>
 
-                                                    {/* Blooms Badge */}
-                                                    <div className='mar-ly lg:inline-block'>
-                                                        {/* Remembering */}
-                                                        {question.questionType[0].remembering && (
-                                                            <div
-                                                                className='badge bg-[#393d71] ml-0.5 px-2'
-                                                                data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory, such as remembering dates, names, or key terms without needing to understand or analyze them."
-                                                                data-tooltip-id="badge-remember"
-                                                            >
-                                                                <span className='font-bold text-white text-sm'>
-                                                                    RE
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                        {/* Score */}
+                                                        <div className="order-2 sm:order-1 badge">
+                                                            <span className="font-bold text-xs sm:text-sm p-1">
+                                                                SCORE: {question.score}
+                                                            </span>
+                                                        </div>
 
-                                                        {/* Understanding */}
-                                                        {question.questionType[0].understanding && (
-                                                            <div
-                                                                className='badge bg-[#63899f] ml-0.5 px-1.5 py-1'
-                                                                data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept in your own words. This level goes beyond mere recall by requiring comprehension of the material."
-                                                                data-tooltip-id="badge-understand"
-                                                            >
-                                                                <span className='font-bold text-white text-sm'>
-                                                                    UN
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                        {/* Blooms Badges */}
+                                                        <div className={`order-1 sm:order-2 flex flex-wrap items-center gap-1 w-full sm:w-auto ${question?.questionType?.[0]?.remembering || question?.questionType?.[0]?.understanding || question?.questionType?.[0]?.applying || question?.questionType?.[0]?.analyzing || question?.questionType?.[0]?.evaluating || question?.questionType?.[0]?.creating ? 'lg:pl-3 pl-0' : ''}`}>
+                                                            {/* Remembering */}
+                                                            {question.questionType[0].remembering && (
+                                                                <div
+                                                                    className="badge bg-[#393d71] p-1"
+                                                                    data-tooltip-id="badge-remember"
+                                                                    data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory."
+                                                                >
+                                                                    <span className="font-bold text-white text-xs sm:text-sm">RE</span>
+                                                                </div>
+                                                            )}
 
-                                                        {/* Applying */}
-                                                        {question.questionType[0].applying && (
-                                                            <div
-                                                                className='badge bg-[#576042] ml-0.5 px-1.5 py-1'
-                                                                data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems, using concepts in practice, or carrying out a procedure in a different context. This level focuses on the ability to implement learned material."
-                                                                data-tooltip-id="badge-apply"
-                                                            >
-                                                                <span className='font-bold text-white text-sm'>
-                                                                    AP
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                            {/* Understanding */}
+                                                            {question.questionType[0].understanding && (
+                                                                <div
+                                                                    className="badge bg-[#63899f] p-1"
+                                                                    data-tooltip-id="badge-understand"
+                                                                    data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept."
+                                                                >
+                                                                    <span className="font-bold text-white text-xs sm:text-sm">UN</span>
+                                                                </div>
+                                                            )}
 
-                                                        {/* Analying */}
-                                                        {question.questionType[0].analyzing && (
-                                                            <div
-                                                                className='badge bg-[#578a72] ml-0.5 px-1.5 py-1'
-                                                                data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into components to understand its structure, such as comparing and contrasting ideas, identifying relationships, or recognizing patterns. This level requires critical thinking to dissect information."
-                                                                data-tooltip-id="badge-analyze"
-                                                            >
-                                                                <span className='font-bold text-white text-sm'>
-                                                                    AN
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                            {/* Applying */}
+                                                            {question.questionType[0].applying && (
+                                                                <div
+                                                                    className="badge bg-[#576042] p-1"
+                                                                    data-tooltip-id="badge-apply"
+                                                                    data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems or carrying out a procedure in a new context."
+                                                                >
+                                                                    <span className="font-bold text-white text-xs sm:text-sm">AP</span>
+                                                                </div>
+                                                            )}
 
-                                                        {/* Evaluate */}
-                                                        {question.questionType[0].evaluating && (
-                                                            <div
-                                                                className='badge bg-[#dca146] ml-0.5 px-1.5 py-1'
-                                                                data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria and standards, such as critiquing an argument, assessing the validity of a source, or weighing the pros and cons of a decision. This level requires both analysis and justification."
-                                                                data-tooltip-id="badge-evaluate"
-                                                            >
-                                                                <span className='font-bold text-white text-sm'>
-                                                                    EV
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                            {/* Analyzing */}
+                                                            {question.questionType[0].analyzing && (
+                                                                <div
+                                                                    className="badge bg-[#578a72] p-1"
+                                                                    data-tooltip-id="badge-analyze"
+                                                                    data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into parts to understand its structure, relationships, or patterns."
+                                                                >
+                                                                    <span className="font-bold text-white text-xs sm:text-sm">AN</span>
+                                                                </div>
+                                                            )}
 
-                                                        {/* Create */}
-                                                        {question.questionType[0].creating && (
-                                                            <div
-                                                                className='badge bg-[#cb484f] ml-0.5 px-1.5 py-1'
-                                                                data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas, products, or ways of viewing things, such as designing a project, composing a story, or proposing a theory. This level emphasizes innovation and the ability to put elements together in a novel way."
-                                                                data-tooltip-id="badge-create"
-                                                            >
-                                                                <span className='font-bold text-white text-sm'>
-                                                                    CR
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                            {/* Evaluating */}
+                                                            {question.questionType[0].evaluating && (
+                                                                <div
+                                                                    className="badge bg-[#dca146] p-1"
+                                                                    data-tooltip-id="badge-evaluate"
+                                                                    data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria, such as critiquing an argument or weighing pros and cons."
+                                                                >
+                                                                    <span className="font-bold text-white text-xs sm:text-sm">EV</span>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Creating */}
+                                                            {question.questionType[0].creating && (
+                                                                <div
+                                                                    className="badge bg-[#cb484f] p-1"
+                                                                    data-tooltip-id="badge-create"
+                                                                    data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas or products, such as designing a project or proposing a theory."
+                                                                >
+                                                                    <span className="font-bold text-white text-xs sm:text-sm">CR</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
 
                                                         {/* Tooltips */}
-                                                        <div>
+                                                        <>
                                                             <Tooltip
                                                                 id="badge-remember"
                                                                 place="top"
+                                                                openOnClick
+                                                                clickable
+                                                                className="max-w-[90vw]"
                                                                 style={{
-                                                                    borderRadius: "8px",
-                                                                    padding: "10px",
-                                                                    zIndex: "100",
-                                                                    opacity: "1",
-                                                                    width: "350px",
-                                                                    textAlign: "left",
-                                                                    backgroundColor: "#393d71"
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px',
+                                                                    zIndex: 100,
+                                                                    opacity: 1,
+                                                                    width: 'min(90vw, 350px)',
+                                                                    textAlign: 'left',
+                                                                    backgroundColor: '#393d71',
                                                                 }}
                                                             />
                                                             <Tooltip
                                                                 id="badge-understand"
                                                                 place="top"
+                                                                openOnClick
+                                                                clickable
+                                                                className="max-w-[90vw]"
                                                                 style={{
-                                                                    borderRadius: "8px",
-                                                                    padding: "10px",
-                                                                    zIndex: "100",
-                                                                    opacity: "1",
-                                                                    width: "350px",
-                                                                    textAlign: "left",
-                                                                    backgroundColor: "#63899f"
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px',
+                                                                    zIndex: 100,
+                                                                    opacity: 1,
+                                                                    width: 'min(90vw, 350px)',
+                                                                    textAlign: 'left',
+                                                                    backgroundColor: '#63899f',
                                                                 }}
                                                             />
                                                             <Tooltip
                                                                 id="badge-apply"
                                                                 place="top"
+                                                                openOnClick
+                                                                clickable
+                                                                className="max-w-[90vw]"
                                                                 style={{
-                                                                    borderRadius: "8px",
-                                                                    padding: "10px",
-                                                                    zIndex: "100",
-                                                                    opacity: "1",
-                                                                    width: "350px",
-                                                                    textAlign: "left",
-                                                                    backgroundColor: "#576042"
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px',
+                                                                    zIndex: 100,
+                                                                    opacity: 1,
+                                                                    width: 'min(90vw, 350px)',
+                                                                    textAlign: 'left',
+                                                                    backgroundColor: '#576042',
                                                                 }}
                                                             />
                                                             <Tooltip
                                                                 id="badge-analyze"
                                                                 place="top"
+                                                                openOnClick
+                                                                clickable
+                                                                className="max-w-[90vw]"
                                                                 style={{
-                                                                    borderRadius: "8px",
-                                                                    padding: "10px",
-                                                                    zIndex: "100",
-                                                                    opacity: "1",
-                                                                    width: "350px",
-                                                                    textAlign: "left",
-                                                                    backgroundColor: "#578a72"
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px',
+                                                                    zIndex: 100,
+                                                                    opacity: 1,
+                                                                    width: 'min(90vw, 350px)',
+                                                                    textAlign: 'left',
+                                                                    backgroundColor: '#578a72',
                                                                 }}
                                                             />
                                                             <Tooltip
                                                                 id="badge-evaluate"
                                                                 place="top"
+                                                                openOnClick
+                                                                clickable
+                                                                className="max-w-[90vw]"
                                                                 style={{
-                                                                    borderRadius: "8px",
-                                                                    padding: "10px",
-                                                                    zIndex: "100",
-                                                                    opacity: "1",
-                                                                    width: "350px",
-                                                                    textAlign: "left",
-                                                                    backgroundColor: "#dca146"
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px',
+                                                                    zIndex: 100,
+                                                                    opacity: 1,
+                                                                    width: 'min(90vw, 350px)',
+                                                                    textAlign: 'left',
+                                                                    backgroundColor: '#dca146',
                                                                 }}
                                                             />
                                                             <Tooltip
                                                                 id="badge-create"
                                                                 place="top"
+                                                                openOnClick
+                                                                clickable
+                                                                className="max-w-[90vw]"
                                                                 style={{
-                                                                    borderRadius: "8px",
-                                                                    padding: "10px",
-                                                                    zIndex: "100",
-                                                                    opacity: "1",
-                                                                    width: "350px",
-                                                                    textAlign: "left",
-                                                                    backgroundColor: "#cb484f"
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px',
+                                                                    zIndex: 100,
+                                                                    opacity: 1,
+                                                                    width: 'min(90vw, 350px)',
+                                                                    textAlign: 'left',
+                                                                    backgroundColor: '#cb484f',
                                                                 }}
                                                             />
-                                                        </div>
+                                                        </>
                                                     </div>
                                                 </div>
 
-                                                {/* Main Question Like/Dislike/PaltaQ/Improve */}
-                                                <div className="flex flex-row items-start mt-2 ml-3 pl-2 pt-1 pb-2 translate-x-[0.1em]">
+                                                {/* Main Question Actions */}
+                                                <div className="flex flex-wrap items-center lg:gap-3 gap-[6px] lg:px-4 px-2 sm:px-3 lg:mt-2 w-full lg:-translate-y-0 -translate-y-1 lg:ml-3 ml-4">
                                                     {/* Like */}
-                                                    <button onClick={() => handleLike(question.id, userId, 'question')} disabled={loading}>
+                                                    <button onClick={() => handleLike(question.id, userId, 'question')} disabled={loading} className="flex items-center gap-1">
                                                         <FontAwesomeIcon
                                                             icon={faThumbsUp}
-                                                            className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${question.likedBy && question.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
+                                                            className={`lg:text-base text-sm hover:text-blue-500 active:text-blue-600 duration-300 ${question.likedBy?.some((like: { userId: string }) => like.userId === userId) ? 'text-blue-500' : ''}`}
                                                         />
+                                                        <span className="small lg:text-base text-sm">{question.likes}</span>
                                                     </button>
-                                                    <span className="small ml-1 mr-2">{question.likes}</span>
-                                                    <span className="small mr-2">|</span>
+
+                                                    <span className="text-zinc-400" aria-hidden>|</span>
+
                                                     {/* Dislike */}
-                                                    <button onClick={() => handleDislike(question.id, userId, 'question')} disabled={loading}>
+                                                    <button onClick={() => handleDislike(question.id, userId, 'question')} disabled={loading} className="flex items-center gap-1">
                                                         <FontAwesomeIcon
                                                             icon={faThumbsDown}
-                                                            className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${question.dislikedBy && question.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
+                                                            className={`lg:text-base text-sm hover:text-red-500 active:text-red-600 duration-300 ${question.dislikedBy?.some((d: { userId: string }) => d.userId === userId) ? 'text-red-500' : ''}`}
                                                         />
+                                                        <span className="small lg:text-base text-sm">{question.dislikes}</span>
                                                     </button>
-                                                    <span className="small ml-1 mr-2">{question.dislikes}</span>
-                                                    <span className="small mr-2">|</span>
+
+                                                    <span className="text-zinc-400" aria-hidden>|</span>
+
                                                     {/* Show PaltaQ */}
-                                                    <button onClick={() => toggleInputBox(question.id)}>
-                                                        <FontAwesomeIcon icon={faComment} className={`hover:text-indigo-500 active:text-indigo-600 duration-500 pb-1 ${visibleInputBox[question.id] ? 'text-indigo-500' : ''}`} />
+                                                    <button onClick={() => toggleInputBox(question.id)} className="flex items-center gap-1">
+                                                        <FontAwesomeIcon
+                                                            icon={faComment}
+                                                            className={`text-sm hover:text-indigo-500 active:text-indigo-600 duration-300 ${visibleInputBox[question.id] ? 'text-indigo-500' : ''}`}
+                                                        />
+                                                        <span className="small lg:text-base text-sm">{question.paltaQ}</span>
                                                     </button>
-                                                    <span className="small ml-1 mr-2">{question.paltaQ}</span>
-                                                    <span className="small mr-2">|</span>
+
+                                                    <span className="text-zinc-400" aria-hidden>|</span>
+
                                                     {/* PaltaQ */}
-                                                    <button onClick={() => handleButtonClick(question.id, 'mainQ', question.isAnonymous ? 'Anonymous User' : question.user.name)}>
-                                                        <h5
-                                                            className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'mainQ' ? 'text-emerald-700' : ''}`}>
+                                                    <button
+                                                        onClick={() => handleButtonClick(question.id, 'mainQ', question.isAnonymous ? 'Anonymous User' : question.user.name)}
+                                                        className="flex items-center gap-1"
+                                                    >
+                                                        <FontAwesomeIcon
+                                                            icon={faComments}
+                                                            className={`lg:text-base text-sm hover:text-indigo-500 active:text-indigo-600 duration-300 ${visibleInputBox[question.id] ? 'text-indigo-500' : ''}`}
+                                                        />
+                                                        <span
+                                                            className={`lg:block hidden font-bold lg:text-base text-sm text-zinc-600 group-hover:text-emerald-600 duration-200 ${textBoxPosition === 'mainQ' ? 'text-emerald-700' : ''}`}
+                                                        >
                                                             PaltaQ
-                                                        </h5>
+                                                        </span>
+                                                        <span
+                                                            className={`lg:hidden block font-bold lg:text-base text-sm text-zinc-600 group-hover:text-emerald-600 duration-200 ${textBoxPosition === 'mainQ' ? 'text-emerald-700' : ''}`}
+                                                        >
+                                                            PQ
+                                                        </span>
                                                     </button>
-                                                    <span className="small mx-2">|</span>
+
+                                                    <span className="text-zinc-400" aria-hidden>|</span>
+
                                                     {/* Improve */}
-                                                    <button onClick={() => handleAIGenerate(question.question, question.id)}>
-                                                        <div className='flex flex-row hover:text-blue-500 hover:-translate-y-[4px] duration-200'>
-                                                            <FontAwesomeIcon
-                                                                icon={faWandMagicSparkles}
-                                                                className={`translate-y-0.5`}
-                                                            />
-                                                            <span
-                                                                className={`font-bold text-base pl-1 -translate-y-[2px]`}>
-                                                                Improve
-                                                            </span>
-                                                        </div>
+                                                    <button onClick={() => handleAIGenerate(question.question, question.id)} className="flex items-center gap-1 group">
+                                                        <FontAwesomeIcon icon={faWandMagicSparkles} className="lg:text-base text-sm group-hover:translate-y-[-2px] duration-200" />
+                                                        <span className="font-bold text-base lg:block hidden -translate-y-[1px] group-hover:text-blue-500 duration-200">AI Improve</span>
+                                                        <span className="font-bold text-sm lg:hidden block -translate-y-[1px] group-hover:text-blue-500 duration-200">AI</span>
                                                     </button>
                                                 </div>
 
@@ -1187,7 +1269,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                     )}
                                                 </div>
 
-                                                <div className='mb-4 lg:mx-2 -translate-y-1'>
+                                                <div className='mb-4 mt-6 lg:mx-2 -translate-y-1'>
                                                     <GeneratedResponse response={responseAI[question.id]} visibility={visibility[question.id]} lastQuestion={lastQuestion[question.id]} toggleVisibility={toggleVisibility} type={'palta'} questionID={question.id} />
                                                 </div>
 
@@ -1273,13 +1355,6 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                         </span>
                                                                                     </div>
                                                                                 </div>
-
-                                                                                {/* <div>
-                                                                                    <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
-                                                                                        <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
-                                                                                        <span className="font-bold lg:block hidden">Report</span>
-                                                                                    </button>
-                                                                                </div> */}
                                                                             </div>
 
                                                                             {/* PaltaQ Question */}
@@ -1386,7 +1461,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                         )}
 
                                                                                         {/* Tooltips */}
-                                                                                        <div>
+                                                                                        <>
                                                                                             <Tooltip
                                                                                                 id="PQ-badge-remember"
                                                                                                 place="top"
@@ -1465,7 +1540,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                                     backgroundColor: "#cb484f"
                                                                                                 }}
                                                                                             />
-                                                                                        </div>
+                                                                                        </>
                                                                                     </div>
                                                                                 </div>
 
@@ -1577,7 +1652,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
 
                                                                             <hr className=' border-b border-gray-400 my-3 mr-4'></hr>
 
-                                                                            <div className='mb-4 lg:mx-2 pr-3'>
+                                                                            <div className='mb-4 mt-6 lg:mx-2 pr-3'>
                                                                                 <GeneratedResponse response={responseAI[paltaQ.id]} visibility={visibility[paltaQ.id]} lastQuestion={lastQuestion[paltaQ.id]} toggleVisibility={toggleVisibility} type={'palta'} questionID={paltaQ.id} />
                                                                             </div>
 
@@ -1602,6 +1677,8 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                     from="topic"
                                                                                     classId={classId}
                                                                                     topicId={question.topicId}
+                                                                                    refresh={refresh}
+                                                                                    toggleRefresh={toggleRefresh}
                                                                                 />
                                                                             </div>
                                                                         )}
@@ -1629,29 +1706,24 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                     {!question.user.is_Faculty && (
                                         // Duplicate Question Component
                                         <div
-                                            className={`card bg-primary shadow-sm border-light lg:w-fit w-full lg:mx-4 mb-4`}
-                                            style={{
-                                                minWidth: '50vw',
-                                                border: '2px solid rgba(54, 176, 233, 0.5)',
-                                            }}
+                                            className={`card bg-primary ${question.user.is_Faculty ? 'border-secondary border-gray-500 shadow-lg' : 'border-light shadow-sm'} lg:w-fit w-full lg:ml-2 mb-4 lg:pr-4 lg:pl-2 lg:pb-1 pb-0 lg:pt-1 pt-1`}
                                         >
-
                                             {/* Question card top part */}
                                             <div className="px-4 pt-3 pb-2">
 
-                                                {/* Main Question User Details */}
+                                                {/* User Details */}
                                                 <div className="flex flex-row justify-between mb-2">
-                                                    <div className="flex items-center">
+                                                    <div className="flex w-full items-start sm:items-center gap-1">
 
-                                                        {/* Image */}
-                                                        <div className='icon shadow-inset border border-light rounded-circle p-1'>
+                                                        {/* Avatar */}
+                                                        <div className="icon shadow-inset border border-light rounded-full p-1 shrink-0">
                                                             {question.isAnonymous ? (
                                                                 <Image
                                                                     src="/default_image.png"
                                                                     alt="Anonymous Image"
                                                                     width={30}
                                                                     height={30}
-                                                                    className='rounded-full'
+                                                                    className='rounded-full w-[24px] h-[24px] sm:w-[28px] sm:h-[28px] md:w-[32px] md:h-[32px]'
                                                                 ></Image>
                                                             ) : (
                                                                 <Image
@@ -1659,70 +1731,84 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                     alt="User Image"
                                                                     width={30}
                                                                     height={30}
-                                                                    className='rounded-full'
+                                                                    className='rounded-full w-[24px] h-[24px] sm:w-[28px] sm:h-[28px] md:w-[32px] md:h-[32px]'
                                                                 ></Image>
                                                             )}
                                                         </div>
 
-                                                        {/* Name */}
-                                                        <div className='flex flex-col ml-1'>
-                                                            <div>
-                                                                <div className='flex flex-row gap-x-2'>
-                                                                    {question.user.is_Faculty ? (
-                                                                        <div>
-                                                                            {question.user.id == userId ? (
-                                                                                <div>
-                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : question.user.name}</span>
-                                                                                    <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                                </div>
-                                                                            ) : (
-                                                                                <div>
-                                                                                    <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : question.user.name}</span>
-                                                                                    <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                                </div>
+                                                        {/* Name / Rank / Date */}
+                                                        <div className="flex flex-col min-w-0">
+                                                            {/* Top row: Name + Rank icon + Faculty tag*/}
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                {/* Name */}
+                                                                {(() => {
+                                                                    const isSelf = question.user.id === userId;             // append (You) if needed
+                                                                    const isFaculty = !!question.user.is_Faculty;
+                                                                    const userRank = rank?.[question.user.id];              // { colorCode, icon }
+
+                                                                    const baseName = question.isAnonymous
+                                                                        ? `User@${question.user.id.slice(0, 8)}${isSelf ? ' (You)' : ''}`
+                                                                        : (question.user.name.length > 16
+                                                                            ? question.user.name.split(' ').slice(0, 2).join(' ')
+                                                                            : question.user.name);
+
+                                                                    // Do NOT color Guest User. Otherwise use rank color.
+                                                                    const nameStyle = { color: `#${userRank?.colorCode || ''}` };
+
+                                                                    return (
+                                                                        <div className="flex items-center gap-1 min-w-0">
+                                                                            {/* Name */}
+                                                                            <span
+                                                                                className="font-bold text-sm sm:text-base lg:text-lg ml-2 truncate"
+                                                                                style={nameStyle}
+                                                                                title={baseName}
+                                                                            >
+                                                                                {baseName}
+                                                                            </span>
+
+                                                                            {/* Faculty badge (style preserved) */}
+                                                                            {isFaculty && (
+                                                                                <span className="font-bold text-sm sm:text-base text-sky-800">
+                                                                                    (Faculty)
+                                                                                </span>
+                                                                            )}
+
+                                                                            {/* Rank Icon (hide when viewing as guest per your logic) */}
+                                                                            {userRank && (
+                                                                                <Image
+                                                                                    src={`/${userRank.icon}`}
+                                                                                    alt="Rank Icon"
+                                                                                    width={25}
+                                                                                    height={25}
+                                                                                    className="min-w-[20px] min-h-[20px] w-[20px] h-[20px] sm:w-[25px] sm:h-[25px]"
+                                                                                />
                                                                             )}
                                                                         </div>
-                                                                    ) : (
-                                                                        <div>
-                                                                            {question.user.id == userId ? (
-                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)} (You)` : (question.user.name.length > 16
-                                                                                    ? question.user.name.split(' ').slice(0, 2).join(' ')
-                                                                                    : question.user.name)}</span>
-                                                                            ) : (
-                                                                                <span className="font-bold text-lg ml-2" style={{ color: `#${rank[question.user.id]?.colorCode}` }}>{question.isAnonymous ? `User@${question.user.id.slice(0, 8)}` : (question.user.name.length > 16
-                                                                                    ? question.user.name.split(' ').slice(0, 2).join(' ')
-                                                                                    : question.user.name)}</span>
-                                                                            )}
-                                                                        </div>
-                                                                    )}
-                                                                    {rank[question.user.id] ? (
-                                                                        <div>
-                                                                            <Image src={`/${rank[question.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div>
-                                                                            <Image src={`/1.png`} alt="Rank Icon" width={25} height={25} />
-                                                                        </div>
-                                                                    )}
-                                                                </div>
+                                                                    );
+                                                                })()}
                                                             </div>
-                                                            <span className="small ml-2">
-                                                                {new Date(question.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
+
+                                                            {/* Date (kept your exact formatting, just aligned and smaller on mobile) */}
+                                                            <span className="small ml-2 text-xs sm:text-sm text-gray-800">
+                                                                {new Date(question.createdAt).toLocaleDateString('en-GB', {
+                                                                    day: '2-digit',
+                                                                    month: '2-digit',
+                                                                    year: 'numeric'
+                                                                })}
+                                                                {', '}
+                                                                {new Date(question.createdAt)
+                                                                    .toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                                                                    .replace(/:\\d+ /, ' ')}
                                                             </span>
+
                                                         </div>
 
                                                     </div>
-
-                                                    {/* <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
-                                                        <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
-                                                        <span className="font-bold lg:block hidden">Report</span>
-                                                    </button> */}
-
                                                 </div>
 
                                                 {/* Main Question */}
-                                                <div className="flex flex-row pt-2 pb-1">
-                                                    <h4 className="lg:text-lg text-base text-justify">
+                                                <div className="flex flex-row pt-2 lg:pb-2 pb-0 mb-0 px-1">
+                                                    <h4 className="lg:text-lg text-base lg:text-justify text-left p-0 m-0">
                                                         {question.question}
                                                     </h4>
                                                 </div>
@@ -1733,236 +1819,268 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                             <div className=''>
 
                                                 {/* Main Question Badges */}
-                                                <div className='pb-2 -translate-x-1'>
-                                                    <div className={`ml-4 badge  ${question.score >= 100
-                                                        ? "text-danger"
-                                                        : question.score >= 50
-                                                            ? "text-secondary"
-                                                            : "text-success"
-                                                        }`}>
-                                                        {question.score >= 100
-                                                            ? <span className='font-bold text-sm px-1'>HIGH LEVEL QUESTION</span>
-                                                            : question.score >= 50
-                                                                ? <span className='font-bold text-sm px-1'>MID LEVEL QUESTION</span>
-                                                                : <span className='font-bold text-sm px-1'>LOW LEVEL QUESTION</span>}
-                                                    </div>
+                                                <div className="lg:pb-2 pb-5 lg:pl-2 pl-4 lg:pt-0 pt-1">
+                                                    <div className="flex flex-wrap items-center gap-2">
 
-                                                    <div className='badge ml-2 px-2'>
-                                                        <span className="font-bold text-sm items-end p-1">
-                                                            SCORE: {question.score}
-                                                        </span>
-                                                    </div>
+                                                        {/* Level */}
+                                                        <div
+                                                            className={`order-2 sm:order-1 badge ${question.score >= 100
+                                                                ? 'text-danger'
+                                                                : question.score >= 50
+                                                                    ? 'text-secondary'
+                                                                    : 'text-success'
+                                                                }`}
+                                                        >
+                                                            {question.score >= 100 ? (
+                                                                <span className="font-bold text-xs sm:text-sm px-1">HIGH LEVEL</span>
+                                                            ) : question.score >= 50 ? (
+                                                                <span className="font-bold text-xs sm:text-sm px-1">MID LEVEL</span>
+                                                            ) : (
+                                                                <span className="font-bold text-xs sm:text-sm px-1">LOW LEVEL</span>
+                                                            )}
+                                                        </div>
 
-                                                    {/* Blooms Badge */}
-                                                    <div className='mar-ly lg:inline-block'>
-                                                        {/* Remembering */}
-                                                        {question.questionType[0].remembering && (
-                                                            <div
-                                                                className='badge bg-[#393d71] ml-0.5 px-2'
-                                                                data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory, such as remembering dates, names, or key terms without needing to understand or analyze them."
-                                                                data-tooltip-id="badge-remember"
-                                                            >
-                                                                <span className='font-bold text-white text-sm'>
-                                                                    RE
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                        {/* Score */}
+                                                        <div className="order-2 sm:order-1 badge">
+                                                            <span className="font-bold text-xs sm:text-sm p-1">
+                                                                SCORE: {question.score}
+                                                            </span>
+                                                        </div>
 
-                                                        {/* Understanding */}
-                                                        {question.questionType[0].understanding && (
-                                                            <div
-                                                                className='badge bg-[#63899f] ml-0.5 px-1.5 py-1'
-                                                                data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept in your own words. This level goes beyond mere recall by requiring comprehension of the material."
-                                                                data-tooltip-id="badge-understand"
-                                                            >
-                                                                <span className='font-bold text-white text-sm'>
-                                                                    UN
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                        {/* Blooms Badges */}
+                                                        <div className={`order-1 sm:order-2 flex flex-wrap items-center gap-1 w-full sm:w-auto ${question?.questionType?.[0]?.remembering || question?.questionType?.[0]?.understanding || question?.questionType?.[0]?.applying || question?.questionType?.[0]?.analyzing || question?.questionType?.[0]?.evaluating || question?.questionType?.[0]?.creating ? 'lg:pl-3 pl-0' : ''}`}>
+                                                            {/* Remembering */}
+                                                            {question.questionType[0].remembering && (
+                                                                <div
+                                                                    className="badge bg-[#393d71] p-1"
+                                                                    data-tooltip-id="badge-remember"
+                                                                    data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory."
+                                                                >
+                                                                    <span className="font-bold text-white text-xs sm:text-sm">RE</span>
+                                                                </div>
+                                                            )}
 
-                                                        {/* Applying */}
-                                                        {question.questionType[0].applying && (
-                                                            <div
-                                                                className='badge bg-[#576042] ml-0.5 px-1.5 py-1'
-                                                                data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems, using concepts in practice, or carrying out a procedure in a different context. This level focuses on the ability to implement learned material."
-                                                                data-tooltip-id="badge-apply"
-                                                            >
-                                                                <span className='font-bold text-white text-sm'>
-                                                                    AP
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                            {/* Understanding */}
+                                                            {question.questionType[0].understanding && (
+                                                                <div
+                                                                    className="badge bg-[#63899f] p-1"
+                                                                    data-tooltip-id="badge-understand"
+                                                                    data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept."
+                                                                >
+                                                                    <span className="font-bold text-white text-xs sm:text-sm">UN</span>
+                                                                </div>
+                                                            )}
 
-                                                        {/* Analying */}
-                                                        {question.questionType[0].analyzing && (
-                                                            <div
-                                                                className='badge bg-[#578a72] ml-0.5 px-1.5 py-1'
-                                                                data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into components to understand its structure, such as comparing and contrasting ideas, identifying relationships, or recognizing patterns. This level requires critical thinking to dissect information."
-                                                                data-tooltip-id="badge-analyze"
-                                                            >
-                                                                <span className='font-bold text-white text-sm'>
-                                                                    AN
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                            {/* Applying */}
+                                                            {question.questionType[0].applying && (
+                                                                <div
+                                                                    className="badge bg-[#576042] p-1"
+                                                                    data-tooltip-id="badge-apply"
+                                                                    data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems or carrying out a procedure in a new context."
+                                                                >
+                                                                    <span className="font-bold text-white text-xs sm:text-sm">AP</span>
+                                                                </div>
+                                                            )}
 
-                                                        {/* Evaluate */}
-                                                        {question.questionType[0].evaluating && (
-                                                            <div
-                                                                className='badge bg-[#dca146] ml-0.5 px-1.5 py-1'
-                                                                data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria and standards, such as critiquing an argument, assessing the validity of a source, or weighing the pros and cons of a decision. This level requires both analysis and justification."
-                                                                data-tooltip-id="badge-evaluate"
-                                                            >
-                                                                <span className='font-bold text-white text-sm'>
-                                                                    EV
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                            {/* Analyzing */}
+                                                            {question.questionType[0].analyzing && (
+                                                                <div
+                                                                    className="badge bg-[#578a72] p-1"
+                                                                    data-tooltip-id="badge-analyze"
+                                                                    data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into parts to understand its structure, relationships, or patterns."
+                                                                >
+                                                                    <span className="font-bold text-white text-xs sm:text-sm">AN</span>
+                                                                </div>
+                                                            )}
 
-                                                        {/* Create */}
-                                                        {question.questionType[0].creating && (
-                                                            <div
-                                                                className='badge bg-[#cb484f] ml-0.5 px-1.5 py-1'
-                                                                data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas, products, or ways of viewing things, such as designing a project, composing a story, or proposing a theory. This level emphasizes innovation and the ability to put elements together in a novel way."
-                                                                data-tooltip-id="badge-create"
-                                                            >
-                                                                <span className='font-bold text-white text-sm'>
-                                                                    CR
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                            {/* Evaluating */}
+                                                            {question.questionType[0].evaluating && (
+                                                                <div
+                                                                    className="badge bg-[#dca146] p-1"
+                                                                    data-tooltip-id="badge-evaluate"
+                                                                    data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria, such as critiquing an argument or weighing pros and cons."
+                                                                >
+                                                                    <span className="font-bold text-white text-xs sm:text-sm">EV</span>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Creating */}
+                                                            {question.questionType[0].creating && (
+                                                                <div
+                                                                    className="badge bg-[#cb484f] p-1"
+                                                                    data-tooltip-id="badge-create"
+                                                                    data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas or products, such as designing a project or proposing a theory."
+                                                                >
+                                                                    <span className="font-bold text-white text-xs sm:text-sm">CR</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
 
                                                         {/* Tooltips */}
-                                                        <div>
+                                                        <>
                                                             <Tooltip
                                                                 id="badge-remember"
                                                                 place="top"
+                                                                openOnClick
+                                                                clickable
+                                                                className="max-w-[90vw]"
                                                                 style={{
-                                                                    borderRadius: "8px",
-                                                                    padding: "10px",
-                                                                    zIndex: "100",
-                                                                    opacity: "1",
-                                                                    width: "350px",
-                                                                    textAlign: "left",
-                                                                    backgroundColor: "#393d71"
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px',
+                                                                    zIndex: 100,
+                                                                    opacity: 1,
+                                                                    width: 'min(90vw, 350px)',
+                                                                    textAlign: 'left',
+                                                                    backgroundColor: '#393d71',
                                                                 }}
                                                             />
                                                             <Tooltip
                                                                 id="badge-understand"
                                                                 place="top"
+                                                                openOnClick
+                                                                clickable
+                                                                className="max-w-[90vw]"
                                                                 style={{
-                                                                    borderRadius: "8px",
-                                                                    padding: "10px",
-                                                                    zIndex: "100",
-                                                                    opacity: "1",
-                                                                    width: "350px",
-                                                                    textAlign: "left",
-                                                                    backgroundColor: "#63899f"
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px',
+                                                                    zIndex: 100,
+                                                                    opacity: 1,
+                                                                    width: 'min(90vw, 350px)',
+                                                                    textAlign: 'left',
+                                                                    backgroundColor: '#63899f',
                                                                 }}
                                                             />
                                                             <Tooltip
                                                                 id="badge-apply"
                                                                 place="top"
+                                                                openOnClick
+                                                                clickable
+                                                                className="max-w-[90vw]"
                                                                 style={{
-                                                                    borderRadius: "8px",
-                                                                    padding: "10px",
-                                                                    zIndex: "100",
-                                                                    opacity: "1",
-                                                                    width: "350px",
-                                                                    textAlign: "left",
-                                                                    backgroundColor: "#576042"
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px',
+                                                                    zIndex: 100,
+                                                                    opacity: 1,
+                                                                    width: 'min(90vw, 350px)',
+                                                                    textAlign: 'left',
+                                                                    backgroundColor: '#576042',
                                                                 }}
                                                             />
                                                             <Tooltip
                                                                 id="badge-analyze"
                                                                 place="top"
+                                                                openOnClick
+                                                                clickable
+                                                                className="max-w-[90vw]"
                                                                 style={{
-                                                                    borderRadius: "8px",
-                                                                    padding: "10px",
-                                                                    zIndex: "100",
-                                                                    opacity: "1",
-                                                                    width: "350px",
-                                                                    textAlign: "left",
-                                                                    backgroundColor: "#578a72"
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px',
+                                                                    zIndex: 100,
+                                                                    opacity: 1,
+                                                                    width: 'min(90vw, 350px)',
+                                                                    textAlign: 'left',
+                                                                    backgroundColor: '#578a72',
                                                                 }}
                                                             />
                                                             <Tooltip
                                                                 id="badge-evaluate"
                                                                 place="top"
+                                                                openOnClick
+                                                                clickable
+                                                                className="max-w-[90vw]"
                                                                 style={{
-                                                                    borderRadius: "8px",
-                                                                    padding: "10px",
-                                                                    zIndex: "100",
-                                                                    opacity: "1",
-                                                                    width: "350px",
-                                                                    textAlign: "left",
-                                                                    backgroundColor: "#dca146"
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px',
+                                                                    zIndex: 100,
+                                                                    opacity: 1,
+                                                                    width: 'min(90vw, 350px)',
+                                                                    textAlign: 'left',
+                                                                    backgroundColor: '#dca146',
                                                                 }}
                                                             />
                                                             <Tooltip
                                                                 id="badge-create"
                                                                 place="top"
+                                                                openOnClick
+                                                                clickable
+                                                                className="max-w-[90vw]"
                                                                 style={{
-                                                                    borderRadius: "8px",
-                                                                    padding: "10px",
-                                                                    zIndex: "100",
-                                                                    opacity: "1",
-                                                                    width: "350px",
-                                                                    textAlign: "left",
-                                                                    backgroundColor: "#cb484f"
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px',
+                                                                    zIndex: 100,
+                                                                    opacity: 1,
+                                                                    width: 'min(90vw, 350px)',
+                                                                    textAlign: 'left',
+                                                                    backgroundColor: '#cb484f',
                                                                 }}
                                                             />
-                                                        </div>
+                                                        </>
                                                     </div>
                                                 </div>
 
-                                                {/* Main Question Like/Dislike/PaltaQ/Improve */}
-                                                <div className="flex flex-row items-start mt-2 ml-3 pl-2 pt-1 pb-2 translate-x-[0.1em]">
+                                                {/* Main Question Actions */}
+                                                <div className="flex flex-wrap items-center lg:gap-3 gap-[6px] lg:px-4 px-2 sm:px-3 lg:mt-2 w-full lg:-translate-y-0 -translate-y-1 lg:ml-3 ml-4">
                                                     {/* Like */}
-                                                    <button onClick={() => handleLike(question.id, userId, 'question')} disabled={loading}>
+                                                    <button onClick={() => handleLike(question.id, userId, 'question')} disabled={loading} className="flex items-center gap-1">
                                                         <FontAwesomeIcon
                                                             icon={faThumbsUp}
-                                                            className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${question.likedBy && question.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
+                                                            className={`lg:text-base text-sm hover:text-blue-500 active:text-blue-600 duration-300 ${question.likedBy?.some((like: { userId: string }) => like.userId === userId) ? 'text-blue-500' : ''}`}
                                                         />
+                                                        <span className="small lg:text-base text-sm">{question.likes}</span>
                                                     </button>
-                                                    <span className="small ml-1 mr-2">{question.likes}</span>
-                                                    <span className="small mr-2">|</span>
+
+                                                    <span className="text-zinc-400" aria-hidden>|</span>
+
                                                     {/* Dislike */}
-                                                    <button onClick={() => handleDislike(question.id, userId, 'question')} disabled={loading}>
+                                                    <button onClick={() => handleDislike(question.id, userId, 'question')} disabled={loading} className="flex items-center gap-1">
                                                         <FontAwesomeIcon
                                                             icon={faThumbsDown}
-                                                            className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${question.dislikedBy && question.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
+                                                            className={`lg:text-base text-sm hover:text-red-500 active:text-red-600 duration-300 ${question.dislikedBy?.some((d: { userId: string }) => d.userId === userId) ? 'text-red-500' : ''}`}
                                                         />
+                                                        <span className="small lg:text-base text-sm">{question.dislikes}</span>
                                                     </button>
-                                                    <span className="small ml-1 mr-2">{question.dislikes}</span>
-                                                    <span className="small mr-2">|</span>
+
+                                                    <span className="text-zinc-400" aria-hidden>|</span>
+
                                                     {/* Show PaltaQ */}
-                                                    <button onClick={() => toggleInputBox(question.id)}>
-                                                        <FontAwesomeIcon icon={faComment} className={`hover:text-indigo-500 active:text-indigo-600 duration-500 pb-1 ${visibleInputBox[question.id] ? 'text-indigo-500' : ''}`} />
+                                                    <button onClick={() => toggleInputBox(question.id)} className="flex items-center gap-1">
+                                                        <FontAwesomeIcon
+                                                            icon={faComment}
+                                                            className={`text-sm hover:text-indigo-500 active:text-indigo-600 duration-300 ${visibleInputBox[question.id] ? 'text-indigo-500' : ''}`}
+                                                        />
+                                                        <span className="small lg:text-base text-sm">{question.paltaQ}</span>
                                                     </button>
-                                                    <span className="small ml-1 mr-2">{question.paltaQ}</span>
-                                                    <span className="small mr-2">|</span>
+
+                                                    <span className="text-zinc-400" aria-hidden>|</span>
+
                                                     {/* PaltaQ */}
-                                                    <button onClick={() => handleButtonClick(question.id, 'mainQ', question.isAnonymous ? 'Anonymous User' : question.user.name)}>
-                                                        <h5
-                                                            className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'mainQ' ? 'text-emerald-700' : ''}`}>
+                                                    <button
+                                                        onClick={() => handleButtonClick(question.id, 'mainQ', question.isAnonymous ? 'Anonymous User' : question.user.name)}
+                                                        className="flex items-center gap-1"
+                                                    >
+                                                        <FontAwesomeIcon
+                                                            icon={faComments}
+                                                            className={`lg:text-base text-sm hover:text-indigo-500 active:text-indigo-600 duration-300 ${visibleInputBox[question.id] ? 'text-indigo-500' : ''}`}
+                                                        />
+                                                        <span
+                                                            className={`lg:block hidden font-bold lg:text-base text-sm text-zinc-600 group-hover:text-emerald-600 duration-200 ${textBoxPosition === 'mainQ' ? 'text-emerald-700' : ''}`}
+                                                        >
                                                             PaltaQ
-                                                        </h5>
+                                                        </span>
+                                                        <span
+                                                            className={`lg:hidden block font-bold lg:text-base text-sm text-zinc-600 group-hover:text-emerald-600 duration-200 ${textBoxPosition === 'mainQ' ? 'text-emerald-700' : ''}`}
+                                                        >
+                                                            PQ
+                                                        </span>
                                                     </button>
-                                                    <span className="small mx-2">|</span>
+
+                                                    <span className="text-zinc-400" aria-hidden>|</span>
+
                                                     {/* Improve */}
-                                                    <button onClick={() => handleAIGenerate(question.question, question.id)}>
-                                                        <div className='flex flex-row hover:text-blue-500 hover:-translate-y-[4px] duration-200'>
-                                                            <FontAwesomeIcon
-                                                                icon={faWandMagicSparkles}
-                                                                className={`translate-y-0.5`}
-                                                            />
-                                                            <span
-                                                                className={`font-bold text-base pl-1 -translate-y-[2px]`}>
-                                                                Improve
-                                                            </span>
-                                                        </div>
+                                                    <button onClick={() => handleAIGenerate(question.question, question.id)} className="flex items-center gap-1 group">
+                                                        <FontAwesomeIcon icon={faWandMagicSparkles} className="lg:text-base text-sm group-hover:translate-y-[-2px] duration-200" />
+                                                        <span className="font-bold text-base lg:block hidden -translate-y-[1px] group-hover:text-blue-500 duration-200">AI Improve</span>
+                                                        <span className="font-bold text-sm lg:hidden block -translate-y-[1px] group-hover:text-blue-500 duration-200">AI</span>
                                                     </button>
                                                 </div>
 
@@ -2023,7 +2141,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                     )}
                                                 </div>
 
-                                                <div className='mb-4 lg:mx-2 -translate-y-1'>
+                                                <div className='mb-4 mt-6 lg:mx-2 -translate-y-1'>
                                                     <GeneratedResponse response={responseAI[question.id]} visibility={visibility[question.id]} lastQuestion={lastQuestion[question.id]} toggleVisibility={toggleVisibility} type={'palta'} questionID={question.id} />
                                                 </div>
 
@@ -2093,9 +2211,13 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                                     )}
                                                                                                 </div>
                                                                                             )}
-                                                                                            {rank[paltaQ.user.id] && (
+                                                                                            {rank[paltaQ.user.id] ? (
                                                                                                 <div>
                                                                                                     <Image src={`/${rank[paltaQ.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
+                                                                                                </div>
+                                                                                            ) : (
+                                                                                                <div>
+                                                                                                    <Image src={`/1.png`} alt="Rank Icon" width={25} height={25} />
                                                                                                 </div>
                                                                                             )}
                                                                                         </div>
@@ -2105,13 +2227,6 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                         </span>
                                                                                     </div>
                                                                                 </div>
-
-                                                                                {/* <div>
-                                                                                    <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
-                                                                                        <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
-                                                                                        <span className="font-bold lg:block hidden">Report</span>
-                                                                                    </button>
-                                                                                </div> */}
                                                                             </div>
 
                                                                             {/* PaltaQ Question */}
@@ -2218,7 +2333,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                         )}
 
                                                                                         {/* Tooltips */}
-                                                                                        <div>
+                                                                                        <>
                                                                                             <Tooltip
                                                                                                 id="PQ-badge-remember"
                                                                                                 place="top"
@@ -2297,7 +2412,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                                     backgroundColor: "#cb484f"
                                                                                                 }}
                                                                                             />
-                                                                                        </div>
+                                                                                        </>
                                                                                     </div>
                                                                                 </div>
 
@@ -2409,7 +2524,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
 
                                                                             <hr className=' border-b border-gray-400 my-3 mr-4'></hr>
 
-                                                                            <div className='mb-4 lg:mx-2 pr-3'>
+                                                                            <div className='mb-4 mt-6 lg:mx-2 pr-3'>
                                                                                 <GeneratedResponse response={responseAI[paltaQ.id]} visibility={visibility[paltaQ.id]} lastQuestion={lastQuestion[paltaQ.id]} toggleVisibility={toggleVisibility} type={'palta'} questionID={paltaQ.id} />
                                                                             </div>
 
@@ -2434,6 +2549,8 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                                                                     from="topic"
                                                                                     classId={classId}
                                                                                     topicId={question.topicId}
+                                                                                    refresh={refresh}
+                                                                                    toggleRefresh={toggleRefresh}
                                                                                 />
                                                                             </div>
                                                                         )}
@@ -2451,133 +2568,182 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                         </div>
 
                         {/* Header */}
-                        <div className='flex flex-row justify-between mb-2 pb-2 order-first z-30'>
+                        <div className="flex lg:flex-row flex-col items-start justify-start order-1 w-full lg:mb-3 lg:gap-0 gap-3">
 
-                            {/* Dropdown Section */}
-                            <div className='flex flex-row order-first'>
-                                <h3 className='pl-3 lg:block hidden text-lg pt-1'>Filter Displayed Questions By Topic: </h3>
+                            {/* Topic + Refresh */}
+                            <div className="flex flex-row items-center w-fit gap-2 lg:gap-1">
+                                {/* Topic Filter (grows) */}
+                                <div className="flex flex-row order-first">
+                                    {/* DropDown */}
+                                    <div className="ml-3 -translate-y-1 w-full">
+                                        <span className="dropdown block w-full">
+                                            <div className="btn-group mr-2 mb-2 flex flex-1 min-w-0">
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-primary flex-1 min-w-0 text-left truncate"
+                                                    onClick={handleDropdown}
+                                                    title={selectedTopic}
+                                                >
+                                                    {selectedTopic}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-primary dropdown-toggle dropdown-toggle-split flex-none"
+                                                    data-toggle="dropdown"
+                                                    aria-haspopup="true"
+                                                    aria-expanded="false"
+                                                    onClick={handleDropdown}
+                                                >
+                                                    <FontAwesomeIcon
+                                                        icon={faAngleDown}
+                                                        className="w-[1.5rem] text-[#31344b]"
+                                                    />
+                                                </button>
 
-                                {/* DropDown */}
-                                <div className='ml-3 -translate-y-1'>
-                                    <span className='dropdown'>
-                                        <div className='btn-group mr-2 mb-2'>
-                                            <button type='button' className='btn btn-primary' onClick={handleDropdown}>{selectedTopic}</button>
-                                            <button
-                                                type='button'
-                                                className='btn btn-primary dropdown-toggle dropdown-toggle-split'
-                                                data-toggle='dropdown'
-                                                aria-haspopup='true'
-                                                aria-expanded='false'
-                                                onClick={handleDropdown}
-                                            >
-                                                <FontAwesomeIcon
-                                                    icon={faAngleDown}
-                                                    className="w-[1.5rem] text-[#31344b]"
-                                                />
-                                            </button>
-
-                                            <div className={`dropdown-menu ${showDropdown ? 'show' : ''}`} id='dropdown' x-placement="bottom-start" style={{ position: 'absolute', willChange: 'transform', top: '0px', left: '0px', transform: 'translate3d(0px,40px,0px)' }}>
-                                                {/* All Topic */}
-                                                <a
-                                                    className='dropdown-item'
-                                                    href="#"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        setSelectedTopic('All Topics');
-                                                        setSelectedTopicId('');
-                                                        handlePageChange(1, e);
-                                                        handleRefresh();
-                                                        setShowDropdown(false);
+                                                <div
+                                                    className={`dropdown-menu ${showDropdown ? 'show' : ''}`}
+                                                    id="dropdown"
+                                                    x-placement="bottom-start"
+                                                    style={{
+                                                        position: 'absolute',
+                                                        willChange: 'transform',
+                                                        top: '0px',
+                                                        left: '0px',
+                                                        transform: 'translate3d(0px,40px,0px)',
                                                     }}
                                                 >
-                                                    {'All Topics'}
-                                                </a>
-                                                {topics?.map((topic: Topic, index: any) => (
+                                                    {/* All Topic */}
                                                     <a
-                                                        key={index}
-                                                        className='dropdown-item'
+                                                        className="dropdown-item"
                                                         href="#"
                                                         onClick={(e) => {
                                                             e.preventDefault();
-                                                            setSelectedTopic(topic.name);
-                                                            setSelectedTopicId(topic.id);
+                                                            setSelectedTopic('All Topics');
+                                                            setSelectedTopicId('');
                                                             handlePageChange(1, e);
                                                             handleRefresh();
                                                             setShowDropdown(false);
                                                         }}
                                                     >
-                                                        {topic.name}
+                                                        {'All Topics'}
                                                     </a>
-                                                ), [])}
+
+                                                    {topics?.map((topic: Topic, index: any) => (
+                                                        <a
+                                                            key={index}
+                                                            className="dropdown-item"
+                                                            href="#"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                setSelectedTopic(topic.name);
+                                                                setSelectedTopicId(topic.id);
+                                                                handlePageChange(1, e);
+                                                                handleRefresh();
+                                                                setShowDropdown(false);
+                                                            }}
+                                                        >
+                                                            {topic.name}
+                                                        </a>
+                                                    ), [])}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Single Refresh */}
+                                <div className="mr-4 ml-1 lg:ml-3 lg:-translate-y-[0.4em] translate-y-[0.3em] lg:mb-0 mb-6 shrink-0">
+                                    <button onClick={() => handleRefresh()} className="btn btn-primary flex items-center space-x-2">
+                                        <FontAwesomeIcon icon={faArrowsRotate} className="w-[1.5rem] text-[#31344b]" />
+                                    </button>
                                 </div>
                             </div>
 
-                            {/* Desktop Refresh */}
-                            <div className='mr-4 ml-3 -translate-y-1 lg:block hidden'>
-                                <button onClick={() => handleRefresh()} className="btn btn-primary">Refresh</button>
-                            </div>
-
-                            {/* Mobile Refresh */}
-                            <div className='mr-4 ml-3 -translate-y-[0.2em] lg:hidden block'>
-                                <button onClick={() => handleRefresh()} className="btn btn-primary">
-                                    <FontAwesomeIcon icon={faArrowsRotate} className="w-[1.5rem] text-[#31344b]" />
-                                </button>
-                            </div>
-
-                        </div>
-
-                        {/* Date Filter */}
-                        <div className="lg:col-10 col-14 mb-4">
-                            <div className="input-daterange datepicker flex flex-row">
+                            {/* Date Filter */}
+                            <div className="lg:-translate-y-1 flex lg:flex-row flex-col lg:gap-4 lg:mb-0 mb-4 w-full lg:px-0 px-4">
 
                                 {/* From */}
-                                <div className="pl-3 pr-4 w-full min-w-[12em]">
-                                    <label className="h6" htmlFor="startDate">From</label>
-                                    <div className="form-group">
-                                        <div className="input-group input-group-border">
-                                            <div className="input-group-prepend"><span className="input-group-text"><FontAwesomeIcon icon={faCalendar} /></span></div>
+                                <div
+                                    className="flex flex-row w-full items-center justify-start gap-3 select-none cursor-pointer"
+                                    role="button"
+                                    tabIndex={0}
+                                    onMouseDown={(e) => {
+                                        // Prevent text selection when clicking the row (but allow it on the input itself)
+                                        const t = e.target as HTMLElement;
+                                        if (!t.closest('input[type="date"]')) e.preventDefault();
+                                    }}
+                                    onClick={() => openDatePicker(fromInputRef.current)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            openDatePicker(fromInputRef.current);
+                                        }
+                                    }}
+                                >
+                                    <label className="h6 pb-2" htmlFor="startDate">From</label>
+                                    <div className="form-group w-full">
+                                        <div className="input-group input-group-border w-full">
+                                            <div className="input-group-prepend">
+                                                <span className="input-group-text">
+                                                    <FontAwesomeIcon icon={faCalendar} />
+                                                </span>
+                                            </div>
                                             <input
-                                                className="form-control datepicker"
+                                                ref={fromInputRef}
+                                                className="form-control datepicker w-full select-text cursor-text"
                                                 id="startDate"
                                                 type="date"
                                                 value={fromDate as string | number | readonly string[] | undefined}
-                                                onChange={(e) => {
-                                                    setFromDate(e.target.value);
-                                                    updateFilteredQuestions(e.target.value, toDate);
-                                                }}
+                                                onChange={(e) => updateFilteredQuestions(e.target.value as string, toDate as string)}
                                             />
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* To */}
-                                <div className="lg:pl-3 pl-0 pr-4 w-full min-w-[12em]">
-                                    <div className="form-group">
-                                        <label className="h6" htmlFor="endDate">To</label>
-                                        <div className="input-group input-group-border">
-                                            <div className="input-group-prepend"><span className="input-group-text"><FontAwesomeIcon icon={faCalendar} /></span></div>
+                                <div
+                                    className="flex flex-row w-full items-center justify-start gap-3 select-none cursor-pointer"
+                                    role="button"
+                                    tabIndex={0}
+                                    onMouseDown={(e) => {
+                                        const t = e.target as HTMLElement;
+                                        if (!t.closest('input[type="date"]')) e.preventDefault();
+                                    }}
+                                    onClick={() => openDatePicker(toInputRef.current)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            openDatePicker(toInputRef.current);
+                                        }
+                                    }}
+                                >
+                                    <label className="h6 lg:mr-0 mr-5 pb-2" htmlFor="endDate">To</label>
+                                    <div className="form-group w-full">
+                                        <div className="input-group input-group-border w-full">
+                                            <div className="input-group-prepend">
+                                                <span className="input-group-text">
+                                                    <FontAwesomeIcon icon={faCalendar} />
+                                                </span>
+                                            </div>
                                             <input
-                                                className="form-control datepicker"
+                                                ref={toInputRef}
+                                                className="form-control datepicker w-full select-text cursor-text"
                                                 id="endDate"
                                                 type="date"
                                                 value={toDate as string | number | readonly string[] | undefined}
-                                                onChange={(e) => {
-                                                    setToDate(e.target.value);
-                                                    updateFilteredQuestions(fromDate, e.target.value);
-                                                }}
+                                                onChange={(e) => updateFilteredQuestions(fromDate as string, e.target.value as string)}
                                             />
                                         </div>
                                     </div>
                                 </div>
+
                             </div>
+
                         </div>
 
                         {/* Info */}
-                        <div className='order-3 pl-3 z-20'>
-                            <p className='text-xl mb-0 pb-1'>Questions Registered: {loadingQ ? "Loading" : questions.length}</p>
+                        <div className='order-2 pl-3 z-20 lg:mb-0 mb-4'>
+                            <p className='mb-0 pb-1 lg:text-xl text-lg'>Showing Questions: ({loadingQ ? "Loading" : currentQuestions.length} / {loadingQ ? "Loading" : questions.length})</p>
                             <p className='text-sm pb-3 mb-0 text-zinc-500'>
                                 {fromDate && toDate
                                     ? `Displaying questions from ${formatDate(fromDate)} to ${formatDate(toDate)}`
@@ -2600,12 +2766,9 @@ export default function QuestionsList({ classId, refresh, handleRefresh }: { cla
                                 </div>
                             )}
                         </div>
-
                     </div>
-
                 </div>
             )}
-
         </div>
     );
 }

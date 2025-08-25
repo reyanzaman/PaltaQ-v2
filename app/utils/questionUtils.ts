@@ -33,7 +33,7 @@ export async function validateQuestion(question: string, category: QuestionCateg
       return "Invalid question format";
     }
 
-    const englishRegex = /^[a-zA-Z0-9?.,'"\/\s@\-!#$%^&*()+={}\[\]\\|;:'"<>\?]+$/;
+    const englishRegex = /^[a-zA-Z0-9?.,'"\/\s@\-!#$%^&*()+={}\[\]\\|;]+$/;
 
     if (!englishRegex.test(question)) {
       return "Invalid characters in question";

@@ -79,16 +79,16 @@ export default function Questions(props) {
     }, []);
 
     if (status === 'loading' || loadingUser) {
-        return <div className="lg:pl-[8em] pl-[2em] pt-[3em] text-left"><h1 className="text-2xl font-bold">Loading...</h1></div>;
-    }
-  
-    return (
-        <div className={`${nunito.className} antialiased flex flex-row`}>
-            <UserImage />
-    
-            <div className="lg:ml-[7em] lg:mt-[4em] mt-[2em] w-full px-2">
-                {user && <QuestionComponent user={user} />}
+        return <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+                <h1 className="text-2xl font-bold">Loading Page...</h1>
             </div>
+        </div>;
+    }
+
+    return (
+        <div className="flex items-start justify-center min-h-screen">
+            {user && <QuestionComponent user={user} />}
         </div>
     )
 }

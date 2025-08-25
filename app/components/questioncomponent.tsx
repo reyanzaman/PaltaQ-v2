@@ -9,6 +9,9 @@ import { Question, ClassFaculty, Topic, PreQuestionnaire, PostQuestionnaire, } f
 import QuestionBox from "@/app/components/questionbox";
 import QuestionsList from "@/app/components/questionslist";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRightArrowLeft } from "@fortawesome/free-solid-svg-icons";
+
 interface ClassEnrollment {
     id: string;
     userId: string;
@@ -69,6 +72,10 @@ export default function QuestionComponent({ user }: { user: User }) {
     const [refreshQuestions, setRefreshQuestions] = useState(false);
 
     const topRef = useRef<HTMLDivElement | null>(null);
+
+    const toggleRefresh = () => {
+        setRefresh(!refresh);
+    }
 
     const handleRefreshQuestions = () => {
         setRefreshQuestions(!refreshQuestions);
@@ -188,28 +195,28 @@ export default function QuestionComponent({ user }: { user: User }) {
     }, [selectedClass]);
 
     useLayoutEffect(() => {
-    // Run after DOM mutations but before paint, then again on next frame.
-    // This avoids Safari/iOS jumping when layout expands after fetch/render.
-    let raf1 = 0, raf2 = 0;
+        // Run after DOM mutations but before paint, then again on next frame.
+        // This avoids Safari/iOS jumping when layout expands after fetch/render.
+        let raf1 = 0, raf2 = 0;
 
-    const scrollToTop = () => {
-        // Anchor-first
-        topRef.current?.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
-        // Hard fallback for various mobile browsers
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        window.scrollTo(0, 0);
-    };
+        const scrollToTop = () => {
+            // Anchor-first
+            topRef.current?.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
+            // Hard fallback for various mobile browsers
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            window.scrollTo(0, 0);
+        };
 
-    raf1 = requestAnimationFrame(() => {
-        raf2 = requestAnimationFrame(scrollToTop);
-    });
+        raf1 = requestAnimationFrame(() => {
+            raf2 = requestAnimationFrame(scrollToTop);
+        });
 
-    return () => {
-        cancelAnimationFrame(raf1);
-        cancelAnimationFrame(raf2);
-    };
-}, [selectedClass]);
+        return () => {
+            cancelAnimationFrame(raf1);
+            cancelAnimationFrame(raf2);
+        };
+    }, [selectedClass]);
 
     const joinClass = async (e: any) => {
         e.preventDefault()
@@ -257,41 +264,57 @@ export default function QuestionComponent({ user }: { user: User }) {
         return (
             <div className="min-h-[27em]">
 
-                <hr className="border-b border-gray-400 mb-3"></hr>
+                <hr className="border-b border-gray-400 mb-3 w-[98.5%]"></hr>
 
                 <div className="">
                     <QuestionBox classId={selectedClass?.id || ''} classCode={selectedClass?.code || ''} handleRefreshQs={handleRefreshQuestions} />
                 </div>
 
-                <hr className="border-b border-gray-400 mt-5 mb-5"></hr>
+                <hr className="border-b border-gray-400 my-5"></hr>
 
-                <QuestionsList classId={selectedClass?.id || ''} refresh={refreshQuestions} handleRefresh={handleRefreshQuestions} />
+                <QuestionsList classId={selectedClass?.id || ''} refresh={refreshQuestions} handleRefresh={handleRefreshQuestions} toggleRefresh={toggleRefresh} />
             </div>
         );
     };
 
     if (loading) {
-        return <div className="pl-2"><h1 className="ml-2 text-2xl font-bold lg:translate-x-0 translate-x-[0.68em] lg:-translate-y-4 -translate-y-[1.3em]">Loading...</h1></div>;
+        return <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+                <h1 className="text-2xl font-bold">Loading Classes...</h1>
+            </div>
+        </div>;
     }
 
     return (
-        <div className={`${nunito.className} antialiased flex flex-col`}>
+        <div className={`${nunito.className} antialiased flex flex-col lg:ml-[7em] lg:mt-[1em] mt-[3em] w-full px-2`}>
             <div ref={topRef} />
 
-            {/* Select Another Class Header */}
+            {/* Change Class Header */}
             <div className="flex lg:flex-row flex-col justify-between lg:items-end">
-                <div className="lg:mt-4">
-                    <h1 className="ml-4">Questions</h1>
-                    <p className="font-bold text-lg ml-4 pl-1 mb-0">{selectedClass ? `${selectedClass.name} Classroom` : 'Please select a class'}</p>
+                <div className="lg:mt-4 w-full">
+                    <h1 className="ml-4 font-bold lg:block hidden">Questions & PaltaQs</h1>
+                    <h1 className="ml-4 font-bold lg:hidden block">Questions</h1>
+                    <div className="flex flex-row">
+                        <p className="lg:text-xl text-base ml-4 pl-1 mb-0">{selectedClass ? `${selectedClass.name} Classroom` : 'Please select a class'}</p>
+                        {selectedClass && (
+                            <FontAwesomeIcon icon={faArrowRightArrowLeft} onClick={() => setSelectedClass(undefined)} className="ml-3.5 text-black text-lg mt-1 active:text-green-500 hover:text-green-500 lg:hidden block"/>
+                        )}
+                    </div>
+                    {!selectedClass && (
+                        <>
+                            
+                            <hr className="lg:block hidden w-[98%]"></hr>
+                        </>
+                    )}
                 </div>
 
                 {selectedClass && (
-                    <div className="lg:-translate-y-2 lg:mr-4 mt-4">
+                    <div className="lg:-translate-y-2 lg:mr-4 lg:mt-4 mt-6 lg:block hidden">
                         <button
-                            className="pl-3 btn btn-primary text-success ml-4 mb-0 w-fit"
+                            className="pl-3 btn btn-primary text-success lg:ml-0 ml-5 mb-0 w-fit"
                             type="button"
                             onClick={() => setSelectedClass(undefined)}>
-                            Select Another Class
+                            Change Classroom
                         </button>
                     </div>
                 )}
@@ -299,12 +322,12 @@ export default function QuestionComponent({ user }: { user: User }) {
 
             {/* Top Part - Join/Select Class */}
             {selectedClass == null ? (
-                <div className="flex lg:flex-row flex-col my-4 lg:w-75 w-full ">
+                <div className="flex lg:flex-row flex-col my-4 lg:w-75 w-full items-start justify-center gap-y-6">
 
                     {/* Select Class */}
                     <div className="border border-gray-400 rounded-lg px-2 py-4 lg:mr-4 w-full lg:h-[75vh] h-[28em] overflow-y-auto scrollbar-thin scrollbar-webkit lg:order-first order-last">
-                        <h3 className="pl-3">Enrolled classes</h3>
-                        <p className="pl-3">Select a class to access questions and palta questions</p>
+                        <h3 className="pl-3 font-bold">Enrolled classes</h3>
+                        <p className="pl-3 lg:text-base text-sm">Select a class to access questions and palta questions</p>
 
                         {classes.length !== 0 && (
                             <div>
@@ -365,16 +388,17 @@ export default function QuestionComponent({ user }: { user: User }) {
                     {/* Join Class */}
                     <div className="lg:w-50 w-full">
                         <hr className="lg:hidden block mt-0 pt-0 pb-2"></hr>
-                        <h5 className="text-neutral-700 ml-4">Join a class to get started</h5>
-                        <form onSubmit={joinClass} className="flex flex-col lg:pr-20 px-3 py-4 mb-5 gap-4">
+                        <h5 className="text-neutral-700 ml-4 font-bold mb-3">Join Class Using Code</h5>
+                        <form onSubmit={joinClass} className="flex flex-col lg:pr-14 px-3 py-1 mb-5 gap-4">
                             <input
                                 id="classCode"
-                                className="form-control pr-5o5 resize-none py-3 pl-3"
+                                className="form-control"
                                 placeholder="Enter a class code"
+                                required
                                 value={classCode}
                                 onChange={(e) => setClassCode(e.target.value)}
                             />
-                            <p className="px-2 py-0 my-0 text-sm text-justify text-zinc-500">If you want to join a demo class and try it out, please use this code: <b>FBA6B9</b></p>
+                            <p className="px-2 pb-2 my-0 text-sm text-justify text-zinc-500">If you want to join a demo class and try it out, please use this code: <b>FBA6B9</b></p>
                             <button className="btn animate-down-2 text-info" type="submit">Join Class</button>
                         </form>
                     </div>

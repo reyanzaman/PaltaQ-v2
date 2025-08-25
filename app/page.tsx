@@ -22,7 +22,7 @@ export default function Home() {
         <div className="mb-2 lg:mt-[4em] mt-[5.5em] lg:w-[75vw] mx-auto">
           <div className="flex flex-col">
             <h1
-              className={`${dancing_script.className} antialiased text-6xl text-center mt-4`}
+              className={`${dancing_script.className} antialiased text-6xl text-center mt-4 px-2 mx-auto`}
             >
               Palta Question
             </h1>
@@ -35,8 +35,8 @@ export default function Home() {
           <RecentQuestions />
 
           <div className="relative mx-auto w-fit bottom-0 pb-1">
-            <p className="text-sm text-center my-1 text-zinc-500">PaltaQ Version 2.1f</p>
-            <p className="text-sm text-center text-zinc-500">Based on Meta AI Llama-3.1-8B-Instant Model</p>
+            <p className="text-sm text-center my-1 text-zinc-500">PaltaQ Version 2.2</p>
+            <p className="text-sm text-center text-zinc-500">Based on Meta AI Llama-3.1-8B-128K Model</p>
           </div>
         </div>
       </div>
