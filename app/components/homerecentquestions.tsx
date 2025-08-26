@@ -704,10 +704,10 @@ export default function RecentQuestions() {
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 {/* Name */}
                                                 {(() => {
-                                                    const isGuestView = question.user.id === uid;          // show "Guest User"
-                                                    const isSelf = question.user.id === userId;             // append (You) if needed
+                                                    const isGuestView = question.user.id === uid; 
+                                                    const isSelf = question.user.id === userId;
                                                     const isFaculty = !!question.user.is_Faculty;
-                                                    const userRank = rank?.[question.user.id];              // { colorCode, icon }
+                                                    const userRank = rank?.[question.user.id];    
 
                                                     const baseName = question.isAnonymous
                                                         ? `User@${question.user.id.slice(0, 8)}${isSelf ? ' (You)' : ''}`
@@ -754,7 +754,7 @@ export default function RecentQuestions() {
                                             </div>
 
                                             {/* Date (kept your exact formatting, just aligned and smaller on mobile) */}
-                                            <span className="small ml-2 text-xs sm:text-sm text-gray-600">
+                                            <span className="small ml-2 text-xs sm:text-sm text-neutral-600 pt-0.5">
                                                 {new Date(question.createdAt).toLocaleDateString('en-GB', {
                                                     day: '2-digit',
                                                     month: '2-digit',

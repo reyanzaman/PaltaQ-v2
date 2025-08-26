@@ -36,6 +36,7 @@ interface Class {
     topics: Topic[]
     questions: Question[]
     questionnaire: boolean
+    status: boolean
 }
 
 interface User {
@@ -266,14 +267,22 @@ export default function QuestionComponent({ user }: { user: User }) {
 
                 <hr className="border-b border-gray-400 mb-3 w-[98.5%]"></hr>
 
-                <div className="">
-                    <QuestionBox classId={selectedClass?.id || ''} classCode={selectedClass?.code || ''} handleRefreshQs={handleRefreshQuestions} />
+                {selectedClass?.status ? (
+                    <>
+                        <div className="">
+                            <QuestionBox classId={selectedClass?.id || ''} classCode={selectedClass?.code || ''} handleRefreshQs={handleRefreshQuestions} />
+                        </div>
+        
+                        <hr className="border-b border-gray-400 my-5"></hr>
+        
+                        <QuestionsList classId={selectedClass?.id || ''} refresh={refreshQuestions} handleRefresh={handleRefreshQuestions} toggleRefresh={toggleRefresh} />
+                    </>
+                ) : (
+                    <div className="flex items-start justify-start py-6 px-5">
+                        <p className="text-left lg:text-2xl text-lg text-red-900">Questioning has been disabled for this classroom. Please contact your faculty.</p>
+                    </div>
+                )}
                 </div>
-
-                <hr className="border-b border-gray-400 my-5"></hr>
-
-                <QuestionsList classId={selectedClass?.id || ''} refresh={refreshQuestions} handleRefresh={handleRefreshQuestions} toggleRefresh={toggleRefresh} />
-            </div>
         );
     };
 
@@ -297,7 +306,7 @@ export default function QuestionComponent({ user }: { user: User }) {
                     <div className="flex flex-row">
                         <p className="lg:text-xl text-base ml-4 pl-1 mb-0">{selectedClass ? `${selectedClass.name} Classroom` : 'Please select a class'}</p>
                         {selectedClass && (
-                            <FontAwesomeIcon icon={faArrowRightArrowLeft} onClick={() => setSelectedClass(undefined)} className="ml-3.5 text-black text-lg mt-1 active:text-green-500 hover:text-green-500 lg:hidden block"/>
+                            <FontAwesomeIcon icon={faArrowRightArrowLeft} onClick={() => setSelectedClass(undefined)} className="ml-3.5 text-green-700 text-lg mt-0.5 active:text-green-500 hover:text-green-500 lg:hidden block"/>
                         )}
                     </div>
                     {!selectedClass && (

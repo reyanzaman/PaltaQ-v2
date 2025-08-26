@@ -781,7 +781,6 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
             {viewQuestions && (
                 <div>
                     <div className='flex flex-col items-start'>
-
                         {/* Pagination-bottom */}
                         <div className='order-last mx-auto'>
                             {questions.length > 0 && (
@@ -809,6 +808,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                         <div className='order-3 w-full'>
                             {currentQuestions.map((question: Question, index: number) => (
                                 <div key={question.id}>
+
                                     {/* Check if current question is non-faculty and student questions haven't started */}
                                     <div className='mb-2'>
                                         {!question.user.is_Faculty && !studentQuestionsStarted && (
@@ -832,7 +832,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                     {question.user.is_Faculty && (facultyQuestionsStarted = true)}
 
                                     {question.user.is_Faculty && viewFacultyQs ? (
-                                        // Question Component
+                                        // Faculty Question Component
                                         <div
                                             className={`card bg-primary ${question.user.is_Faculty ? 'border-secondary border-gray-500 shadow-lg' : 'border-light shadow-sm'} lg:w-fit w-full lg:ml-2 mb-4 lg:pr-4 lg:pl-2 lg:pb-1 pb-0 lg:pt-1 pt-1`}
                                         >
@@ -868,11 +868,10 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                         <div className="flex flex-col min-w-0">
                                                             {/* Top row: Name + Rank icon + Faculty tag*/}
                                                             <div className="flex items-center gap-2 flex-wrap">
-                                                                {/* Name */}
                                                                 {(() => {
-                                                                    const isSelf = question.user.id === userId;             // append (You) if needed
+                                                                    const isSelf = question.user.id === userId;
                                                                     const isFaculty = !!question.user.is_Faculty;
-                                                                    const userRank = rank?.[question.user.id];              // { colorCode, icon }
+                                                                    const userRank = rank?.[question.user.id];
 
                                                                     const baseName = question.isAnonymous
                                                                         ? `User@${question.user.id.slice(0, 8)}${isSelf ? ' (You)' : ''}`
@@ -944,7 +943,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                             </div>
 
                                             {/* Question card bottom part */}
-                                            <div className=''>
+                                            <div>
 
                                                 {/* Main Question Badges */}
                                                 <div className="lg:pb-2 pb-5 lg:pl-2 pl-4 lg:pt-0 pt-1">
@@ -1212,12 +1211,12 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                     </button>
                                                 </div>
 
-                                                {visibleInputBox[question.id] && (<hr className='border-b border-gray-400 mt-0 mb-4'></hr>)}
+                                                {visibleInputBox[question.id] && (<hr className='border-b border-gray-400 my-3'></hr>)}
 
                                                 {/* Conditional PaltaQ1 Text Area */}
                                                 <div>
                                                     {visibleTextBoxes[question.id] && textBoxPosition === 'mainQ' && (
-                                                        <div className='pb-4'>
+                                                        <div className='py-4'>
                                                             <form className="lg:mx-4 mx-2" onSubmit={handlePaltaQ(question.id, question.topicId, question.topic.name)}>
                                                                 {/* Anonymity */}
                                                                 <div className='flex flex-row items-end justify-between'>
@@ -1269,6 +1268,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                     )}
                                                 </div>
 
+                                                {/* AI Response */}
                                                 <div className='mb-4 mt-6 lg:mx-2 -translate-y-1'>
                                                     <GeneratedResponse response={responseAI[question.id]} visibility={visibility[question.id]} lastQuestion={lastQuestion[question.id]} toggleVisibility={toggleVisibility} type={'palta'} questionID={question.id} />
                                                 </div>
@@ -1282,323 +1282,383 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                             <h5 className='text-sm text-zinc-400 ml-2'>PaltaQ Depth: 1</h5>
                                                         )}
 
-                                                        {/* PaltaQ Card */}
+                                                        {/* PaltaQ Level */}
                                                         <div>
                                                             {question.paltaQBy
                                                                 .slice() // Create a copy of the array to avoid mutating the original
                                                                 .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
                                                                 .map((paltaQ: any) => (
+                                                                    // PaltaQ Card Component
                                                                     <div key={paltaQ.id} className="flex flex-col justify-between ml-2 px-3 py-2 w-full border-l-2 border-gray-500">
-
                                                                         <div>
-                                                                            {/* PaltaQ User Details */}
-                                                                            <div className='flex justify-between'>
-                                                                                <div className="flex items-center">
-                                                                                    <div className='icon shadow-inset border border-light rounded-circle p-1'>
-                                                                                        {paltaQ.isAnonymous ? (
-                                                                                            <Image
-                                                                                                src="/default_image.png"
-                                                                                                alt="Anonymous Image"
-                                                                                                width={30}
-                                                                                                height={30}
-                                                                                                className='rounded-full'
-                                                                                            ></Image>
-                                                                                        ) : (
-                                                                                            <Image
-                                                                                                src={paltaQ.user.image}
-                                                                                                alt="User Image"
-                                                                                                width={30}
-                                                                                                height={30}
-                                                                                                className='rounded-full'
-                                                                                            ></Image>
-                                                                                        )}
-                                                                                    </div>
+                                                                            {/* Top Part */}
+                                                                            <div className="">
+                                                                                {/* PaltaQ User Details */}
+                                                                                <div className="flex flex-row justify-between mb-2">
+                                                                                    <div className="flex w-full items-start sm:items-center gap-1">
 
-                                                                                    <div className='flex flex-col'>
-                                                                                        <div className='flex flex-row gap-x-2'>
-                                                                                            {paltaQ.user.is_Faculty ? (
-                                                                                                <div>
-                                                                                                    {paltaQ.user.id == userId ? (
-                                                                                                        <div>
-                                                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
-                                                                                                            <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                                                        </div>
-                                                                                                    ) : (
-                                                                                                        <div>
-                                                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
-                                                                                                            <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                                                        </div>
-                                                                                                    )}
-                                                                                                </div>
+                                                                                        {/* Avatar */}
+                                                                                        <div className="icon shadow-inset border border-light rounded-full p-1 shrink-0">
+                                                                                            {paltaQ.isAnonymous ? (
+                                                                                                <Image
+                                                                                                    src="/default_image.png"
+                                                                                                    alt="Anonymous Image"
+                                                                                                    width={30}
+                                                                                                    height={30}
+                                                                                                    className='rounded-full w-[24px] h-[24px] sm:w-[28px] sm:h-[28px] md:w-[32px] md:h-[32px]'
+                                                                                                ></Image>
                                                                                             ) : (
-                                                                                                <div>
-                                                                                                    {paltaQ.user.id == userId ? (
-                                                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
-                                                                                                    ) : (
-                                                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
-                                                                                                    )}
-                                                                                                </div>
-                                                                                            )}
-                                                                                            {rank[paltaQ.user.id] ? (
-                                                                                                <div>
-                                                                                                    <Image src={`/${rank[paltaQ.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
-                                                                                                </div>
-                                                                                            ) : (
-                                                                                                <div>
-                                                                                                    <Image src={`/1.png`} alt="Rank Icon" width={25} height={25} />
-                                                                                                </div>
+                                                                                                <Image
+                                                                                                    src={paltaQ.user.image}
+                                                                                                    alt="User Image"
+                                                                                                    width={30}
+                                                                                                    height={30}
+                                                                                                    className='rounded-full w-[24px] h-[24px] sm:w-[28px] sm:h-[28px] md:w-[32px] md:h-[32px]'
+                                                                                                ></Image>
                                                                                             )}
                                                                                         </div>
-                                                                                        {/* Date */}
-                                                                                        <span className="small ml-2">
-                                                                                            {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
-                                                                                        </span>
+
+                                                                                        {/* Name / Rank / Date */}
+                                                                                        <div className="flex flex-col min-w-0">
+                                                                                            {/* Top row: Name + Rank icon + Faculty tag*/}
+                                                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                                                {(() => {
+                                                                                                    const isSelf = paltaQ.user.id === userId;
+                                                                                                    const isFaculty = !!paltaQ.user.is_Faculty;
+                                                                                                    const userRank = rank?.[paltaQ.user.id];
+
+                                                                                                    const baseName = paltaQ.isAnonymous
+                                                                                                        ? `User@${paltaQ.user.id.slice(0, 8)}${isSelf ? ' (You)' : ''}`
+                                                                                                        : (paltaQ.user.name.length > 16
+                                                                                                            ? paltaQ.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                                            : paltaQ.user.name);
+
+                                                                                                    // Do NOT color Guest User. Otherwise use rank color.
+                                                                                                    const nameStyle = { color: `#${userRank?.colorCode || ''}` };
+
+                                                                                                    return (
+                                                                                                        <div className="flex items-center gap-1 min-w-0">
+                                                                                                            {/* Name */}
+                                                                                                            <span
+                                                                                                                className="font-bold text-sm sm:text-base lg:text-lg ml-2 truncate"
+                                                                                                                style={nameStyle}
+                                                                                                                title={baseName}
+                                                                                                            >
+                                                                                                                {baseName}
+                                                                                                            </span>
+
+                                                                                                            {/* Faculty badge (style preserved) */}
+                                                                                                            {isFaculty && (
+                                                                                                                <span className="font-bold text-sm sm:text-base text-sky-800">
+                                                                                                                    (Faculty)
+                                                                                                                </span>
+                                                                                                            )}
+
+                                                                                                            {/* Rank Icon (hide when viewing as guest per your logic) */}
+                                                                                                            {userRank && (
+                                                                                                                <Image
+                                                                                                                    src={`/${userRank.icon}`}
+                                                                                                                    alt="Rank Icon"
+                                                                                                                    width={25}
+                                                                                                                    height={25}
+                                                                                                                    className="min-w-[20px] min-h-[20px] w-[20px] h-[20px] sm:w-[25px] sm:h-[25px]"
+                                                                                                                />
+                                                                                                            )}
+                                                                                                        </div>
+                                                                                                    );
+                                                                                                })()}
+                                                                                            </div>
+                                                                                            {/* Date (kept your exact formatting, just aligned and smaller on mobile) */}
+                                                                                            <span className="small ml-2 text-xs sm:text-sm text-gray-800">
+                                                                                                {new Date(question.createdAt).toLocaleDateString('en-GB', {
+                                                                                                    day: '2-digit',
+                                                                                                    month: '2-digit',
+                                                                                                    year: 'numeric'
+                                                                                                })}
+                                                                                                {', '}
+                                                                                                {new Date(question.createdAt)
+                                                                                                    .toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                                                                                                    .replace(/:\\d+ /, ' ')}
+                                                                                            </span>
+                                                                                        </div>
                                                                                     </div>
+                                                                                </div>
+
+                                                                                {/* PaltaQ Question */}
+                                                                                <div className="flex flex-row pt-2 lg:pb-2 pb-0 mb-0 px-1">
+                                                                                    <h4 className="lg:text-lg text-base lg:text-justify text-left p-0 m-0 text-neutral-700">
+                                                                                        {paltaQ.paltaQ}
+                                                                                    </h4>
                                                                                 </div>
                                                                             </div>
 
-                                                                            {/* PaltaQ Question */}
-                                                                            <div className='mt-2'>{paltaQ.paltaQ}</div>
-
                                                                             {/* Bottom Part */}
-                                                                            <div className='flex flex-col'>
-
-                                                                                <div className='flex lg:flex-row flex-col'>
-                                                                                    {/* PaltaQ Badge */}
-                                                                                    <div className="flex items-center mt-2 mb-1 -translate-x-2">
-                                                                                        <div className='badge mx-1'>
-                                                                                            {paltaQ.score >= 100
-                                                                                                ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-danger'>HIGH LEVEL</span>
-                                                                                                : paltaQ.score >= 50
-                                                                                                    ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-secondary'>MID LEVEL </span>
-                                                                                                    : <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-success'>LOW LEVEL</span>}
-                                                                                        </div>
-                                                                                        <div className='badge mx-1'>
-                                                                                            <span className="font-bold lg:text-sm text-xxs items-end lg:ml-2 ml-0">
-                                                                                                SCORE: {paltaQ.score}
-                                                                                            </span>
-                                                                                        </div>
-                                                                                    </div>
-
-                                                                                    {/* Blooms Badge */}
-                                                                                    <div className='mar-ly2 -translate-x-1'>
-                                                                                        {/* Remembering */}
-                                                                                        {paltaQ.questionType[0].remembering && (
-                                                                                            <div
-                                                                                                className='badge bg-[#393d71] ml-0.5 px-2'
-                                                                                                data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory, such as remembering dates, names, or key terms without needing to understand or analyze them."
-                                                                                                data-tooltip-id="PQ-badge-remember"
-                                                                                            >
-                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
-                                                                                                    RE
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-
-                                                                                        {/* Understanding */}
-                                                                                        {paltaQ.questionType[0].understanding && (
-                                                                                            <div
-                                                                                                className='badge bg-[#63899f] ml-0.5 px-1.5 py-1'
-                                                                                                data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept in your own words. This level goes beyond mere recall by requiring comprehension of the material."
-                                                                                                data-tooltip-id="PQ-badge-understand"
-                                                                                            >
-                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
-                                                                                                    UN
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-
-                                                                                        {/* Applying */}
-                                                                                        {paltaQ.questionType[0].applying && (
-                                                                                            <div
-                                                                                                className='badge bg-[#576042] ml-0.5 px-1.5 py-1'
-                                                                                                data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems, using concepts in practice, or carrying out a procedure in a different context. This level focuses on the ability to implement learned material."
-                                                                                                data-tooltip-id="PQ-badge-apply"
-                                                                                            >
-                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
-                                                                                                    AP
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-
-                                                                                        {/* Analying */}
-                                                                                        {paltaQ.questionType[0].analyzing && (
-                                                                                            <div
-                                                                                                className='badge bg-[#578a72] ml-0.5 px-1.5 py-1'
-                                                                                                data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into components to understand its structure, such as comparing and contrasting ideas, identifying relationships, or recognizing patterns. This level requires critical thinking to dissect information."
-                                                                                                data-tooltip-id="PQ-badge-analyze"
-                                                                                            >
-                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
-                                                                                                    AN
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-
-                                                                                        {/* Evaluate */}
-                                                                                        {paltaQ.questionType[0].evaluating && (
-                                                                                            <div
-                                                                                                className='badge bg-[#dca146] ml-0.5 px-1.5 py-1'
-                                                                                                data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria and standards, such as critiquing an argument, assessing the validity of a source, or weighing the pros and cons of a decision. This level requires both analysis and justification."
-                                                                                                data-tooltip-id="PQ-badge-evaluate"
-                                                                                            >
-                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
-                                                                                                    EV
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-
-                                                                                        {/* Create */}
-                                                                                        {paltaQ.questionType[0].creating && (
-                                                                                            <div
-                                                                                                className='badge bg-[#cb484f] ml-0.5 px-1.5 py-1'
-                                                                                                data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas, products, or ways of viewing things, such as designing a project, composing a story, or proposing a theory. This level emphasizes innovation and the ability to put elements together in a novel way."
-                                                                                                data-tooltip-id="PQ-badge-create"
-                                                                                            >
-                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
-                                                                                                    CR
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-
-                                                                                        {/* Tooltips */}
-                                                                                        <>
-                                                                                            <Tooltip
-                                                                                                id="PQ-badge-remember"
-                                                                                                place="top"
-                                                                                                style={{
-                                                                                                    borderRadius: "8px",
-                                                                                                    padding: "10px",
-                                                                                                    zIndex: "100",
-                                                                                                    opacity: "1",
-                                                                                                    width: "350px",
-                                                                                                    textAlign: "left",
-                                                                                                    backgroundColor: "#393d71"
-                                                                                                }}
-                                                                                            />
-                                                                                            <Tooltip
-                                                                                                id="PQ-badge-understand"
-                                                                                                place="top"
-                                                                                                style={{
-                                                                                                    borderRadius: "8px",
-                                                                                                    padding: "10px",
-                                                                                                    zIndex: "100",
-                                                                                                    opacity: "1",
-                                                                                                    width: "350px",
-                                                                                                    textAlign: "left",
-                                                                                                    backgroundColor: "#63899f"
-                                                                                                }}
-                                                                                            />
-                                                                                            <Tooltip
-                                                                                                id="PQ-badge-apply"
-                                                                                                place="top"
-                                                                                                style={{
-                                                                                                    borderRadius: "8px",
-                                                                                                    padding: "10px",
-                                                                                                    zIndex: "100",
-                                                                                                    opacity: "1",
-                                                                                                    width: "350px",
-                                                                                                    textAlign: "left",
-                                                                                                    backgroundColor: "#576042"
-                                                                                                }}
-                                                                                            />
-                                                                                            <Tooltip
-                                                                                                id="PQ-badge-analyze"
-                                                                                                place="top"
-                                                                                                style={{
-                                                                                                    borderRadius: "8px",
-                                                                                                    padding: "10px",
-                                                                                                    zIndex: "100",
-                                                                                                    opacity: "1",
-                                                                                                    width: "350px",
-                                                                                                    textAlign: "left",
-                                                                                                    backgroundColor: "#578a72"
-                                                                                                }}
-                                                                                            />
-                                                                                            <Tooltip
-                                                                                                id="PQ-badge-evaluate"
-                                                                                                place="top"
-                                                                                                style={{
-                                                                                                    borderRadius: "8px",
-                                                                                                    padding: "10px",
-                                                                                                    zIndex: "100",
-                                                                                                    opacity: "1",
-                                                                                                    width: "350px",
-                                                                                                    textAlign: "left",
-                                                                                                    backgroundColor: "#dca146"
-                                                                                                }}
-                                                                                            />
-                                                                                            <Tooltip
-                                                                                                id="PQ-badge-create"
-                                                                                                place="top"
-                                                                                                style={{
-                                                                                                    borderRadius: "8px",
-                                                                                                    padding: "10px",
-                                                                                                    zIndex: "100",
-                                                                                                    opacity: "1",
-                                                                                                    width: "350px",
-                                                                                                    textAlign: "left",
-                                                                                                    backgroundColor: "#cb484f"
-                                                                                                }}
-                                                                                            />
-                                                                                        </>
-                                                                                    </div>
+                                                                            <div className="flex flex-wrap items-center gap-2 lg:px-0 px-1 lg:pt-1 pt-3 pb-1">
+                                                                                {/* Level */}
+                                                                                <div
+                                                                                    className={`order-2 sm:order-1 badge ${paltaQ.score >= 100
+                                                                                        ? 'text-danger'
+                                                                                        : paltaQ.score >= 50
+                                                                                            ? 'text-secondary'
+                                                                                            : 'text-success'
+                                                                                        }`}
+                                                                                >
+                                                                                    {paltaQ.score >= 100 ? (
+                                                                                        <span className="font-bold text-xs sm:text-sm px-1">HIGH LEVEL</span>
+                                                                                    ) : paltaQ.score >= 50 ? (
+                                                                                        <span className="font-bold text-xs sm:text-sm px-1">MID LEVEL</span>
+                                                                                    ) : (
+                                                                                        <span className="font-bold text-xs sm:text-sm px-1">LOW LEVEL</span>
+                                                                                    )}
                                                                                 </div>
 
-                                                                                {/* PaltaQ Like/Dislike/Show/PaltaQ/Improve */}
-                                                                                <div className="flex flex-row items-start mt-2 pt-1">
-                                                                                    {/* Like */}
-                                                                                    <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading}>
-                                                                                        <FontAwesomeIcon
-                                                                                            icon={faThumbsUp}
-                                                                                            className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${paltaQ.likedBy && paltaQ.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
-                                                                                        />
-                                                                                    </button>
-                                                                                    <span className="small ml-1 mr-2">{paltaQ.likes}</span>
-                                                                                    <span className="small mr-2">|</span>
-                                                                                    {/* Dislike */}
-                                                                                    <button onClick={() => handleDislike(paltaQ.id, userId, 'palta')} disabled={loading}>
-                                                                                        <FontAwesomeIcon
-                                                                                            icon={faThumbsDown}
-                                                                                            className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${paltaQ.dislikedBy && paltaQ.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
-                                                                                        />
-                                                                                    </button>
-                                                                                    <span className="small ml-1 mr-2">{paltaQ.dislikes}</span>
-                                                                                    <span className="small mr-2">|</span>
-                                                                                    {/* Show PaltaQ */}
-                                                                                    <button onClick={() => toggleInputBox(paltaQ.id)}>
-                                                                                        <FontAwesomeIcon icon={faComment} className={`hover:text-indigo-500 active:text-indigo-600 duration-500 pb-1 ${visibleInputBox[paltaQ.id] ? 'text-indigo-500' : ''}`} />
-                                                                                    </button>
-                                                                                    <span className="small ml-1 mr-2">{paltaQ.repliesLength}</span>
-                                                                                    <span className="small mr-2">|</span>
-                                                                                    {/* PaltaQ */}
-                                                                                    <button onClick={() => handleButtonClick(paltaQ.id, 'paltaQ1', paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name)}>
-                                                                                        <h5
-                                                                                            className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'paltaQ1' ? 'text-emerald-700' : ''}`}>
-                                                                                            PaltaQ
-                                                                                        </h5>
-                                                                                    </button>
-                                                                                    <span className="small mx-2">|</span>
-                                                                                    {/* Improve */}
-                                                                                    <button onClick={() => handleAIGenerate(paltaQ.paltaQ, paltaQ.id)}>
-                                                                                        <div className='flex flex-row hover:text-blue-500 hover:-translate-y-[4px] duration-200'>
-                                                                                            <FontAwesomeIcon
-                                                                                                icon={faWandMagicSparkles}
-                                                                                                className={`translate-y-0.5`}
-                                                                                            />
-                                                                                            <span
-                                                                                                className={`font-bold text-base pl-1 -translate-y-[2px]`}>
-                                                                                                Improve
-                                                                                            </span>
-                                                                                        </div>
-                                                                                    </button>
+                                                                                {/* Score */}
+                                                                                <div className="order-2 sm:order-1 badge">
+                                                                                    <span className="font-bold text-xs sm:text-sm p-1">
+                                                                                        SCORE: {paltaQ.score}
+                                                                                    </span>
                                                                                 </div>
 
+                                                                                {/* Blooms Badge */}
+                                                                                <div className={`order-1 sm:order-2 flex flex-wrap items-center gap-1 w-full sm:w-auto ${paltaQ?.questionType?.[0]?.remembering || paltaQ?.questionType?.[0]?.understanding || paltaQ?.questionType?.[0]?.applying || paltaQ?.questionType?.[0]?.analyzing || paltaQ?.questionType?.[0]?.evaluating || paltaQ?.questionType?.[0]?.creating ? 'lg:pl-3 pl-0' : ''}`}>
+                                                                                    {/* Remembering */}
+                                                                                    {paltaQ.questionType[0].remembering && (
+                                                                                        <div
+                                                                                            className="badge bg-[#393d71] p-1"
+                                                                                            data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory, such as remembering dates, names, or key terms without needing to understand or analyze them."
+                                                                                            data-tooltip-id="PQ-badge-remember"
+                                                                                        >
+                                                                                            <span className='font-bold text-white lg:text-xs text-[10px]'>RE</span>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {/* Understanding */}
+                                                                                    {paltaQ.questionType[0].understanding && (
+                                                                                        <div
+                                                                                            className="badge bg-[#63899f] p-1"
+                                                                                            data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept in your own words. This level goes beyond mere recall by requiring comprehension of the material."
+                                                                                            data-tooltip-id="PQ-badge-understand"
+                                                                                        >
+                                                                                            <span className='font-bold text-white lg:text-xs text-[10px]'>UN</span>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {/* Applying */}
+                                                                                    {paltaQ.questionType[0].applying && (
+                                                                                        <div
+                                                                                            className="badge bg-[#576042] p-1"
+                                                                                            data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems, using concepts in practice, or carrying out a procedure in a different context. This level focuses on the ability to implement learned material."
+                                                                                            data-tooltip-id="PQ-badge-apply"
+                                                                                        >
+                                                                                            <span className='font-bold text-white lg:text-xs text-[10px]'>AP</span>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {/* Analying */}
+                                                                                    {paltaQ.questionType[0].analyzing && (
+                                                                                        <div
+                                                                                            className="badge bg-[#578a72] p-1"
+                                                                                            data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into components to understand its structure, such as comparing and contrasting ideas, identifying relationships, or recognizing patterns. This level requires critical thinking to dissect information."
+                                                                                            data-tooltip-id="PQ-badge-analyze"
+                                                                                        >
+                                                                                            <span className='font-bold text-white lg:text-xs text-[10px]'>AN</span>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {/* Evaluate */}
+                                                                                    {paltaQ.questionType[0].evaluating && (
+                                                                                        <div
+                                                                                            className="badge bg-[#dca146] p-1"
+                                                                                            data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria and standards, such as critiquing an argument, assessing the validity of a source, or weighing the pros and cons of a decision. This level requires both analysis and justification."
+                                                                                            data-tooltip-id="PQ-badge-evaluate"
+                                                                                        >
+                                                                                            <span className='font-bold text-white lg:text-xs text-[10px]'>EV</span>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {/* Create */}
+                                                                                    {paltaQ.questionType[0].creating && (
+                                                                                        <div
+                                                                                            className="badge bg-[#cb484f] p-1"
+                                                                                            data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas, products, or ways of viewing things, such as designing a project, composing a story, or proposing a theory. This level emphasizes innovation and the ability to put elements together in a novel way."
+                                                                                            data-tooltip-id="PQ-badge-create"
+                                                                                        >
+                                                                                            <span className='font-bold text-white lg:text-xs text-[10px]'>CR</span>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {/* Tooltips */}
+                                                                                    <>
+                                                                                        <Tooltip
+                                                                                            id="PQ-badge-remember"
+                                                                                            place="top"
+                                                                                            openOnClick
+                                                                                            clickable
+                                                                                            className="max-w-[90vw]"
+                                                                                            style={{
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                zIndex: 100,
+                                                                                                opacity: 1,
+                                                                                                width: 'min(90vw, 350px)',
+                                                                                                textAlign: 'left',
+                                                                                                backgroundColor: '#393d71',
+                                                                                            }}
+                                                                                        />
+                                                                                        <Tooltip
+                                                                                            id="PQ-badge-understand"
+                                                                                            place="top"
+                                                                                            openOnClick
+                                                                                            clickable
+                                                                                            className="max-w-[90vw]"
+                                                                                            style={{
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                zIndex: 100,
+                                                                                                opacity: 1,
+                                                                                                width: 'min(90vw, 350px)',
+                                                                                                textAlign: 'left',
+                                                                                                backgroundColor: '#63899f',
+                                                                                            }}
+                                                                                        />
+                                                                                        <Tooltip
+                                                                                            id="PQ-badge-apply"
+                                                                                            place="top"
+                                                                                            openOnClick
+                                                                                            clickable
+                                                                                            className="max-w-[90vw]"
+                                                                                            style={{
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                zIndex: 100,
+                                                                                                opacity: 1,
+                                                                                                width: 'min(90vw, 350px)',
+                                                                                                textAlign: 'left',
+                                                                                                backgroundColor: '#576042',
+                                                                                            }}
+                                                                                        />
+                                                                                        <Tooltip
+                                                                                            id="PQ-badge-analyze"
+                                                                                            place="top"
+                                                                                            openOnClick
+                                                                                            clickable
+                                                                                            className="max-w-[90vw]"
+                                                                                            style={{
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                zIndex: 100,
+                                                                                                opacity: 1,
+                                                                                                width: 'min(90vw, 350px)',
+                                                                                                textAlign: 'left',
+                                                                                                backgroundColor: '#578a72',
+                                                                                            }}
+                                                                                        />
+                                                                                        <Tooltip
+                                                                                            id="PQ-badge-evaluate"
+                                                                                            place="top"
+                                                                                            openOnClick
+                                                                                            clickable
+                                                                                            className="max-w-[90vw]"
+                                                                                            style={{
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                zIndex: 100,
+                                                                                                opacity: 1,
+                                                                                                width: 'min(90vw, 350px)',
+                                                                                                textAlign: 'left',
+                                                                                                backgroundColor: '#dca146',
+                                                                                            }}
+                                                                                        />
+                                                                                        <Tooltip
+                                                                                            id="PQ-badge-create"
+                                                                                            place="top"
+                                                                                            openOnClick
+                                                                                            clickable
+                                                                                            className="max-w-[90vw]"
+                                                                                            style={{
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                zIndex: 100,
+                                                                                                opacity: 1,
+                                                                                                width: 'min(90vw, 350px)',
+                                                                                                textAlign: 'left',
+                                                                                                backgroundColor: '#cb484f',
+                                                                                            }}
+                                                                                        />
+                                                                                    </>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {/* Palta Question Actions */}
+                                                                            <div className="flex flex-wrap items-center lg:gap-3 gap-[6px] lg:px-4 px-2 sm:px-3 mt-3 w-full lg:ml-0 ml-1">
+                                                                                {/* Like */}
+                                                                                <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading} className="flex items-center gap-1">
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={faThumbsUp}
+                                                                                        className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${paltaQ.likedBy && paltaQ.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
+                                                                                    />
+                                                                                    <span className="small lg:text-base text-sm">{paltaQ.likes}</span>
+                                                                                </button>
+
+                                                                                <span className="text-zinc-400" aria-hidden>|</span>
+
+                                                                                {/* Dislike */}
+                                                                                <button onClick={() => handleDislike(paltaQ.id, userId, 'palta')} disabled={loading} className="flex items-center gap-1">
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={faThumbsDown}
+                                                                                        className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${paltaQ.dislikedBy && paltaQ.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
+                                                                                    />
+                                                                                    <span className="small lg:text-base text-sm">{paltaQ.dislikes}</span>
+                                                                                </button>
+
+                                                                                <span className="text-zinc-400" aria-hidden>|</span>
+
+                                                                                {/* Show PaltaQ */}
+                                                                                <button onClick={() => toggleInputBox(paltaQ.id)} className="flex items-center gap-1">
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={faComment}
+                                                                                        className={`hover:text-indigo-500 active:text-indigo-600 duration-500 pb-1 ${visibleInputBox[paltaQ.id] ? 'text-indigo-500' : ''}`}
+                                                                                    />
+                                                                                    <span className="small lg:text-base text-sm">{paltaQ.repliesLength}</span>
+                                                                                </button>
+
+                                                                                <span className="small mr-2">|</span>
+
+                                                                                {/* PaltaQ */}
+                                                                                <button onClick={() => handleButtonClick(paltaQ.id, 'paltaQ1', paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name)} className="flex items-center gap-1">
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={faComments}
+                                                                                        className={`lg:text-base text-sm hover:text-indigo-500 active:text-indigo-600 duration-300 ${visibleInputBox[paltaQ.id] ? 'text-indigo-500' : ''}`}
+                                                                                    />
+                                                                                    <span
+                                                                                        className={`lg:block hidden font-bold lg:text-base text-sm text-zinc-600 group-hover:text-emerald-600 duration-200 ${textBoxPosition === 'mainQ' ? 'text-emerald-700' : ''}`}
+                                                                                    >
+                                                                                        PaltaQ
+                                                                                    </span>
+                                                                                    <span
+                                                                                        className={`lg:hidden block font-bold lg:text-base text-sm text-zinc-600 group-hover:text-emerald-600 duration-200 ${textBoxPosition === 'mainQ' ? 'text-emerald-700' : ''}`}
+                                                                                    >
+                                                                                        PQ
+                                                                                    </span>
+                                                                                </button>
+
+                                                                                <span className="text-zinc-400" aria-hidden>|</span>
+
+                                                                                {/* Improve */}
+                                                                                <button onClick={() => handleAIGenerate(paltaQ.paltaQ, paltaQ.id)} className="flex items-center gap-1 group">
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={faWandMagicSparkles}
+                                                                                        className={`lg:text-base text-sm group-hover:translate-y-[-1px] duration-200`}
+                                                                                    />
+                                                                                    <span className="font-bold text-base lg:block hidden -translate-y-[1px] group-hover:text-blue-500 duration-200">AI Improve</span>
+                                                                                    <span className="font-bold text-sm lg:hidden block -translate-y-[1px] group-hover:text-blue-500 duration-200">AI</span>
+                                                                                </button>
                                                                             </div>
 
                                                                             {/* Conditional PaltaQ2 Text Area */}
                                                                             <div>
                                                                                 {visibleTextBoxes[paltaQ.id] && textBoxPosition === 'paltaQ1' && (
-                                                                                    <div className='pb-2 pt-1'>
+                                                                                    <div className='py-4'>
                                                                                         <form className="mr-1" onSubmit={handlePaltaQ(paltaQ.id, question.topicId, question.topic.name, question.id, true)}>
                                                                                             {/* Anonymity */}
                                                                                             <div className='flex flex-row items-end justify-between'>
@@ -1652,10 +1712,10 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
 
                                                                             <hr className=' border-b border-gray-400 my-3 mr-4'></hr>
 
+                                                                            {/* AI Response */}
                                                                             <div className='mb-4 mt-6 lg:mx-2 pr-3'>
                                                                                 <GeneratedResponse response={responseAI[paltaQ.id]} visibility={visibility[paltaQ.id]} lastQuestion={lastQuestion[paltaQ.id]} toggleVisibility={toggleVisibility} type={'palta'} questionID={paltaQ.id} />
                                                                             </div>
-
                                                                         </div>
 
                                                                         {/* Recursive PaltaQ Component */}
@@ -1682,7 +1742,6 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                                                 />
                                                                             </div>
                                                                         )}
-
                                                                     </div>
                                                                 ))}
                                                         </div>
@@ -1704,7 +1763,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                         </div>
                                     )}
                                     {!question.user.is_Faculty && (
-                                        // Duplicate Question Component
+                                        // Student Question Component
                                         <div
                                             className={`card bg-primary ${question.user.is_Faculty ? 'border-secondary border-gray-500 shadow-lg' : 'border-light shadow-sm'} lg:w-fit w-full lg:ml-2 mb-4 lg:pr-4 lg:pl-2 lg:pb-1 pb-0 lg:pt-1 pt-1`}
                                         >
@@ -1816,7 +1875,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                             </div>
 
                                             {/* Question card bottom part */}
-                                            <div className=''>
+                                            <div>
 
                                                 {/* Main Question Badges */}
                                                 <div className="lg:pb-2 pb-5 lg:pl-2 pl-4 lg:pt-0 pt-1">
@@ -2084,12 +2143,12 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                     </button>
                                                 </div>
 
-                                                {visibleInputBox[question.id] && (<hr className='border-b border-gray-400 mt-0 mb-4'></hr>)}
+                                                {visibleInputBox[question.id] && (<hr className='border-b border-gray-400 my-3'></hr>)}
 
                                                 {/* Conditional PaltaQ1 Text Area */}
                                                 <div>
                                                     {visibleTextBoxes[question.id] && textBoxPosition === 'mainQ' && (
-                                                        <div className='pb-4'>
+                                                        <div className='py-4'>
                                                             <form className="lg:mx-4 mx-2" onSubmit={handlePaltaQ(question.id, question.topicId, question.topic.name)}>
                                                                 {/* Anonymity */}
                                                                 <div className='flex flex-row items-end justify-between'>
@@ -2141,6 +2200,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                     )}
                                                 </div>
 
+                                                {/* AI Response */}
                                                 <div className='mb-4 mt-6 lg:mx-2 -translate-y-1'>
                                                     <GeneratedResponse response={responseAI[question.id]} visibility={visibility[question.id]} lastQuestion={lastQuestion[question.id]} toggleVisibility={toggleVisibility} type={'palta'} questionID={question.id} />
                                                 </div>
@@ -2154,323 +2214,383 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                             <h5 className='text-sm text-zinc-400 ml-2'>PaltaQ Depth: 1</h5>
                                                         )}
 
-                                                        {/* PaltaQ Card */}
+                                                        {/* PaltaQ Level */}
                                                         <div>
                                                             {question.paltaQBy
                                                                 .slice() // Create a copy of the array to avoid mutating the original
                                                                 .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
                                                                 .map((paltaQ: any) => (
+                                                                    // PaltaQ Card Component
                                                                     <div key={paltaQ.id} className="flex flex-col justify-between ml-2 px-3 py-2 w-full border-l-2 border-gray-500">
-
                                                                         <div>
-                                                                            {/* PaltaQ User Details */}
-                                                                            <div className='flex justify-between'>
-                                                                                <div className="flex items-center">
-                                                                                    <div className='icon shadow-inset border border-light rounded-circle p-1'>
-                                                                                        {paltaQ.isAnonymous ? (
-                                                                                            <Image
-                                                                                                src="/default_image.png"
-                                                                                                alt="Anonymous Image"
-                                                                                                width={30}
-                                                                                                height={30}
-                                                                                                className='rounded-full'
-                                                                                            ></Image>
-                                                                                        ) : (
-                                                                                            <Image
-                                                                                                src={paltaQ.user.image}
-                                                                                                alt="User Image"
-                                                                                                width={30}
-                                                                                                height={30}
-                                                                                                className='rounded-full'
-                                                                                            ></Image>
-                                                                                        )}
-                                                                                    </div>
+                                                                            {/* Top Part */}
+                                                                            <div className="">
+                                                                                {/* PaltaQ User Details */}
+                                                                                <div className="flex flex-row justify-between mb-2">
+                                                                                    <div className="flex w-full items-start sm:items-center gap-1">
 
-                                                                                    <div className='flex flex-col'>
-                                                                                        <div className='flex flex-row gap-x-2'>
-                                                                                            {paltaQ.user.is_Faculty ? (
-                                                                                                <div>
-                                                                                                    {paltaQ.user.id == userId ? (
-                                                                                                        <div>
-                                                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
-                                                                                                            <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                                                        </div>
-                                                                                                    ) : (
-                                                                                                        <div>
-                                                                                                            <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
-                                                                                                            <span className='font-bold text-lg ml-1 text-sky-800'>(Faculty)</span>
-                                                                                                        </div>
-                                                                                                    )}
-                                                                                                </div>
+                                                                                        {/* Avatar */}
+                                                                                        <div className="icon shadow-inset border border-light rounded-full p-1 shrink-0">
+                                                                                            {paltaQ.isAnonymous ? (
+                                                                                                <Image
+                                                                                                    src="/default_image.png"
+                                                                                                    alt="Anonymous Image"
+                                                                                                    width={30}
+                                                                                                    height={30}
+                                                                                                    className='rounded-full w-[24px] h-[24px] sm:w-[28px] sm:h-[28px] md:w-[32px] md:h-[32px]'
+                                                                                                ></Image>
                                                                                             ) : (
-                                                                                                <div>
-                                                                                                    {paltaQ.user.id == userId ? (
-                                                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)} (You)` : paltaQ.user.name}</span>
-                                                                                                    ) : (
-                                                                                                        <span className="font-bold text-lg ml-2" style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}>{paltaQ.isAnonymous ? `User@${paltaQ.user.id.slice(0, 8)}` : paltaQ.user.name}</span>
-                                                                                                    )}
-                                                                                                </div>
-                                                                                            )}
-                                                                                            {rank[paltaQ.user.id] ? (
-                                                                                                <div>
-                                                                                                    <Image src={`/${rank[paltaQ.user.id].icon}`} alt="Rank Icon" width={25} height={25} />
-                                                                                                </div>
-                                                                                            ) : (
-                                                                                                <div>
-                                                                                                    <Image src={`/1.png`} alt="Rank Icon" width={25} height={25} />
-                                                                                                </div>
+                                                                                                <Image
+                                                                                                    src={paltaQ.user.image}
+                                                                                                    alt="User Image"
+                                                                                                    width={30}
+                                                                                                    height={30}
+                                                                                                    className='rounded-full w-[24px] h-[24px] sm:w-[28px] sm:h-[28px] md:w-[32px] md:h-[32px]'
+                                                                                                ></Image>
                                                                                             )}
                                                                                         </div>
-                                                                                        {/* Date */}
-                                                                                        <span className="small ml-2">
-                                                                                            {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date(question.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\\d+ /, ' ')}
-                                                                                        </span>
+
+                                                                                        {/* Name / Rank / Date */}
+                                                                                        <div className="flex flex-col min-w-0">
+                                                                                            {/* Top row: Name + Rank icon + Faculty tag*/}
+                                                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                                                {(() => {
+                                                                                                    const isSelf = paltaQ.user.id === userId;
+                                                                                                    const isFaculty = !!paltaQ.user.is_Faculty;
+                                                                                                    const userRank = rank?.[paltaQ.user.id];
+
+                                                                                                    const baseName = paltaQ.isAnonymous
+                                                                                                        ? `User@${paltaQ.user.id.slice(0, 8)}${isSelf ? ' (You)' : ''}`
+                                                                                                        : (paltaQ.user.name.length > 16
+                                                                                                            ? paltaQ.user.name.split(' ').slice(0, 2).join(' ')
+                                                                                                            : paltaQ.user.name);
+
+                                                                                                    // Do NOT color Guest User. Otherwise use rank color.
+                                                                                                    const nameStyle = { color: `#${userRank?.colorCode || ''}` };
+
+                                                                                                    return (
+                                                                                                        <div className="flex items-center gap-1 min-w-0">
+                                                                                                            {/* Name */}
+                                                                                                            <span
+                                                                                                                className="font-bold text-sm sm:text-base lg:text-lg ml-2 truncate"
+                                                                                                                style={nameStyle}
+                                                                                                                title={baseName}
+                                                                                                            >
+                                                                                                                {baseName}
+                                                                                                            </span>
+
+                                                                                                            {/* Faculty badge (style preserved) */}
+                                                                                                            {isFaculty && (
+                                                                                                                <span className="font-bold text-sm sm:text-base text-sky-800">
+                                                                                                                    (Faculty)
+                                                                                                                </span>
+                                                                                                            )}
+
+                                                                                                            {/* Rank Icon (hide when viewing as guest per your logic) */}
+                                                                                                            {userRank && (
+                                                                                                                <Image
+                                                                                                                    src={`/${userRank.icon}`}
+                                                                                                                    alt="Rank Icon"
+                                                                                                                    width={25}
+                                                                                                                    height={25}
+                                                                                                                    className="min-w-[20px] min-h-[20px] w-[20px] h-[20px] sm:w-[25px] sm:h-[25px]"
+                                                                                                                />
+                                                                                                            )}
+                                                                                                        </div>
+                                                                                                    );
+                                                                                                })()}
+                                                                                            </div>
+                                                                                            {/* Date (kept your exact formatting, just aligned and smaller on mobile) */}
+                                                                                            <span className="small ml-2 text-xs sm:text-sm text-gray-800">
+                                                                                                {new Date(question.createdAt).toLocaleDateString('en-GB', {
+                                                                                                    day: '2-digit',
+                                                                                                    month: '2-digit',
+                                                                                                    year: 'numeric'
+                                                                                                })}
+                                                                                                {', '}
+                                                                                                {new Date(question.createdAt)
+                                                                                                    .toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                                                                                                    .replace(/:\\d+ /, ' ')}
+                                                                                            </span>
+                                                                                        </div>
                                                                                     </div>
+                                                                                </div>
+
+                                                                                {/* PaltaQ Question */}
+                                                                                <div className="flex flex-row pt-2 lg:pb-2 pb-0 mb-0 px-1">
+                                                                                    <h4 className="lg:text-lg text-base lg:text-justify text-left p-0 m-0 text-neutral-700">
+                                                                                        {paltaQ.paltaQ}
+                                                                                    </h4>
                                                                                 </div>
                                                                             </div>
 
-                                                                            {/* PaltaQ Question */}
-                                                                            <div className='mt-2'>{paltaQ.paltaQ}</div>
-
                                                                             {/* Bottom Part */}
-                                                                            <div className='flex flex-col'>
-
-                                                                                <div className='flex lg:flex-row flex-col'>
-                                                                                    {/* PaltaQ Badge */}
-                                                                                    <div className="flex items-center mt-2 mb-1 -translate-x-2">
-                                                                                        <div className='badge mx-1'>
-                                                                                            {paltaQ.score >= 100
-                                                                                                ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-danger'>HIGH LEVEL</span>
-                                                                                                : paltaQ.score >= 50
-                                                                                                    ? <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-secondary'>MID LEVEL </span>
-                                                                                                    : <span className='font-bold lg:text-sm text-xxs lg:pl-2 pl-0 text-success'>LOW LEVEL</span>}
-                                                                                        </div>
-                                                                                        <div className='badge mx-1'>
-                                                                                            <span className="font-bold lg:text-sm text-xxs items-end lg:ml-2 ml-0">
-                                                                                                SCORE: {paltaQ.score}
-                                                                                            </span>
-                                                                                        </div>
-                                                                                    </div>
-
-                                                                                    {/* Blooms Badge */}
-                                                                                    <div className='mar-ly2 -translate-x-1'>
-                                                                                        {/* Remembering */}
-                                                                                        {paltaQ.questionType[0].remembering && (
-                                                                                            <div
-                                                                                                className='badge bg-[#393d71] ml-0.5 px-2'
-                                                                                                data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory, such as remembering dates, names, or key terms without needing to understand or analyze them."
-                                                                                                data-tooltip-id="PQ-badge-remember"
-                                                                                            >
-                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
-                                                                                                    RE
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-
-                                                                                        {/* Understanding */}
-                                                                                        {paltaQ.questionType[0].understanding && (
-                                                                                            <div
-                                                                                                className='badge bg-[#63899f] ml-0.5 px-1.5 py-1'
-                                                                                                data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept in your own words. This level goes beyond mere recall by requiring comprehension of the material."
-                                                                                                data-tooltip-id="PQ-badge-understand"
-                                                                                            >
-                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
-                                                                                                    UN
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-
-                                                                                        {/* Applying */}
-                                                                                        {paltaQ.questionType[0].applying && (
-                                                                                            <div
-                                                                                                className='badge bg-[#576042] ml-0.5 px-1.5 py-1'
-                                                                                                data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems, using concepts in practice, or carrying out a procedure in a different context. This level focuses on the ability to implement learned material."
-                                                                                                data-tooltip-id="PQ-badge-apply"
-                                                                                            >
-                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
-                                                                                                    AP
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-
-                                                                                        {/* Analying */}
-                                                                                        {paltaQ.questionType[0].analyzing && (
-                                                                                            <div
-                                                                                                className='badge bg-[#578a72] ml-0.5 px-1.5 py-1'
-                                                                                                data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into components to understand its structure, such as comparing and contrasting ideas, identifying relationships, or recognizing patterns. This level requires critical thinking to dissect information."
-                                                                                                data-tooltip-id="PQ-badge-analyze"
-                                                                                            >
-                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
-                                                                                                    AN
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-
-                                                                                        {/* Evaluate */}
-                                                                                        {paltaQ.questionType[0].evaluating && (
-                                                                                            <div
-                                                                                                className='badge bg-[#dca146] ml-0.5 px-1.5 py-1'
-                                                                                                data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria and standards, such as critiquing an argument, assessing the validity of a source, or weighing the pros and cons of a decision. This level requires both analysis and justification."
-                                                                                                data-tooltip-id="PQ-badge-evaluate"
-                                                                                            >
-                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
-                                                                                                    EV
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-
-                                                                                        {/* Create */}
-                                                                                        {paltaQ.questionType[0].creating && (
-                                                                                            <div
-                                                                                                className='badge bg-[#cb484f] ml-0.5 px-1.5 py-1'
-                                                                                                data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas, products, or ways of viewing things, such as designing a project, composing a story, or proposing a theory. This level emphasizes innovation and the ability to put elements together in a novel way."
-                                                                                                data-tooltip-id="PQ-badge-create"
-                                                                                            >
-                                                                                                <span className='font-bold text-white lg:text-xs text-[10px]'>
-                                                                                                    CR
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-
-                                                                                        {/* Tooltips */}
-                                                                                        <>
-                                                                                            <Tooltip
-                                                                                                id="PQ-badge-remember"
-                                                                                                place="top"
-                                                                                                style={{
-                                                                                                    borderRadius: "8px",
-                                                                                                    padding: "10px",
-                                                                                                    zIndex: "100",
-                                                                                                    opacity: "1",
-                                                                                                    width: "350px",
-                                                                                                    textAlign: "left",
-                                                                                                    backgroundColor: "#393d71"
-                                                                                                }}
-                                                                                            />
-                                                                                            <Tooltip
-                                                                                                id="PQ-badge-understand"
-                                                                                                place="top"
-                                                                                                style={{
-                                                                                                    borderRadius: "8px",
-                                                                                                    padding: "10px",
-                                                                                                    zIndex: "100",
-                                                                                                    opacity: "1",
-                                                                                                    width: "350px",
-                                                                                                    textAlign: "left",
-                                                                                                    backgroundColor: "#63899f"
-                                                                                                }}
-                                                                                            />
-                                                                                            <Tooltip
-                                                                                                id="PQ-badge-apply"
-                                                                                                place="top"
-                                                                                                style={{
-                                                                                                    borderRadius: "8px",
-                                                                                                    padding: "10px",
-                                                                                                    zIndex: "100",
-                                                                                                    opacity: "1",
-                                                                                                    width: "350px",
-                                                                                                    textAlign: "left",
-                                                                                                    backgroundColor: "#576042"
-                                                                                                }}
-                                                                                            />
-                                                                                            <Tooltip
-                                                                                                id="PQ-badge-analyze"
-                                                                                                place="top"
-                                                                                                style={{
-                                                                                                    borderRadius: "8px",
-                                                                                                    padding: "10px",
-                                                                                                    zIndex: "100",
-                                                                                                    opacity: "1",
-                                                                                                    width: "350px",
-                                                                                                    textAlign: "left",
-                                                                                                    backgroundColor: "#578a72"
-                                                                                                }}
-                                                                                            />
-                                                                                            <Tooltip
-                                                                                                id="PQ-badge-evaluate"
-                                                                                                place="top"
-                                                                                                style={{
-                                                                                                    borderRadius: "8px",
-                                                                                                    padding: "10px",
-                                                                                                    zIndex: "100",
-                                                                                                    opacity: "1",
-                                                                                                    width: "350px",
-                                                                                                    textAlign: "left",
-                                                                                                    backgroundColor: "#dca146"
-                                                                                                }}
-                                                                                            />
-                                                                                            <Tooltip
-                                                                                                id="PQ-badge-create"
-                                                                                                place="top"
-                                                                                                style={{
-                                                                                                    borderRadius: "8px",
-                                                                                                    padding: "10px",
-                                                                                                    zIndex: "100",
-                                                                                                    opacity: "1",
-                                                                                                    width: "350px",
-                                                                                                    textAlign: "left",
-                                                                                                    backgroundColor: "#cb484f"
-                                                                                                }}
-                                                                                            />
-                                                                                        </>
-                                                                                    </div>
+                                                                            <div className="flex flex-wrap items-center gap-2 lg:px-0 px-1 lg:pt-1 pt-3 pb-1">
+                                                                                {/* Level */}
+                                                                                <div
+                                                                                    className={`order-2 sm:order-1 badge ${paltaQ.score >= 100
+                                                                                        ? 'text-danger'
+                                                                                        : paltaQ.score >= 50
+                                                                                            ? 'text-secondary'
+                                                                                            : 'text-success'
+                                                                                        }`}
+                                                                                >
+                                                                                    {paltaQ.score >= 100 ? (
+                                                                                        <span className="font-bold text-xs sm:text-sm px-1">HIGH LEVEL</span>
+                                                                                    ) : paltaQ.score >= 50 ? (
+                                                                                        <span className="font-bold text-xs sm:text-sm px-1">MID LEVEL</span>
+                                                                                    ) : (
+                                                                                        <span className="font-bold text-xs sm:text-sm px-1">LOW LEVEL</span>
+                                                                                    )}
                                                                                 </div>
 
-                                                                                {/* PaltaQ Like/Dislike/Show/PaltaQ/Improve */}
-                                                                                <div className="flex flex-row items-start mt-2 pt-1">
-                                                                                    {/* Like */}
-                                                                                    <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading}>
-                                                                                        <FontAwesomeIcon
-                                                                                            icon={faThumbsUp}
-                                                                                            className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${paltaQ.likedBy && paltaQ.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
-                                                                                        />
-                                                                                    </button>
-                                                                                    <span className="small ml-1 mr-2">{paltaQ.likes}</span>
-                                                                                    <span className="small mr-2">|</span>
-                                                                                    {/* Dislike */}
-                                                                                    <button onClick={() => handleDislike(paltaQ.id, userId, 'palta')} disabled={loading}>
-                                                                                        <FontAwesomeIcon
-                                                                                            icon={faThumbsDown}
-                                                                                            className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${paltaQ.dislikedBy && paltaQ.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
-                                                                                        />
-                                                                                    </button>
-                                                                                    <span className="small ml-1 mr-2">{paltaQ.dislikes}</span>
-                                                                                    <span className="small mr-2">|</span>
-                                                                                    {/* Show PaltaQ */}
-                                                                                    <button onClick={() => toggleInputBox(paltaQ.id)}>
-                                                                                        <FontAwesomeIcon icon={faComment} className={`hover:text-indigo-500 active:text-indigo-600 duration-500 pb-1 ${visibleInputBox[paltaQ.id] ? 'text-indigo-500' : ''}`} />
-                                                                                    </button>
-                                                                                    <span className="small ml-1 mr-2">{paltaQ.repliesLength}</span>
-                                                                                    <span className="small mr-2">|</span>
-                                                                                    {/* PaltaQ */}
-                                                                                    <button onClick={() => handleButtonClick(paltaQ.id, 'paltaQ1', paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name)}>
-                                                                                        <h5
-                                                                                            className={`font-bold text-zinc-600 hover:text-emerald-600 duration-200 text-base -translate-y-0.5 hover:-translate-y-[4px] ${textBoxPosition == 'paltaQ1' ? 'text-emerald-700' : ''}`}>
-                                                                                            PaltaQ
-                                                                                        </h5>
-                                                                                    </button>
-                                                                                    <span className="small mx-2">|</span>
-                                                                                    {/* Improve */}
-                                                                                    <button onClick={() => handleAIGenerate(paltaQ.paltaQ, paltaQ.id)}>
-                                                                                        <div className='flex flex-row hover:text-blue-500 hover:-translate-y-[4px] duration-200'>
-                                                                                            <FontAwesomeIcon
-                                                                                                icon={faWandMagicSparkles}
-                                                                                                className={`translate-y-0.5`}
-                                                                                            />
-                                                                                            <span
-                                                                                                className={`font-bold text-base pl-1 -translate-y-[2px]`}>
-                                                                                                Improve
-                                                                                            </span>
-                                                                                        </div>
-                                                                                    </button>
+                                                                                {/* Score */}
+                                                                                <div className="order-2 sm:order-1 badge">
+                                                                                    <span className="font-bold text-xs sm:text-sm p-1">
+                                                                                        SCORE: {paltaQ.score}
+                                                                                    </span>
                                                                                 </div>
 
+                                                                                {/* Blooms Badge */}
+                                                                                <div className={`order-1 sm:order-2 flex flex-wrap items-center gap-1 w-full sm:w-auto ${paltaQ?.questionType?.[0]?.remembering || paltaQ?.questionType?.[0]?.understanding || paltaQ?.questionType?.[0]?.applying || paltaQ?.questionType?.[0]?.analyzing || paltaQ?.questionType?.[0]?.evaluating || paltaQ?.questionType?.[0]?.creating ? 'lg:pl-3 pl-0' : ''}`}>
+                                                                                    {/* Remembering */}
+                                                                                    {paltaQ.questionType[0].remembering && (
+                                                                                        <div
+                                                                                            className="badge bg-[#393d71] p-1"
+                                                                                            data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory, such as remembering dates, names, or key terms without needing to understand or analyze them."
+                                                                                            data-tooltip-id="PQ-badge-remember"
+                                                                                        >
+                                                                                            <span className='font-bold text-white lg:text-xs text-[10px]'>RE</span>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {/* Understanding */}
+                                                                                    {paltaQ.questionType[0].understanding && (
+                                                                                        <div
+                                                                                            className="badge bg-[#63899f] p-1"
+                                                                                            data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept in your own words. This level goes beyond mere recall by requiring comprehension of the material."
+                                                                                            data-tooltip-id="PQ-badge-understand"
+                                                                                        >
+                                                                                            <span className='font-bold text-white lg:text-xs text-[10px]'>UN</span>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {/* Applying */}
+                                                                                    {paltaQ.questionType[0].applying && (
+                                                                                        <div
+                                                                                            className="badge bg-[#576042] p-1"
+                                                                                            data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems, using concepts in practice, or carrying out a procedure in a different context. This level focuses on the ability to implement learned material."
+                                                                                            data-tooltip-id="PQ-badge-apply"
+                                                                                        >
+                                                                                            <span className='font-bold text-white lg:text-xs text-[10px]'>AP</span>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {/* Analying */}
+                                                                                    {paltaQ.questionType[0].analyzing && (
+                                                                                        <div
+                                                                                            className="badge bg-[#578a72] p-1"
+                                                                                            data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into components to understand its structure, such as comparing and contrasting ideas, identifying relationships, or recognizing patterns. This level requires critical thinking to dissect information."
+                                                                                            data-tooltip-id="PQ-badge-analyze"
+                                                                                        >
+                                                                                            <span className='font-bold text-white lg:text-xs text-[10px]'>AN</span>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {/* Evaluate */}
+                                                                                    {paltaQ.questionType[0].evaluating && (
+                                                                                        <div
+                                                                                            className="badge bg-[#dca146] p-1"
+                                                                                            data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria and standards, such as critiquing an argument, assessing the validity of a source, or weighing the pros and cons of a decision. This level requires both analysis and justification."
+                                                                                            data-tooltip-id="PQ-badge-evaluate"
+                                                                                        >
+                                                                                            <span className='font-bold text-white lg:text-xs text-[10px]'>EV</span>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {/* Create */}
+                                                                                    {paltaQ.questionType[0].creating && (
+                                                                                        <div
+                                                                                            className="badge bg-[#cb484f] p-1"
+                                                                                            data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas, products, or ways of viewing things, such as designing a project, composing a story, or proposing a theory. This level emphasizes innovation and the ability to put elements together in a novel way."
+                                                                                            data-tooltip-id="PQ-badge-create"
+                                                                                        >
+                                                                                            <span className='font-bold text-white lg:text-xs text-[10px]'>CR</span>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {/* Tooltips */}
+                                                                                    <>
+                                                                                        <Tooltip
+                                                                                            id="PQ-badge-remember"
+                                                                                            place="top"
+                                                                                            openOnClick
+                                                                                            clickable
+                                                                                            className="max-w-[90vw]"
+                                                                                            style={{
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                zIndex: 100,
+                                                                                                opacity: 1,
+                                                                                                width: 'min(90vw, 350px)',
+                                                                                                textAlign: 'left',
+                                                                                                backgroundColor: '#393d71',
+                                                                                            }}
+                                                                                        />
+                                                                                        <Tooltip
+                                                                                            id="PQ-badge-understand"
+                                                                                            place="top"
+                                                                                            openOnClick
+                                                                                            clickable
+                                                                                            className="max-w-[90vw]"
+                                                                                            style={{
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                zIndex: 100,
+                                                                                                opacity: 1,
+                                                                                                width: 'min(90vw, 350px)',
+                                                                                                textAlign: 'left',
+                                                                                                backgroundColor: '#63899f',
+                                                                                            }}
+                                                                                        />
+                                                                                        <Tooltip
+                                                                                            id="PQ-badge-apply"
+                                                                                            place="top"
+                                                                                            openOnClick
+                                                                                            clickable
+                                                                                            className="max-w-[90vw]"
+                                                                                            style={{
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                zIndex: 100,
+                                                                                                opacity: 1,
+                                                                                                width: 'min(90vw, 350px)',
+                                                                                                textAlign: 'left',
+                                                                                                backgroundColor: '#576042',
+                                                                                            }}
+                                                                                        />
+                                                                                        <Tooltip
+                                                                                            id="PQ-badge-analyze"
+                                                                                            place="top"
+                                                                                            openOnClick
+                                                                                            clickable
+                                                                                            className="max-w-[90vw]"
+                                                                                            style={{
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                zIndex: 100,
+                                                                                                opacity: 1,
+                                                                                                width: 'min(90vw, 350px)',
+                                                                                                textAlign: 'left',
+                                                                                                backgroundColor: '#578a72',
+                                                                                            }}
+                                                                                        />
+                                                                                        <Tooltip
+                                                                                            id="PQ-badge-evaluate"
+                                                                                            place="top"
+                                                                                            openOnClick
+                                                                                            clickable
+                                                                                            className="max-w-[90vw]"
+                                                                                            style={{
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                zIndex: 100,
+                                                                                                opacity: 1,
+                                                                                                width: 'min(90vw, 350px)',
+                                                                                                textAlign: 'left',
+                                                                                                backgroundColor: '#dca146',
+                                                                                            }}
+                                                                                        />
+                                                                                        <Tooltip
+                                                                                            id="PQ-badge-create"
+                                                                                            place="top"
+                                                                                            openOnClick
+                                                                                            clickable
+                                                                                            className="max-w-[90vw]"
+                                                                                            style={{
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                zIndex: 100,
+                                                                                                opacity: 1,
+                                                                                                width: 'min(90vw, 350px)',
+                                                                                                textAlign: 'left',
+                                                                                                backgroundColor: '#cb484f',
+                                                                                            }}
+                                                                                        />
+                                                                                    </>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {/* Palta Question Actions */}
+                                                                            <div className="flex flex-wrap items-center lg:gap-3 gap-[6px] lg:px-4 px-2 sm:px-3 mt-3 w-full lg:ml-0 ml-1">
+                                                                                {/* Like */}
+                                                                                <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading} className="flex items-center gap-1">
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={faThumbsUp}
+                                                                                        className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${paltaQ.likedBy && paltaQ.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
+                                                                                    />
+                                                                                    <span className="small lg:text-base text-sm">{paltaQ.likes}</span>
+                                                                                </button>
+
+                                                                                <span className="text-zinc-400" aria-hidden>|</span>
+
+                                                                                {/* Dislike */}
+                                                                                <button onClick={() => handleDislike(paltaQ.id, userId, 'palta')} disabled={loading} className="flex items-center gap-1">
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={faThumbsDown}
+                                                                                        className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${paltaQ.dislikedBy && paltaQ.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
+                                                                                    />
+                                                                                    <span className="small lg:text-base text-sm">{paltaQ.dislikes}</span>
+                                                                                </button>
+
+                                                                                <span className="text-zinc-400" aria-hidden>|</span>
+
+                                                                                {/* Show PaltaQ */}
+                                                                                <button onClick={() => toggleInputBox(paltaQ.id)} className="flex items-center gap-1">
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={faComment}
+                                                                                        className={`hover:text-indigo-500 active:text-indigo-600 duration-500 pb-1 ${visibleInputBox[paltaQ.id] ? 'text-indigo-500' : ''}`}
+                                                                                    />
+                                                                                    <span className="small lg:text-base text-sm">{paltaQ.repliesLength}</span>
+                                                                                </button>
+
+                                                                                <span className="small mr-2">|</span>
+
+                                                                                {/* PaltaQ */}
+                                                                                <button onClick={() => handleButtonClick(paltaQ.id, 'paltaQ1', paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name)} className="flex items-center gap-1">
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={faComments}
+                                                                                        className={`lg:text-base text-sm hover:text-indigo-500 active:text-indigo-600 duration-300 ${visibleInputBox[paltaQ.id] ? 'text-indigo-500' : ''}`}
+                                                                                    />
+                                                                                    <span
+                                                                                        className={`lg:block hidden font-bold lg:text-base text-sm text-zinc-600 group-hover:text-emerald-600 duration-200 ${textBoxPosition === 'mainQ' ? 'text-emerald-700' : ''}`}
+                                                                                    >
+                                                                                        PaltaQ
+                                                                                    </span>
+                                                                                    <span
+                                                                                        className={`lg:hidden block font-bold lg:text-base text-sm text-zinc-600 group-hover:text-emerald-600 duration-200 ${textBoxPosition === 'mainQ' ? 'text-emerald-700' : ''}`}
+                                                                                    >
+                                                                                        PQ
+                                                                                    </span>
+                                                                                </button>
+
+                                                                                <span className="text-zinc-400" aria-hidden>|</span>
+
+                                                                                {/* Improve */}
+                                                                                <button onClick={() => handleAIGenerate(paltaQ.paltaQ, paltaQ.id)} className="flex items-center gap-1 group">
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={faWandMagicSparkles}
+                                                                                        className={`lg:text-base text-sm group-hover:translate-y-[-1px] duration-200`}
+                                                                                    />
+                                                                                    <span className="font-bold text-base lg:block hidden -translate-y-[1px] group-hover:text-blue-500 duration-200">AI Improve</span>
+                                                                                    <span className="font-bold text-sm lg:hidden block -translate-y-[1px] group-hover:text-blue-500 duration-200">AI</span>
+                                                                                </button>
                                                                             </div>
 
                                                                             {/* Conditional PaltaQ2 Text Area */}
                                                                             <div>
                                                                                 {visibleTextBoxes[paltaQ.id] && textBoxPosition === 'paltaQ1' && (
-                                                                                    <div className='pb-2 pt-1'>
+                                                                                    <div className='py-4'>
                                                                                         <form className="mr-1" onSubmit={handlePaltaQ(paltaQ.id, question.topicId, question.topic.name, question.id, true)}>
                                                                                             {/* Anonymity */}
                                                                                             <div className='flex flex-row items-end justify-between'>
@@ -2524,10 +2644,10 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
 
                                                                             <hr className=' border-b border-gray-400 my-3 mr-4'></hr>
 
+                                                                            {/* AI Response */}
                                                                             <div className='mb-4 mt-6 lg:mx-2 pr-3'>
                                                                                 <GeneratedResponse response={responseAI[paltaQ.id]} visibility={visibility[paltaQ.id]} lastQuestion={lastQuestion[paltaQ.id]} toggleVisibility={toggleVisibility} type={'palta'} questionID={paltaQ.id} />
                                                                             </div>
-
                                                                         </div>
 
                                                                         {/* Recursive PaltaQ Component */}
@@ -2554,7 +2674,6 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                                                 />
                                                                             </div>
                                                                         )}
-
                                                                     </div>
                                                                 ))}
                                                         </div>
@@ -2571,7 +2690,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                         <div className="flex lg:flex-row flex-col items-start justify-start order-1 w-full lg:mb-3 lg:gap-0 gap-3">
 
                             {/* Topic + Refresh */}
-                            <div className="flex flex-row items-center w-fit gap-2 lg:gap-1">
+                            <div className="flex flex-row items-center w-fit gap-2 lg:gap-1 z-50">
                                 {/* Topic Filter (grows) */}
                                 <div className="flex flex-row order-first">
                                     {/* DropDown */}
@@ -2743,7 +2862,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
 
                         {/* Info */}
                         <div className='order-2 pl-3 z-20 lg:mb-0 mb-4'>
-                            <p className='mb-0 pb-1 lg:text-xl text-lg'>Showing Questions: ({loadingQ ? "Loading" : currentQuestions.length} / {loadingQ ? "Loading" : questions.length})</p>
+                            <p className='mb-0 pb-1 lg:text-xl text-lg font-bold'>Showing Questions: ({loadingQ ? "Loading" : currentQuestions.length} / {loadingQ ? "Loading" : questions.length})</p>
                             <p className='text-sm pb-3 mb-0 text-zinc-500'>
                                 {fromDate && toDate
                                     ? `Displaying questions from ${formatDate(fromDate)} to ${formatDate(toDate)}`

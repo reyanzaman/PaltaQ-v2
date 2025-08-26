@@ -48,6 +48,7 @@ model Classes {
   updatedAt       DateTime        @updatedAt
   endsAt          DateTime?
   questionnaire   Boolean        @default(false)
+  status          Boolean        @default(true)
 
   faculties   ClassFaculty[]  // Many-to-many relationship with Users for faculty members
   enrollments ClassEnrollment[] // Many-to-many relationship with Users

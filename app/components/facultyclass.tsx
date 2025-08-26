@@ -31,6 +31,7 @@ interface Class {
     endsAt: string;
     enrollments: ClassEnrollment[]
     questionnaire: boolean;
+    status: boolean;
 }
 
 interface ClassFaculty {
@@ -76,6 +77,7 @@ export default function FacultyClass({ user }: { user: User }) {
     const [newClassName, setNewClassName] = useState('' as string);
     const [newClassDate, setNewClassDate] = useState('' as string);
     const [newClassQuestionnaire, setNewClassQuestionnaire] = useState(false as boolean);
+    const [newClassStatus, setNewClassStatus] = useState(true as boolean);
     const [toggleUpdate, setToggleUpdate] = useState(null as any);
 
     const handleSort = (key: string) => {
@@ -218,7 +220,7 @@ export default function FacultyClass({ user }: { user: User }) {
         }
 
         try {
-            const response = await fetch(`/api/classes?cid=${classes[index].class.id}&cname=${newClassName}&cdate=${newClassDate}&qstatus=${newClassQuestionnaire}`, {
+            const response = await fetch(`/api/classes?cid=${classes[index].class.id}&cname=${newClassName}&cdate=${newClassDate}&qstatus=${newClassQuestionnaire}&status=${newClassStatus}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -776,7 +778,11 @@ export default function FacultyClass({ user }: { user: User }) {
     }
 
     if (loading) {
-        return <div className=""><h1 className="text-2xl font-bold px-0">Loading...</h1></div>;
+        return <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+                <h1 className="text-2xl font-bold">Loading Dashboard...</h1>
+            </div>
+        </div>;
     }
 
     return (
@@ -818,6 +824,7 @@ export default function FacultyClass({ user }: { user: User }) {
                                     <th className="border-0" scope="col" id="classCode">Class Code</th>
                                     <th className="border-0" scope="col" id="classCode">Semester End</th>
                                     <th className="border-0" scope="col" id="classCode">Questionnaire</th>
+                                    <th className="border-0" scope="col" id="classCode">Status</th>
                                     <th className="border-0" scope="col" id="classCode">Actions</th>
                                 </tr>
 
@@ -866,6 +873,24 @@ export default function FacultyClass({ user }: { user: User }) {
                                                 </select>
                                             ) : (
                                                 classItem.class.questionnaire ? (
+                                                    <div className="text-green-800">Active</div>
+                                                ) : (
+                                                    <div className="text-rose-800">Inactive</div>
+                                                )
+                                            )}
+                                        </td>
+                                        <td>
+                                            {toggleUpdate === index ? (
+                                                <select
+                                                    value={newClassStatus.toString()}
+                                                    onChange={(e) => setNewClassStatus(e.target.value === "true")}
+                                                    className="form-control"
+                                                >
+                                                    <option value="true">Active</option>
+                                                    <option value="false">Inactive</option>
+                                                </select>
+                                            ) : (
+                                                classItem.class.status ? (
                                                     <div className="text-green-800">Active</div>
                                                 ) : (
                                                     <div className="text-rose-800">Inactive</div>

@@ -9,7 +9,7 @@ export async function getGroqChatCompletion1(question: string) {
     messages: [
       {
         role: "user",
-        content: `'${question}' - Is this text a question? Reply with only 'yes' or 'no'`,
+        content: `Is this a proper question? Reply with only 'yes' or 'no'. Here is the question: '${question}'`,
       },
     ],
     model: "llama-3.1-8b-instant",
@@ -22,7 +22,7 @@ export async function getGroqChatCompletion2(question: string) {
       messages: [
         {
           role: "user",
-          content: `'${question}' Very strictly score the question out of 150, ensuring that low-level or low IQ questions receive below 50, mid-level or moderate questions between 50 to 100, and high-level and intelligent questions between 100 to 150. Only give me the score. For example: 50`,
+          content: `Very strictly score the question out of 150, ensuring that low-level or low IQ questions receive below 50, mid-level or moderate questions between 50 to 100, and high-level and intelligent questions between 100 to 150. Only give me the score. For example: 50. Here is the question: '${question}'`,
         },
       ],
       model: "llama-3.1-8b-instant",
@@ -35,7 +35,7 @@ export async function getGroqChatCompletion2(question: string) {
       messages: [
         {
           role: "user",
-          content: `'${question}' For this question, please give tips on how to improve the question while keeping the response limited to 2 short sentences. DO NOT directly provide an improved question or suggestion an improved version. NEVER give the answer. NEVER provide an example.`,
+          content: `For this question, please give tips on how to improve the question while keeping the response limited to 2 short sentences. DO NOT directly provide an improved question or suggestion an improved version. NEVER give the answer. NEVER provide an example. Here is the question: '${question}'`,
         },
       ],
       model: "llama-3.1-8b-instant",
@@ -48,7 +48,7 @@ export async function getGroqChatCompletion2(question: string) {
       messages: [
         {
           role: "user",
-          content: `'${question}' Does this question belong to the topic '${topic}'? Only reply with 'yes' or 'no'`,
+          content: `Leniently check if this question belong to the '${topic}' topic. Only reply with 'yes' or 'no'. Here is the question: '${question}'`,
         },
       ],
       model: "llama-3.1-8b-instant",

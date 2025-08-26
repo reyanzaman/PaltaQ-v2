@@ -28,7 +28,8 @@ export async function postHandler(req: Request, res: NextApiResponse) {
                     code: code,
                     creatorId: facultyId,
                     endsAt: endsAtDate,
-                    questionnaire: false
+                    questionnaire: false,
+                    status: true
                 }
             });
 
@@ -259,9 +260,10 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
         const cname = url?.searchParams.get('cname');
         const cdate = url?.searchParams.get('cdate');
         const qstatus = url?.searchParams.get('qstatus');
+        const status = url?.searchParams.get('status');
 
-        if (!cid || (!cname && !cdate && !qstatus)) {
-            return new Response(JSON.stringify({ error: 'cid and cname/cdate/qstatus are required' }), {
+        if (!cid || (!cname && !cdate && !qstatus && !status)) {
+            return new Response(JSON.stringify({ error: 'cid and cname/cdate/qstatus/status are required' }), {
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json'
@@ -292,7 +294,8 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
                         data: {
                             name: cname,
                             endsAt: endsAt,
-                            questionnaire: qstatus === 'true' ? true : false
+                            questionnaire: qstatus === 'true' ? true : false,
+                            status: status === 'true' ? true : false
                         }
                     });
                     return new Response(JSON.stringify({ message: 'Class details updated' }), {
