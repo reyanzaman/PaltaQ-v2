@@ -26,7 +26,7 @@ export async function validateQuestion(question: string, category: QuestionCateg
       'what', 'why', 'when', 'how', 'where', 'who', 'which', 'whom',
       'whose', 'is', 'are', 'do', 'does', 'can', 'could', 'will',
       'would', 'should', 'shall', 'may', 'might', 'must', 'have',
-      'has', 'had', 'am', 'was', 'were', 'in'
+      'has', 'had', 'am', 'was', 'were', 'in', 'if', 'assuming', 'provided', 'given'
     ];
 
     if (!validStartWords.some(word => question.startsWith(word))) {
