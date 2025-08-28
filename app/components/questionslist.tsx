@@ -1370,13 +1370,13 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                                                             </div>
                                                                                             {/* Date (kept your exact formatting, just aligned and smaller on mobile) */}
                                                                                             <span className="small ml-2 text-xs sm:text-sm text-gray-800">
-                                                                                                {new Date(question.createdAt).toLocaleDateString('en-GB', {
+                                                                                                {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', {
                                                                                                     day: '2-digit',
                                                                                                     month: '2-digit',
                                                                                                     year: 'numeric'
                                                                                                 })}
                                                                                                 {', '}
-                                                                                                {new Date(question.createdAt)
+                                                                                                {new Date(paltaQ.createdAt)
                                                                                                     .toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
                                                                                                     .replace(/:\\d+ /, ' ')}
                                                                                             </span>
@@ -1386,7 +1386,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
 
                                                                                 {/* PaltaQ Question */}
                                                                                 <div className="flex flex-row pt-2 lg:pb-2 pb-0 mb-0 px-1">
-                                                                                    <h4 className="lg:text-lg text-base lg:text-justify text-left p-0 m-0 text-neutral-700">
+                                                                                    <h4 className="lg:text-lg text-base lg:text-justify text-left p-0 m-0 text-neutral-600">
                                                                                         {paltaQ.paltaQ}
                                                                                     </h4>
                                                                                 </div>
@@ -1622,7 +1622,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                                                     <span className="small lg:text-base text-sm">{paltaQ.repliesLength}</span>
                                                                                 </button>
 
-                                                                                <span className="small mr-2">|</span>
+                                                                                <span className="text-zinc-400" aria-hidden>|</span>
 
                                                                                 {/* PaltaQ */}
                                                                                 <button onClick={() => handleButtonClick(paltaQ.id, 'paltaQ1', paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name)} className="flex items-center gap-1">
@@ -2302,13 +2302,13 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                                                             </div>
                                                                                             {/* Date (kept your exact formatting, just aligned and smaller on mobile) */}
                                                                                             <span className="small ml-2 text-xs sm:text-sm text-gray-800">
-                                                                                                {new Date(question.createdAt).toLocaleDateString('en-GB', {
+                                                                                                {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', {
                                                                                                     day: '2-digit',
                                                                                                     month: '2-digit',
                                                                                                     year: 'numeric'
                                                                                                 })}
                                                                                                 {', '}
-                                                                                                {new Date(question.createdAt)
+                                                                                                {new Date(paltaQ.createdAt)
                                                                                                     .toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
                                                                                                     .replace(/:\\d+ /, ' ')}
                                                                                             </span>
@@ -2318,7 +2318,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
 
                                                                                 {/* PaltaQ Question */}
                                                                                 <div className="flex flex-row pt-2 lg:pb-2 pb-0 mb-0 px-1">
-                                                                                    <h4 className="lg:text-lg text-base lg:text-justify text-left p-0 m-0 text-neutral-700">
+                                                                                    <h4 className="lg:text-lg text-base lg:text-justify text-left p-0 m-0 text-neutral-600">
                                                                                         {paltaQ.paltaQ}
                                                                                     </h4>
                                                                                 </div>
@@ -2554,7 +2554,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                                                     <span className="small lg:text-base text-sm">{paltaQ.repliesLength}</span>
                                                                                 </button>
 
-                                                                                <span className="small mr-2">|</span>
+                                                                                <span className="text-zinc-400" aria-hidden>|</span>
 
                                                                                 {/* PaltaQ */}
                                                                                 <button onClick={() => handleButtonClick(paltaQ.id, 'paltaQ1', paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name)} className="flex items-center gap-1">
