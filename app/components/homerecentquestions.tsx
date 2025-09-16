@@ -638,7 +638,7 @@ export default function RecentQuestions() {
     }, [questions]);
 
     if (status === 'loading') {
-        return <div className="mx-auto text-center py-8"><h1 className="text-2xl font-bold">Loading...</h1></div>;
+        return <div className="mx-auto text-center py-8"><h1 className="text-2xl font-bold my-[30vh]">Loading...</h1></div>;
     }
 
     return (
@@ -704,10 +704,10 @@ export default function RecentQuestions() {
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 {/* Name */}
                                                 {(() => {
-                                                    const isGuestView = question.user.id === uid; 
+                                                    const isGuestView = question.user.id === uid;
                                                     const isSelf = question.user.id === userId;
                                                     const isFaculty = !!question.user.is_Faculty;
-                                                    const userRank = rank?.[question.user.id];    
+                                                    const userRank = rank?.[question.user.id];
 
                                                     const baseName = question.isAnonymous
                                                         ? `User@${question.user.id.slice(0, 8)}${isSelf ? ' (You)' : ''}`
@@ -732,7 +732,7 @@ export default function RecentQuestions() {
                                                             </span>
 
                                                             {/* Faculty badge (style preserved) */}
-                                                            {isFaculty && !isGuestView &&  (
+                                                            {isFaculty && !isGuestView && (
                                                                 <span className="font-bold text-sm sm:text-base text-sky-800">
                                                                     (Faculty)
                                                                 </span>
@@ -767,12 +767,6 @@ export default function RecentQuestions() {
                                             </span>
                                         </div>
                                     </div>
-
-                                    {/* <button onClick={() => toast.dark('Report feature is not available yet')} className="lg:flex flex-row items-start px-2 mx-3 hover:text-red-800 transition-colors duration-500 translate-x-5">
-                                        <FontAwesomeIcon icon={faFlag} className="w-[1rem] mr-2 lg:pt-[1.5px] pt-0 lg:translate-y-[0.15em] -translate-y-1" />
-                                        <span className="font-bold lg:block hidden">Report</span>
-                                    </button> */}
-
                                 </div>
 
                                 {/* Main Question */}
@@ -1057,41 +1051,86 @@ export default function RecentQuestions() {
 
                                 {/* Conditional PaltaQ1 Text Area */}
                                 {visibleTextBoxes[question.id] && textBoxPosition === 'mainQ' && (
-                                    <div className="pb-4">
-                                        {/* Responding To / Anonymity */}
-                                        <div className="flex items-center justify-between gap-3 px-2 sm:px-3">
+                                    <div className="lg:pb-0 pb-2">
+                                        {/* Responding To */}
+                                        <div className="flex items-center justify-between gap-3 px-3 lg:px-2 lg:pt-6 pt-4">
                                             <h6 className="text-zinc-400 text-xs sm:text-sm">Depth:1 | Responding to {userName}</h6>
-
-                                            <label className="inline-flex items-center cursor-pointer gap-2">
-                                                <input
-                                                    type="checkbox"
-                                                    value={(isAnonymous[question.id] || false).toString()}
-                                                    className="sr-only peer"
-                                                    onChange={() => toggleAnonymity(question.id)}
-                                                />
-                                                <div className="relative w-9 h-5 bg-zinc-800 peer-focus:outline-none peer-focus:ring peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-4 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-zinc-600" />
-                                                {isAnonymous[question.id] ? (
-                                                    <FontAwesomeIcon icon={faEyeSlash} className="w-5 text-red-900 lg:hidden" />
-                                                ) : (
-                                                    <FontAwesomeIcon icon={faEye} className="w-5 text-[#31344b] lg:hidden" />
-                                                )}
-                                                <span className="hidden lg:block text-base font-bold">
-                                                    Toggle Anonymity ({isAnonymous[question.id] ? 'On' : 'Off'})
-                                                </span>
-                                            </label>
                                         </div>
 
-                                        <form className="mx-2 sm:mx-3 mt-2" onSubmit={handlePaltaQ(question.id)}>
-                                            <textarea
-                                                id="paltaQuestion"
-                                                className="form-control resize-none py-3 pl-3 w-full"
-                                                placeholder="Type a creative palta question here . . ."
-                                                onChange={handleInputChange(question.id)}
-                                                value={paltaQInputs[question.id] || ''}
-                                            />
-                                            <button type="submit" className="float-end -translate-y-10 sm:-translate-y-12 -translate-x-4 sm:-translate-x-5 scale-125 sm:scale-150">
-                                                <FontAwesomeIcon icon={faPaperPlane} className="w-6 text-[#31344b]" />
-                                            </button>
+                                        {/* Text Box */}
+                                        <form
+                                            className="lg:w-[98%] w-full mx-auto relative"
+                                            onSubmit={handlePaltaQ(question.id)}
+                                        >
+                                            <div className="my-2">
+                                                <div className="relative">
+                                                    <textarea
+                                                        id="paltaQuestion"
+                                                        className="w-full resize-none rounded-2xl px-5 py-4 lg:text-base text-sm text-zinc-700 placeholder-zinc-400 bg-[#e6e7ee] shadow-[inset_4px_4px_6px_#c5c6cb,inset_-4px_-4px_6px_#ffffff] focus:outline-none focus:shadow-[inset_2px_2px_4px_#c5c6cb,inset_-2px_-2px_4px_#ffffff] lg:pr-[7rem] lg:pb-[3.75rem] overflow-y-auto break-words max-h-[50vh]"
+                                                        style={{ height: '6.5em' }}
+                                                        placeholder="Type a creative palta question here..."
+                                                        value={paltaQInputs[question.id] || ''}
+                                                        onChange={handleInputChange(question.id)}
+                                                    />
+
+                                                    {/* Desktop: floating icon buttons inside textarea */}
+                                                    <div className="absolute bottom-[2.5em] right-[2.5em] scale-[1.5] hidden lg:flex items-center gap-1 z-10">
+                                                        {session?.user?.email && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => toggleAnonymity(question.id)}
+                                                                aria-label={isAnonymous[question.id] ? 'Disable anonymity' : 'Enable anonymity'}
+                                                                className="p-2 rounded-full"
+                                                            >
+                                                                <FontAwesomeIcon
+                                                                    icon={isAnonymous[question.id] ? faEyeSlash : faEye}
+                                                                    className={`w-4 h-4 ${isAnonymous[question.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                                />
+                                                            </button>
+                                                        )}
+
+                                                        <button
+                                                            type="submit"
+                                                            aria-label="Submit question"
+                                                            className="p-2 rounded-full"
+                                                        >
+                                                            <FontAwesomeIcon
+                                                                icon={faPaperPlane}
+                                                                className="w-4 h-4 text-[#31344b]"
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Mobile buttons below textarea */}
+                                                <div className="mt-4 flex gap-3 lg:hidden px-1">
+                                                    {session?.user?.email && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => toggleAnonymity(question.id)}
+                                                            className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+                                                          ${isAnonymous[question.id]
+                                                                    ? 'bg-[#e6e7ee] shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] text-rose-700'
+                                                                    : 'bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] text-zinc-600'
+                                                                }`}
+                                                        >
+                                                            <FontAwesomeIcon
+                                                                icon={isAnonymous[question.id] ? faEyeSlash : faEye}
+                                                                className={`w-4 ${isAnonymous[question.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                            />
+                                                            <span>{isAnonymous[question.id] ? 'Anonymous' : 'Anonymous'}</span>
+                                                        </button>
+                                                    )}
+
+                                                    <button
+                                                        type="submit"
+                                                        className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-[#31344b] bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] active:shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] transition"
+                                                    >
+                                                        <FontAwesomeIcon icon={faPaperPlane} className="w-4" />
+                                                        <span>Submit</span>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </form>
                                     </div>
                                 )}
@@ -1145,7 +1184,7 @@ export default function RecentQuestions() {
                                                                         {/* Name (corrected logic) */}
                                                                         {paltaQ.user.id === uid ? (
                                                                             // Guest User: only black text, no rank color
-                                                                            <span className="font-bold text-sm sm:text-base ml-1 truncate text-black">
+                                                                            <span className="font-bold text-sm lg:text-base ml-1 truncate text-black">
                                                                                 Guest User
                                                                             </span>
                                                                         ) : (
@@ -1153,7 +1192,7 @@ export default function RecentQuestions() {
                                                                                 {paltaQ.user.is_Faculty ? (
                                                                                     <>
                                                                                         <span
-                                                                                            className="font-bold text-sm sm:text-base ml-1 truncate"
+                                                                                            className="font-bold text-sm lg:text-base ml-1 truncate"
                                                                                             style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}
                                                                                             title={
                                                                                                 paltaQ.isAnonymous
@@ -1167,11 +1206,11 @@ export default function RecentQuestions() {
                                                                                                     ? paltaQ.user.name.split(' ').slice(0, 2).join(' ')
                                                                                                     : paltaQ.user.name)}
                                                                                         </span>
-                                                                                        <span className="font-bold text-sm text-sky-800">(Faculty)</span>
+                                                                                        <span className="font-bold text-sm lg:text-base text-sky-800">(Faculty)</span>
                                                                                     </>
                                                                                 ) : (
                                                                                     <span
-                                                                                        className="font-bold text-sm sm:text-base ml-1 truncate"
+                                                                                        className="font-bold text-sm lg:text-base ml-1 truncate"
                                                                                         style={{ color: `#${rank[paltaQ.user.id]?.colorCode}` }}
                                                                                         title={
                                                                                             paltaQ.isAnonymous
@@ -1202,7 +1241,7 @@ export default function RecentQuestions() {
                                                                     </div>
 
                                                                     {/* Date */}
-                                                                    <span className="small ml-1 text-xs sm:text-sm text-gray-600">
+                                                                    <span className="small ml-1 text-xs sm:text-sm text-neutral-600">
                                                                         {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })},{' '}
                                                                         {new Date(paltaQ.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).replace(/:\d+ /, ' ')}
                                                                     </span>
@@ -1211,26 +1250,40 @@ export default function RecentQuestions() {
                                                         </div>
 
                                                         {/* PaltaQ Question */}
-                                                        <div className="mt-2 text-sm sm:text-base pr-1 break-words">{paltaQ.paltaQ}</div>
+                                                        <div className="flex flex-row pt-2 lg:pb-2 pb-0 mb-0 px-1">
+                                                            <h4 className="lg:text-base text-sm lg:text-justify text-left p-0 m-0 text-neutral-700">
+                                                                {paltaQ.paltaQ}
+                                                            </h4>
+                                                        </div>
 
                                                         {/* Bottom Part */}
                                                         <div className="flex flex-col">
 
+                                                            {/* Badges */}
                                                             <div className="flex flex-wrap items-center gap-2 mt-2">
-                                                                {/* PaltaQ Badge */}
-                                                                <div className="flex items-center gap-2">
-                                                                    <div className="badge">
-                                                                        {paltaQ.score >= 100 ? (
-                                                                            <span className="font-bold text-xxs sm:text-xs md:text-sm text-danger">HIGH LEVEL</span>
-                                                                        ) : paltaQ.score >= 50 ? (
-                                                                            <span className="font-bold text-xxs sm:text-xs md:text-sm text-secondary">MID LEVEL</span>
-                                                                        ) : (
-                                                                            <span className="font-bold text-xxs sm:text-xs md:text-sm text-success">LOW LEVEL</span>
-                                                                        )}
-                                                                    </div>
-                                                                    <div className="badge">
-                                                                        <span className="font-bold text-xxs sm:text-xs md:text-sm">SCORE: {paltaQ.score}</span>
-                                                                    </div>
+                                                                {/* Level */}
+                                                                <div
+                                                                    className={`order-2 sm:order-1 badge ${paltaQ.score >= 100
+                                                                        ? 'text-danger'
+                                                                        : paltaQ.score >= 50
+                                                                            ? 'text-secondary'
+                                                                            : 'text-success'
+                                                                        }`}
+                                                                >
+                                                                    {paltaQ.score >= 100 ? (
+                                                                        <span className="font-bold text-xs sm:text-sm px-1">HIGH LEVEL</span>
+                                                                    ) : paltaQ.score >= 50 ? (
+                                                                        <span className="font-bold text-xs sm:text-sm px-1">MID LEVEL</span>
+                                                                    ) : (
+                                                                        <span className="font-bold text-xs sm:text-sm px-1">LOW LEVEL</span>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Score */}
+                                                                <div className="order-2 sm:order-1 badge">
+                                                                    <span className="font-bold text-xs sm:text-sm p-1">
+                                                                        SCORE: {paltaQ.score}
+                                                                    </span>
                                                                 </div>
 
                                                                 {/* Blooms Badge */}
@@ -1268,16 +1321,15 @@ export default function RecentQuestions() {
                                                                 </div>
                                                             </div>
 
-                                                            {/* Actions */}
-                                                            <div className="flex flex-wrap items-center gap-2 mt-2">
+                                                            {/* Palta Question Actions */}
+                                                            <div className="flex flex-wrap items-center lg:gap-3 gap-[6px] lg:px-1 px-0 sm:px-3 lg:mt-4 mt-3 w-full lg:ml-0 ml-1">
                                                                 {/* Like */}
                                                                 <button onClick={() => handleLike(paltaQ.id, userId, 'palta')} disabled={loading} className="flex items-center gap-1">
                                                                     <FontAwesomeIcon
                                                                         icon={faThumbsUp}
-                                                                        className={`hover:text-blue-500 active:text-blue-600 duration-300 ${paltaQ.likedBy?.some((like: any) => like.userId === userId) ? 'text-blue-500' : ''
-                                                                            }`}
+                                                                        className={`hover:text-blue-500 active:text-blue-600 duration-500 pb-1 ${paltaQ.likedBy && paltaQ.likedBy.some((like: { userId: string; }) => like.userId === userId) ? 'text-blue-500' : ''}`}
                                                                     />
-                                                                    <span className="small">{paltaQ.likes}</span>
+                                                                    <span className="small lg:text-base text-sm">{paltaQ.likes}</span>
                                                                 </button>
 
                                                                 <span className="text-zinc-400" aria-hidden>|</span>
@@ -1286,10 +1338,9 @@ export default function RecentQuestions() {
                                                                 <button onClick={() => handleDislike(paltaQ.id, userId, 'palta')} disabled={loading} className="flex items-center gap-1">
                                                                     <FontAwesomeIcon
                                                                         icon={faThumbsDown}
-                                                                        className={`hover:text-red-500 active:text-red-600 duration-300 ${paltaQ.dislikedBy?.some((d: any) => d.userId === userId) ? 'text-red-500' : ''
-                                                                            }`}
+                                                                        className={`hover:text-red-500 active:text-red-600 duration-500 pb-1 ${paltaQ.dislikedBy && paltaQ.dislikedBy.some((dislike: { userId: string; }) => dislike.userId === userId) ? 'text-red-500' : ''}`}
                                                                     />
-                                                                    <span className="small">{paltaQ.dislikes}</span>
+                                                                    <span className="small lg:text-base text-sm">{paltaQ.dislikes}</span>
                                                                 </button>
 
                                                                 <span className="text-zinc-400" aria-hidden>|</span>
@@ -1298,23 +1349,28 @@ export default function RecentQuestions() {
                                                                 <button onClick={() => toggleInputBox(paltaQ.id)} className="flex items-center gap-1">
                                                                     <FontAwesomeIcon
                                                                         icon={faComment}
-                                                                        className={`hover:text-indigo-500 active:text-indigo-600 duration-300 ${visibleInputBox[paltaQ.id] ? 'text-indigo-500' : ''}`}
+                                                                        className={`hover:text-indigo-500 active:text-indigo-600 duration-500 pb-1 ${visibleInputBox[paltaQ.id] ? 'text-indigo-500' : ''}`}
                                                                     />
-                                                                    <span className="small">{paltaQ.repliesLength}</span>
+                                                                    <span className="small lg:text-base text-sm">{paltaQ.repliesLength}</span>
                                                                 </button>
 
                                                                 <span className="text-zinc-400" aria-hidden>|</span>
 
                                                                 {/* PaltaQ */}
-                                                                <button
-                                                                    onClick={() => handleButtonClick(paltaQ.id, 'paltaQ1', paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name)}
-                                                                    className="group"
-                                                                >
+                                                                <button onClick={() => handleButtonClick(paltaQ.id, 'paltaQ1', paltaQ.isAnonymous ? 'Anonymous User' : paltaQ.user.name)} className="flex items-center gap-1">
+                                                                    <FontAwesomeIcon
+                                                                        icon={faComments}
+                                                                        className={`lg:text-base text-sm hover:text-indigo-500 active:text-indigo-600 duration-300 ${visibleInputBox[paltaQ.id] ? 'text-indigo-500' : ''}`}
+                                                                    />
                                                                     <span
-                                                                        className={`font-bold text-base text-zinc-600 group-hover:text-emerald-600 duration-200 ${textBoxPosition === 'paltaQ1' ? 'text-emerald-700' : ''
-                                                                            }`}
+                                                                        className={`lg:block hidden font-bold lg:text-base text-sm text-zinc-600 group-hover:text-emerald-600 duration-200 ${textBoxPosition === 'mainQ' ? 'text-emerald-700' : ''}`}
                                                                     >
                                                                         PaltaQ
+                                                                    </span>
+                                                                    <span
+                                                                        className={`lg:hidden block font-bold lg:text-base text-sm text-zinc-600 group-hover:text-emerald-600 duration-200 ${textBoxPosition === 'mainQ' ? 'text-emerald-700' : ''}`}
+                                                                    >
+                                                                        PQ
                                                                     </span>
                                                                 </button>
 
@@ -1322,8 +1378,12 @@ export default function RecentQuestions() {
 
                                                                 {/* Improve */}
                                                                 <button onClick={() => handleAIGenerate(paltaQ.paltaQ, paltaQ.id)} className="flex items-center gap-1 group">
-                                                                    <FontAwesomeIcon icon={faWandMagicSparkles} className="group-hover:translate-y-[-2px] duration-200" />
-                                                                    <span className="font-bold text-base -translate-y-[1px] group-hover:text-blue-500 duration-200">Improve</span>
+                                                                    <FontAwesomeIcon
+                                                                        icon={faWandMagicSparkles}
+                                                                        className={`lg:text-base text-sm group-hover:translate-y-[-1px] duration-200`}
+                                                                    />
+                                                                    <span className="font-bold text-base lg:block hidden -translate-y-[1px] group-hover:text-blue-500 duration-200">AI Improve</span>
+                                                                    <span className="font-bold text-sm lg:hidden block -translate-y-[1px] group-hover:text-blue-500 duration-200">AI</span>
                                                                 </button>
                                                             </div>
 
@@ -1331,42 +1391,89 @@ export default function RecentQuestions() {
 
                                                         {/* Conditional PaltaQ2 Text Area */}
                                                         {visibleTextBoxes[paltaQ.id] && textBoxPosition === 'paltaQ1' && (
-                                                            <div className="pb-2 pt-2">
-                                                                <div className="flex items-center justify-between gap-3">
-                                                                    <h6 className="text-zinc-400 text-xs sm:text-sm">Depth:2 | Responding to {userName}</h6>
-
-                                                                    <label className="inline-flex items-center cursor-pointer gap-2">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            value={(isAnonymous[paltaQ.id] || false).toString()}
-                                                                            className="sr-only peer"
-                                                                            onChange={() => toggleAnonymity(paltaQ.id)}
-                                                                        />
-                                                                        <div className="relative w-9 h-5 bg-zinc-800 peer-focus:outline-none peer-focus:ring peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-4 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-zinc-600" />
-                                                                        {isAnonymous[question.id] ? (
-                                                                            <FontAwesomeIcon icon={faEyeSlash} className="w-5 lg:hidden text-red-900" />
-                                                                        ) : (
-                                                                            <FontAwesomeIcon icon={faEye} className="w-5 lg:hidden text-[#31344b]" />
-                                                                        )}
-                                                                        <span className="hidden lg:block text-base font-bold">
-                                                                            Toggle Anonymity ({isAnonymous[paltaQ.id] ? 'On' : 'Off'})
-                                                                        </span>
-                                                                    </label>
+                                                            <div className="lg:pb-0 pb-2">
+                                                                {/* Responding To */}
+                                                                <div className="flex items-center justify-between gap-3 px-1">
+                                                                    <h6 className="text-zinc-400 text-xs sm:text-sm pt-4">Depth:2 | Responding to {userName}</h6>
                                                                 </div>
 
-                                                                <form className="mt-2" onSubmit={handlePaltaQ(paltaQ.id, question.id, true)}>
-                                                                    <textarea
-                                                                        id="paltaQuestion"
-                                                                        className="form-control resize-none py-3 pl-3 w-full"
-                                                                        placeholder="Type a creative palta question here . . ."
-                                                                        onChange={handleInputChange(paltaQ.id)}
-                                                                        value={paltaQInputs[paltaQ.id] || ''}
-                                                                    />
-                                                                    <button type="submit" className="float-end -translate-y-10 sm:-translate-y-12 -translate-x-4 sm:-translate-x-5 scale-125 sm:scale-150">
-                                                                        <FontAwesomeIcon icon={faPaperPlane} className="w-6 text-[#31344b]" />
-                                                                    </button>
+                                                                <form
+                                                                    className="lg:w-[100%] w-full mx-auto relative"
+                                                                    onSubmit={handlePaltaQ(paltaQ.id, question.id, true)}
+                                                                >
+                                                                    <div className="my-2">
+                                                                        <div className="relative">
+                                                                            <textarea
+                                                                                id="paltaQuestion"
+                                                                                className="w-full resize-none rounded-2xl px-5 py-4 lg:text-base text-sm text-zinc-700 placeholder-zinc-400 bg-[#e6e7ee] shadow-[inset_4px_4px_6px_#c5c6cb,inset_-4px_-4px_6px_#ffffff] focus:outline-none focus:shadow-[inset_2px_2px_4px_#c5c6cb,inset_-2px_-2px_4px_#ffffff] lg:pr-[7rem] lg:pb-[3.75rem] overflow-y-auto break-words max-h-[50vh]"
+                                                                                style={{ height: '6.5em' }}
+                                                                                placeholder="Type a creative palta question here..."
+                                                                                onChange={handleInputChange(paltaQ.id)}
+                                                                                value={paltaQInputs[paltaQ.id] || ''}
+                                                                            />
+
+                                                                            {/* Desktop: floating icon buttons inside textarea */}
+                                                                            <div className="absolute bottom-[2.5em] right-[2.5em] scale-[1.5] hidden lg:flex items-center gap-1 z-10">
+                                                                                {session?.user?.email && (
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleAnonymity(paltaQ.id)}
+                                                                                        aria-label={isAnonymous[paltaQ.id] ? 'Disable anonymity' : 'Enable anonymity'}
+                                                                                        className="p-2 rounded-full"
+                                                                                    >
+                                                                                        <FontAwesomeIcon
+                                                                                            icon={isAnonymous[paltaQ.id] ? faEyeSlash : faEye}
+                                                                                            className={`w-4 h-4 ${isAnonymous[paltaQ.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                                                        />
+                                                                                    </button>
+                                                                                )}
+
+                                                                                <button
+                                                                                    type="submit"
+                                                                                    aria-label="Submit question"
+                                                                                    className="p-2 rounded-full"
+                                                                                >
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={faPaperPlane}
+                                                                                        className="w-4 h-4 text-[#31344b]"
+                                                                                    />
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {/* Mobile buttons below textarea */}
+                                                                        <div className="mt-4 flex gap-3 lg:hidden px-1">
+                                                                            {session?.user?.email && (
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => toggleAnonymity(paltaQ.id)}
+                                                                                    className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+                                                                                            ${isAnonymous[paltaQ.id]
+                                                                                            ? 'bg-[#e6e7ee] shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] text-rose-700'
+                                                                                            : 'bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] text-zinc-600'
+                                                                                        }`}
+                                                                                >
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={isAnonymous[paltaQ.id] ? faEyeSlash : faEye}
+                                                                                        className={`w-4 ${isAnonymous[paltaQ.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                                                    />
+                                                                                    <span>{isAnonymous[paltaQ.id] ? 'Anonymous' : 'Anonymous'}</span>
+                                                                                </button>
+                                                                            )}
+
+                                                                            <button
+                                                                                type="submit"
+                                                                                className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-[#31344b] bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] active:shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] transition"
+                                                                            >
+                                                                                <FontAwesomeIcon icon={faPaperPlane} className="w-4" />
+                                                                                <span>Submit</span>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
                                                                 </form>
                                                             </div>
+
+
                                                         )}
 
                                                         <hr className={`border-b border-gray-400 mr-2 ${idx === sortedQuestions.length - 1 ? 'mb-0 mt-3' : 'my-3'}`} />

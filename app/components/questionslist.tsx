@@ -837,7 +837,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                             className={`card bg-primary ${question.user.is_Faculty ? 'border-secondary border-gray-500 shadow-lg' : 'border-light shadow-sm'} lg:w-fit w-full lg:ml-2 mb-4 lg:pr-4 lg:pl-2 lg:pb-1 pb-0 lg:pt-1 pt-1`}
                                         >
                                             {/* Question card top part */}
-                                            <div className="px-4 pt-3 pb-2">
+                                            <div className="px-4 pt-3 pb-2 min-w-[40vw]">
 
                                                 {/* User Details */}
                                                 <div className="flex flex-row justify-between mb-2">
@@ -916,7 +916,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                             </div>
 
                                                             {/* Date (kept your exact formatting, just aligned and smaller on mobile) */}
-                                                            <span className="small ml-2 text-xs sm:text-sm text-gray-800">
+                                                            <span className="small ml-2 text-xs sm:text-sm text-neutral-600">
                                                                 {new Date(question.createdAt).toLocaleDateString('en-GB', {
                                                                     day: '2-digit',
                                                                     month: '2-digit',
@@ -1216,53 +1216,87 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                 {/* Conditional PaltaQ1 Text Area */}
                                                 <div>
                                                     {visibleTextBoxes[question.id] && textBoxPosition === 'mainQ' && (
-                                                        <div className='py-4'>
-                                                            <form className="lg:mx-4 mx-2" onSubmit={handlePaltaQ(question.id, question.topicId, question.topic.name)}>
-                                                                {/* Anonymity */}
-                                                                <div className='flex flex-row items-end justify-between'>
+                                                        <div className="lg:pb-0 pb-2">
 
-                                                                    <h6 className='text-zinc-400 lg:text-sm text-xs pl-1'>Depth:1 | Responding to {userName}</h6>
+                                                            {/* Depth */}
+                                                            <div className="flex items-center justify-between gap-3 lg:px-2 px-3 pt-4">
+                                                                <h6 className="text-zinc-400 text-xs sm:text-sm">Depth:1 | Responding to {userName}</h6>
+                                                            </div>
 
-                                                                    <label className='inline-flex items-center cursor-pointer'>
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            value={(isAnonymous[question.id] || false).toString()}
-                                                                            className="sr-only peer"
-                                                                            onChange={() => toggleAnonymity(question.id)}
+                                                            {/* TextBox */}
+                                                            <form
+                                                                className="lg:w-[99%] w-[95%] mx-auto relative"
+                                                                onSubmit={handlePaltaQ(question.id, question.topicId, question.topic.name)}
+                                                            >
+                                                                <div className="my-2">
+                                                                    <div className="relative">
+                                                                        <textarea
+                                                                            id="paltaQuestion"
+                                                                            className="w-full resize-none rounded-2xl px-5 py-4 lg:text-base text-sm text-zinc-700 placeholder-zinc-400 bg-[#e6e7ee] shadow-[inset_4px_4px_6px_#c5c6cb,inset_-4px_-4px_6px_#ffffff] focus:outline-none focus:shadow-[inset_2px_2px_4px_#c5c6cb,inset_-2px_-2px_4px_#ffffff] lg:pr-[7rem] lg:pb-[3.75rem] overflow-y-auto break-words max-h-[50vh]"
+                                                                            style={{ height: '6.5em' }}
+                                                                            placeholder="Type a creative palta question here..."
+                                                                            onChange={handleInputChange(question.id)}
+                                                                            value={paltaQInputs[question.id]}
                                                                         />
-                                                                        <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
-                                                                        {isAnonymous[question.id] ? (
-                                                                            <FontAwesomeIcon
-                                                                                icon={faEyeSlash}
-                                                                                className={`w-[1.5rem] lg:hidden text-red-900`}
-                                                                            />
-                                                                        ) : (
-                                                                            <FontAwesomeIcon
-                                                                                icon={faEye}
-                                                                                className={`w-[1.5rem] lg:hidden text-[#31344b]`}
-                                                                            />
+
+                                                                        {/* Desktop: floating icon buttons inside textarea */}
+                                                                        <div className="absolute bottom-[2.5em] right-[2.5em] scale-[1.5] hidden lg:flex items-center gap-1 z-10">
+                                                                            {session?.user?.email && (
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => toggleAnonymity(question.id)}
+                                                                                    aria-label={isAnonymous[question.id] ? 'Disable anonymity' : 'Enable anonymity'}
+                                                                                    className="p-2 rounded-full"
+                                                                                >
+                                                                                    <FontAwesomeIcon
+                                                                                        icon={isAnonymous[question.id] ? faEyeSlash : faEye}
+                                                                                        className={`w-4 h-4 ${isAnonymous[question.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                                                    />
+                                                                                </button>
+                                                                            )}
+
+                                                                            <button
+                                                                                type="submit"
+                                                                                aria-label="Submit question"
+                                                                                className="p-2 rounded-full"
+                                                                            >
+                                                                                <FontAwesomeIcon
+                                                                                    icon={faPaperPlane}
+                                                                                    className="w-4 h-4 text-[#31344b]"
+                                                                                />
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Mobile buttons below textarea */}
+                                                                    <div className="mt-4 flex gap-3 lg:hidden px-1">
+                                                                        {session?.user?.email && (
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => toggleAnonymity(question.id)}
+                                                                                className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+                                                                                                                      ${isAnonymous[question.id]
+                                                                                        ? 'bg-[#e6e7ee] shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] text-rose-700'
+                                                                                        : 'bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] text-zinc-600'
+                                                                                    }`}
+                                                                            >
+                                                                                <FontAwesomeIcon
+                                                                                    icon={isAnonymous[question.id] ? faEyeSlash : faEye}
+                                                                                    className={`w-4 ${isAnonymous[question.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                                                />
+                                                                                <span>{isAnonymous[question.id] ? 'Anonymous' : 'Anonymous'}</span>
+                                                                            </button>
                                                                         )}
-                                                                        <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[question.id] ? "On" : "Off"})</span>
-                                                                    </label>
 
+                                                                        <button
+                                                                            type="submit"
+                                                                            className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-[#31344b] bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] active:shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] transition"
+                                                                        >
+                                                                            <FontAwesomeIcon icon={faPaperPlane} className="w-4" />
+                                                                            <span>Submit</span>
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
-
-                                                                <textarea
-                                                                    id="paltaQuestion"
-                                                                    className="form-control pr-5o5 resize-none py-3 pl-3"
-                                                                    placeholder='Type a creative palta question here . . .'
-                                                                    onChange={handleInputChange(question.id)}
-                                                                    value={paltaQInputs[question.id]}
-                                                                />
-                                                                <button
-                                                                    type="submit"
-                                                                    className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
-                                                                >
-                                                                    <FontAwesomeIcon
-                                                                        icon={faPaperPlane}
-                                                                        className="w-[1.5rem] text-[#31344b]"
-                                                                    />
-                                                                </button>
                                                             </form>
                                                         </div>
                                                     )}
@@ -1369,7 +1403,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                                                                 })()}
                                                                                             </div>
                                                                                             {/* Date (kept your exact formatting, just aligned and smaller on mobile) */}
-                                                                                            <span className="small ml-2 text-xs sm:text-sm text-gray-800">
+                                                                                            <span className="small ml-2 text-xs sm:text-sm text-neutral-600">
                                                                                                 {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', {
                                                                                                     day: '2-digit',
                                                                                                     month: '2-digit',
@@ -1658,53 +1692,85 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                                             {/* Conditional PaltaQ2 Text Area */}
                                                                             <div>
                                                                                 {visibleTextBoxes[paltaQ.id] && textBoxPosition === 'paltaQ1' && (
-                                                                                    <div className='py-4'>
-                                                                                        <form className="mr-1" onSubmit={handlePaltaQ(paltaQ.id, question.topicId, question.topic.name, question.id, true)}>
-                                                                                            {/* Anonymity */}
-                                                                                            <div className='flex flex-row items-end justify-between'>
+                                                                                    <div className="lg:pb-0 pb-2">
+                                                                                        {/* Depth */}
+                                                                                        <div className="flex items-center justify-between gap-3 px-1">
+                                                                                            <h6 className="text-zinc-400 text-xs sm:text-sm pt-4">Depth:2 | Responding to {userName}</h6>
+                                                                                        </div>
 
-                                                                                                <h6 className='text-zinc-400 lg:text-sm text-xs'>Depth:2 | Responding to {userName}</h6>
-
-                                                                                                <label className='inline-flex items-center cursor-pointer'>
-                                                                                                    <input
-                                                                                                        type="checkbox"
-                                                                                                        value={(isAnonymous[paltaQ.id] || false).toString()}
-                                                                                                        className="sr-only peer"
-                                                                                                        onChange={() => toggleAnonymity(paltaQ.id)}
+                                                                                        <form
+                                                                                            className="lg:w-[100%] w-full mx-auto relative"
+                                                                                            onSubmit={handlePaltaQ(paltaQ.id, question.topicId, question.topic.name, question.id, true)}
+                                                                                        >
+                                                                                            <div className="my-2">
+                                                                                                <div className="relative">
+                                                                                                    <textarea
+                                                                                                        id="paltaQuestion"
+                                                                                                        className="w-full resize-none rounded-2xl px-5 py-4 lg:text-base text-sm text-zinc-700 placeholder-zinc-400 bg-[#e6e7ee] shadow-[inset_4px_4px_6px_#c5c6cb,inset_-4px_-4px_6px_#ffffff] focus:outline-none focus:shadow-[inset_2px_2px_4px_#c5c6cb,inset_-2px_-2px_4px_#ffffff] lg:pr-[7rem] lg:pb-[3.75rem] overflow-y-auto break-words max-h-[50vh]"
+                                                                                                        style={{ height: '6.5em' }}
+                                                                                                        placeholder="Type a creative palta question here..."
+                                                                                                        onChange={handleInputChange(paltaQ.id)}
+                                                                                                        value={paltaQInputs[paltaQ.id] || ''}
                                                                                                     />
-                                                                                                    <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
-                                                                                                    {isAnonymous[question.id] ? (
-                                                                                                        <FontAwesomeIcon
-                                                                                                            icon={faEyeSlash}
-                                                                                                            className={`w-[1.5rem] lg:hidden text-red-900`}
-                                                                                                        />
-                                                                                                    ) : (
-                                                                                                        <FontAwesomeIcon
-                                                                                                            icon={faEye}
-                                                                                                            className={`w-[1.5rem] lg:hidden text-[#31344b]`}
-                                                                                                        />
+
+                                                                                                    {/* Desktop: floating icon buttons inside textarea */}
+                                                                                                    <div className="absolute bottom-[2.5em] right-[2.5em] scale-[1.5] hidden lg:flex items-center gap-1 z-10">
+                                                                                                        {session?.user?.email && (
+                                                                                                            <button
+                                                                                                                type="button"
+                                                                                                                onClick={() => toggleAnonymity(paltaQ.id)}
+                                                                                                                aria-label={isAnonymous[paltaQ.id] ? 'Disable anonymity' : 'Enable anonymity'}
+                                                                                                                className="p-2 rounded-full"
+                                                                                                            >
+                                                                                                                <FontAwesomeIcon
+                                                                                                                    icon={isAnonymous[paltaQ.id] ? faEyeSlash : faEye}
+                                                                                                                    className={`w-4 h-4 ${isAnonymous[paltaQ.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                                                                                />
+                                                                                                            </button>
+                                                                                                        )}
+
+                                                                                                        <button
+                                                                                                            type="submit"
+                                                                                                            aria-label="Submit question"
+                                                                                                            className="p-2 rounded-full"
+                                                                                                        >
+                                                                                                            <FontAwesomeIcon
+                                                                                                                icon={faPaperPlane}
+                                                                                                                className="w-4 h-4 text-[#31344b]"
+                                                                                                            />
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                </div>
+
+                                                                                                {/* Mobile buttons below textarea */}
+                                                                                                <div className="mt-4 flex gap-3 lg:hidden px-1">
+                                                                                                    {session?.user?.email && (
+                                                                                                        <button
+                                                                                                            type="button"
+                                                                                                            onClick={() => toggleAnonymity(paltaQ.id)}
+                                                                                                            className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+                                                                                                                                                                                    ${isAnonymous[paltaQ.id]
+                                                                                                                    ? 'bg-[#e6e7ee] shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] text-rose-700'
+                                                                                                                    : 'bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] text-zinc-600'
+                                                                                                                }`}
+                                                                                                        >
+                                                                                                            <FontAwesomeIcon
+                                                                                                                icon={isAnonymous[paltaQ.id] ? faEyeSlash : faEye}
+                                                                                                                className={`w-4 ${isAnonymous[paltaQ.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                                                                            />
+                                                                                                            <span>{isAnonymous[paltaQ.id] ? 'Anonymous' : 'Anonymous'}</span>
+                                                                                                        </button>
                                                                                                     )}
-                                                                                                    <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[paltaQ.id] ? "On" : "Off"})</span>
-                                                                                                </label>
 
+                                                                                                    <button
+                                                                                                        type="submit"
+                                                                                                        className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-[#31344b] bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] active:shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] transition"
+                                                                                                    >
+                                                                                                        <FontAwesomeIcon icon={faPaperPlane} className="w-4" />
+                                                                                                        <span>Submit</span>
+                                                                                                    </button>
+                                                                                                </div>
                                                                                             </div>
-
-                                                                                            <textarea
-                                                                                                id="paltaQuestion"
-                                                                                                className="form-control pr-5o5 resize-none py-3 pl-3"
-                                                                                                placeholder='Type a creative palta question here . . .'
-                                                                                                onChange={handleInputChange(paltaQ.id)}
-                                                                                                value={paltaQInputs[paltaQ.id] || ''}
-                                                                                            />
-                                                                                            <button
-                                                                                                type="submit"
-                                                                                                className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
-                                                                                            >
-                                                                                                <FontAwesomeIcon
-                                                                                                    icon={faPaperPlane}
-                                                                                                    className="w-[1.5rem] text-[#31344b]"
-                                                                                                />
-                                                                                            </button>
                                                                                         </form>
                                                                                     </div>
                                                                                 )}
@@ -1848,7 +1914,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                             </div>
 
                                                             {/* Date (kept your exact formatting, just aligned and smaller on mobile) */}
-                                                            <span className="small ml-2 text-xs sm:text-sm text-gray-800">
+                                                            <span className="small ml-2 text-xs sm:text-sm text-neutral-600">
                                                                 {new Date(question.createdAt).toLocaleDateString('en-GB', {
                                                                     day: '2-digit',
                                                                     month: '2-digit',
@@ -2148,54 +2214,92 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                 {/* Conditional PaltaQ1 Text Area */}
                                                 <div>
                                                     {visibleTextBoxes[question.id] && textBoxPosition === 'mainQ' && (
-                                                        <div className='py-4'>
-                                                            <form className="lg:mx-4 mx-2" onSubmit={handlePaltaQ(question.id, question.topicId, question.topic.name)}>
-                                                                {/* Anonymity */}
-                                                                <div className='flex flex-row items-end justify-between'>
+                                                        <div>
+                                                            {visibleTextBoxes[question.id] && textBoxPosition === 'mainQ' && (
+                                                                <div className="lg:pb-0 pb-2">
 
-                                                                    <h6 className='text-zinc-400 lg:text-sm text-xs pl-1'>Depth:1 | Responding to {userName}</h6>
+                                                                    {/* Depth */}
+                                                                    <div className="flex items-center justify-between gap-3 lg:px-2 px-3 pt-4">
+                                                                        <h6 className="text-zinc-400 text-xs lg:text-sm pb-0 mb-0">Depth:1 | Responding to {userName}</h6>
+                                                                    </div>
 
-                                                                    <label className='inline-flex items-center cursor-pointer'>
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            value={(isAnonymous[question.id] || false).toString()}
-                                                                            className="sr-only peer"
-                                                                            onChange={() => toggleAnonymity(question.id)}
-                                                                        />
-                                                                        <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
-                                                                        {isAnonymous[question.id] ? (
-                                                                            <FontAwesomeIcon
-                                                                                icon={faEyeSlash}
-                                                                                className={`w-[1.5rem] lg:hidden text-red-900`}
-                                                                            />
-                                                                        ) : (
-                                                                            <FontAwesomeIcon
-                                                                                icon={faEye}
-                                                                                className={`w-[1.5rem] lg:hidden text-[#31344b]`}
-                                                                            />
-                                                                        )}
-                                                                        <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[question.id] ? "On" : "Off"})</span>
-                                                                    </label>
+                                                                    {/* TextBox */}
+                                                                    <form
+                                                                        className="lg:w-[99%] w-[95%] mx-auto relative"
+                                                                        onSubmit={handlePaltaQ(question.id, question.topicId, question.topic.name)}
+                                                                    >
+                                                                        <div className="my-2">
+                                                                            <div className="relative">
+                                                                                <textarea
+                                                                                    id="paltaQuestion"
+                                                                                    className="w-full resize-none rounded-2xl px-5 py-4 lg:text-base text-sm text-zinc-700 placeholder-zinc-400 bg-[#e6e7ee] shadow-[inset_4px_4px_6px_#c5c6cb,inset_-4px_-4px_6px_#ffffff] focus:outline-none focus:shadow-[inset_2px_2px_4px_#c5c6cb,inset_-2px_-2px_4px_#ffffff] lg:pr-[7rem] lg:pb-[3.75rem] overflow-y-auto break-words max-h-[50vh]"
+                                                                                    style={{ height: '6.5em' }}
+                                                                                    placeholder="Type a creative palta question here..."
+                                                                                    onChange={handleInputChange(question.id)}
+                                                                                    value={paltaQInputs[question.id]}
+                                                                                />
 
+                                                                                {/* Desktop: floating icon buttons inside textarea */}
+                                                                                <div className="absolute bottom-[2.5em] right-[2.5em] scale-[1.5] hidden lg:flex items-center gap-1 z-10">
+                                                                                    {session?.user?.email && (
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={() => toggleAnonymity(question.id)}
+                                                                                            aria-label={isAnonymous[question.id] ? 'Disable anonymity' : 'Enable anonymity'}
+                                                                                            className="p-2 rounded-full"
+                                                                                        >
+                                                                                            <FontAwesomeIcon
+                                                                                                icon={isAnonymous[question.id] ? faEyeSlash : faEye}
+                                                                                                className={`w-4 h-4 ${isAnonymous[question.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                                                            />
+                                                                                        </button>
+                                                                                    )}
+
+                                                                                    <button
+                                                                                        type="submit"
+                                                                                        aria-label="Submit question"
+                                                                                        className="p-2 rounded-full"
+                                                                                    >
+                                                                                        <FontAwesomeIcon
+                                                                                            icon={faPaperPlane}
+                                                                                            className="w-4 h-4 text-[#31344b]"
+                                                                                        />
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {/* Mobile buttons below textarea */}
+                                                                            <div className="mt-4 flex gap-3 lg:hidden px-1">
+                                                                                {session?.user?.email && (
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleAnonymity(question.id)}
+                                                                                        className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+                                                                                                                      ${isAnonymous[question.id]
+                                                                                                ? 'bg-[#e6e7ee] shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] text-rose-700'
+                                                                                                : 'bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] text-zinc-600'
+                                                                                            }`}
+                                                                                    >
+                                                                                        <FontAwesomeIcon
+                                                                                            icon={isAnonymous[question.id] ? faEyeSlash : faEye}
+                                                                                            className={`w-4 ${isAnonymous[question.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                                                        />
+                                                                                        <span>{isAnonymous[question.id] ? 'Anonymous' : 'Anonymous'}</span>
+                                                                                    </button>
+                                                                                )}
+
+                                                                                <button
+                                                                                    type="submit"
+                                                                                    className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-[#31344b] bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] active:shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] transition"
+                                                                                >
+                                                                                    <FontAwesomeIcon icon={faPaperPlane} className="w-4" />
+                                                                                    <span>Submit</span>
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </form>
                                                                 </div>
-
-                                                                <textarea
-                                                                    id="paltaQuestion"
-                                                                    className="form-control pr-5o5 resize-none py-3 pl-3"
-                                                                    placeholder='Type a creative palta question here . . .'
-                                                                    onChange={handleInputChange(question.id)}
-                                                                    value={paltaQInputs[question.id]}
-                                                                />
-                                                                <button
-                                                                    type="submit"
-                                                                    className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
-                                                                >
-                                                                    <FontAwesomeIcon
-                                                                        icon={faPaperPlane}
-                                                                        className="w-[1.5rem] text-[#31344b]"
-                                                                    />
-                                                                </button>
-                                                            </form>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
@@ -2301,7 +2405,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                                                                 })()}
                                                                                             </div>
                                                                                             {/* Date (kept your exact formatting, just aligned and smaller on mobile) */}
-                                                                                            <span className="small ml-2 text-xs sm:text-sm text-gray-800">
+                                                                                            <span className="small ml-2 text-xs sm:text-sm text-neutral-600">
                                                                                                 {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', {
                                                                                                     day: '2-digit',
                                                                                                     month: '2-digit',
@@ -2325,6 +2429,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                                             </div>
 
                                                                             {/* Bottom Part */}
+                                                                            {/* Badges */}
                                                                             <div className="flex flex-wrap items-center gap-2 lg:px-0 px-1 lg:pt-1 pt-3 pb-1">
                                                                                 {/* Level */}
                                                                                 <div
@@ -2590,53 +2695,85 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                                                                             {/* Conditional PaltaQ2 Text Area */}
                                                                             <div>
                                                                                 {visibleTextBoxes[paltaQ.id] && textBoxPosition === 'paltaQ1' && (
-                                                                                    <div className='py-4'>
-                                                                                        <form className="mr-1" onSubmit={handlePaltaQ(paltaQ.id, question.topicId, question.topic.name, question.id, true)}>
-                                                                                            {/* Anonymity */}
-                                                                                            <div className='flex flex-row items-end justify-between'>
+                                                                                    <div className="lg:pb-0 pb-2">
+                                                                                        {/* Depth */}
+                                                                                        <div className="flex items-center justify-between gap-3 px-1">
+                                                                                            <h6 className="text-zinc-400 text-xs sm:text-sm pt-4">Depth:2 | Responding to {userName}</h6>
+                                                                                        </div>
 
-                                                                                                <h6 className='text-zinc-400 lg:text-sm text-xs'>Depth:2 | Responding to {userName}</h6>
-
-                                                                                                <label className='inline-flex items-center cursor-pointer'>
-                                                                                                    <input
-                                                                                                        type="checkbox"
-                                                                                                        value={(isAnonymous[paltaQ.id] || false).toString()}
-                                                                                                        className="sr-only peer"
-                                                                                                        onChange={() => toggleAnonymity(paltaQ.id)}
+                                                                                        <form
+                                                                                            className="lg:w-[100%] w-full mx-auto relative"
+                                                                                            onSubmit={handlePaltaQ(paltaQ.id, question.topicId, question.topic.name, question.id, true)}
+                                                                                        >
+                                                                                            <div className="my-2">
+                                                                                                <div className="relative">
+                                                                                                    <textarea
+                                                                                                        id="paltaQuestion"
+                                                                                                        className="w-full resize-none rounded-2xl px-5 py-4 lg:text-base text-sm text-zinc-700 placeholder-zinc-400 bg-[#e6e7ee] shadow-[inset_4px_4px_6px_#c5c6cb,inset_-4px_-4px_6px_#ffffff] focus:outline-none focus:shadow-[inset_2px_2px_4px_#c5c6cb,inset_-2px_-2px_4px_#ffffff] lg:pr-[7rem] lg:pb-[3.75rem] overflow-y-auto break-words max-h-[50vh]"
+                                                                                                        style={{ height: '6.5em' }}
+                                                                                                        placeholder="Type a creative palta question here..."
+                                                                                                        onChange={handleInputChange(paltaQ.id)}
+                                                                                                        value={paltaQInputs[paltaQ.id] || ''}
                                                                                                     />
-                                                                                                    <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
-                                                                                                    {isAnonymous[question.id] ? (
-                                                                                                        <FontAwesomeIcon
-                                                                                                            icon={faEyeSlash}
-                                                                                                            className={`w-[1.5rem] lg:hidden text-red-900`}
-                                                                                                        />
-                                                                                                    ) : (
-                                                                                                        <FontAwesomeIcon
-                                                                                                            icon={faEye}
-                                                                                                            className={`w-[1.5rem] lg:hidden text-[#31344b]`}
-                                                                                                        />
+
+                                                                                                    {/* Desktop: floating icon buttons inside textarea */}
+                                                                                                    <div className="absolute bottom-[2.5em] right-[2.5em] scale-[1.5] hidden lg:flex items-center gap-1 z-10">
+                                                                                                        {session?.user?.email && (
+                                                                                                            <button
+                                                                                                                type="button"
+                                                                                                                onClick={() => toggleAnonymity(paltaQ.id)}
+                                                                                                                aria-label={isAnonymous[paltaQ.id] ? 'Disable anonymity' : 'Enable anonymity'}
+                                                                                                                className="p-2 rounded-full"
+                                                                                                            >
+                                                                                                                <FontAwesomeIcon
+                                                                                                                    icon={isAnonymous[paltaQ.id] ? faEyeSlash : faEye}
+                                                                                                                    className={`w-4 h-4 ${isAnonymous[paltaQ.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                                                                                />
+                                                                                                            </button>
+                                                                                                        )}
+
+                                                                                                        <button
+                                                                                                            type="submit"
+                                                                                                            aria-label="Submit question"
+                                                                                                            className="p-2 rounded-full"
+                                                                                                        >
+                                                                                                            <FontAwesomeIcon
+                                                                                                                icon={faPaperPlane}
+                                                                                                                className="w-4 h-4 text-[#31344b]"
+                                                                                                            />
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                </div>
+
+                                                                                                {/* Mobile buttons below textarea */}
+                                                                                                <div className="mt-4 flex gap-3 lg:hidden px-1">
+                                                                                                    {session?.user?.email && (
+                                                                                                        <button
+                                                                                                            type="button"
+                                                                                                            onClick={() => toggleAnonymity(paltaQ.id)}
+                                                                                                            className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+                                                                                                                                                                                    ${isAnonymous[paltaQ.id]
+                                                                                                                    ? 'bg-[#e6e7ee] shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] text-rose-700'
+                                                                                                                    : 'bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] text-zinc-600'
+                                                                                                                }`}
+                                                                                                        >
+                                                                                                            <FontAwesomeIcon
+                                                                                                                icon={isAnonymous[paltaQ.id] ? faEyeSlash : faEye}
+                                                                                                                className={`w-4 ${isAnonymous[paltaQ.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                                                                            />
+                                                                                                            <span>{isAnonymous[paltaQ.id] ? 'Anonymous' : 'Anonymous'}</span>
+                                                                                                        </button>
                                                                                                     )}
-                                                                                                    <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[paltaQ.id] ? "On" : "Off"})</span>
-                                                                                                </label>
 
+                                                                                                    <button
+                                                                                                        type="submit"
+                                                                                                        className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-[#31344b] bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] active:shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] transition"
+                                                                                                    >
+                                                                                                        <FontAwesomeIcon icon={faPaperPlane} className="w-4" />
+                                                                                                        <span>Submit</span>
+                                                                                                    </button>
+                                                                                                </div>
                                                                                             </div>
-
-                                                                                            <textarea
-                                                                                                id="paltaQuestion"
-                                                                                                className="form-control pr-5o5 resize-none py-3 pl-3"
-                                                                                                placeholder='Type a creative palta question here . . .'
-                                                                                                onChange={handleInputChange(paltaQ.id)}
-                                                                                                value={paltaQInputs[paltaQ.id] || ''}
-                                                                                            />
-                                                                                            <button
-                                                                                                type="submit"
-                                                                                                className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
-                                                                                            >
-                                                                                                <FontAwesomeIcon
-                                                                                                    icon={faPaperPlane}
-                                                                                                    className="w-[1.5rem] text-[#31344b]"
-                                                                                                />
-                                                                                            </button>
                                                                                         </form>
                                                                                     </div>
                                                                                 )}

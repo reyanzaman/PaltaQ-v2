@@ -22,7 +22,7 @@ export async function getGroqChatCompletion2(question: string) {
       messages: [
         {
           role: "user",
-          content: `Very strictly score the question out of 150, ensuring that low-level or low IQ questions receive below 50, mid-level or moderate questions between 50 to 100, and high-level and intelligent questions between 100 to 150. Only give me the score. For example: 50. Here is the question: '${question}'`,
+          content: `Score the question from 0 to 150, ensuring that low-level or low IQ questions receive below 50, mid-level or moderate questions between 50 to 100, and high-level and intelligent questions between 100 to 150. Only give me the score. For example: 50. Here is the question: '${question}'`,
         },
       ],
       model: "llama-3.1-8b-instant",

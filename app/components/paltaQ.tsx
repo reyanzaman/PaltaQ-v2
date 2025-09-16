@@ -587,7 +587,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                                         <div className="flex items-center gap-1 min-w-0">
                                                             {/* Name */}
                                                             <span
-                                                                className="font-bold text-sm sm:text-base lg:text-lg ml-2 truncate"
+                                                                className="font-bold text-sm lg:text-base ml-2 truncate"
                                                                 style={nameStyle}
                                                                 title={baseName}
                                                             >
@@ -616,7 +616,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                                 })()}
                                             </div>
                                             {/* Date (kept your exact formatting, just aligned and smaller on mobile) */}
-                                            <span className="small ml-2 text-xs sm:text-sm text-gray-800">
+                                            <span className="small ml-2 text-xs sm:text-sm text-neutral-600">
                                                 {new Date(paltaQ.createdAt).toLocaleDateString('en-GB', {
                                                     day: '2-digit',
                                                     month: '2-digit',
@@ -633,13 +633,15 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
 
                                 {/* PaltaQ Question */}
                                 <div className="flex flex-row pt-2 lg:pb-2 pb-0 mb-0 px-1">
-                                    <h4 className="lg:text-lg text-base lg:text-justify text-left p-0 m-0 text-neutral-600">
+                                    <h4 className="lg:text-base text-sm lg:text-justify text-left p-0 m-0 text-neutral-700">
                                         {paltaQ.paltaQ}
                                     </h4>
                                 </div>
 
                                 {/* Bottom Part */}
-                                <div className="flex flex-wrap items-center gap-2 lg:px-0 px-1 lg:pt-1 pt-3 pb-1">
+
+                                {/* Badges */}
+                                <div className="flex flex-wrap items-center gap-2 mt-2">
                                     {/* Level */}
                                     <div
                                         className={`order-2 sm:order-1 badge ${paltaQ.score >= 100
@@ -666,177 +668,42 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                     </div>
 
                                     {/* Blooms Badge */}
-                                    <div className={`order-1 sm:order-2 flex flex-wrap items-center gap-1 w-full sm:w-auto ${paltaQ?.questionType?.[0]?.remembering || paltaQ?.questionType?.[0]?.understanding || paltaQ?.questionType?.[0]?.applying || paltaQ?.questionType?.[0]?.analyzing || paltaQ?.questionType?.[0]?.evaluating || paltaQ?.questionType?.[0]?.creating ? 'lg:pl-3 pl-0' : ''}`}>
-                                        {/* Remembering */}
+                                    <div className="flex flex-wrap items-center gap-1">
                                         {paltaQ.questionType[0].remembering && (
-                                            <div
-                                                className="badge bg-[#393d71] p-1"
-                                                data-tooltip-content="Remembering: The foundational level of Bloom's Taxonomy. It involves recalling basic facts, definitions, or concepts from memory, such as remembering dates, names, or key terms without needing to understand or analyze them."
-                                                data-tooltip-id="PQ-badge-remember"
-                                            >
-                                                <span className='font-bold text-white lg:text-xs text-[10px]'>RE</span>
+                                            <div className="badge bg-[#393d71] px-2" data-tooltip-content="Remembering..." data-tooltip-id="PQ-badge-remember">
+                                                <span className="font-bold text-white text-[10px] sm:text-xs">RE</span>
                                             </div>
                                         )}
-
-                                        {/* Understanding */}
                                         {paltaQ.questionType[0].understanding && (
-                                            <div
-                                                className="badge bg-[#63899f] p-1"
-                                                data-tooltip-content="The second level of Bloom's Taxonomy. It involves grasping the meaning of information, such as interpreting instructions, summarizing a text, or explaining a concept in your own words. This level goes beyond mere recall by requiring comprehension of the material."
-                                                data-tooltip-id="PQ-badge-understand"
-                                            >
-                                                <span className='font-bold text-white lg:text-xs text-[10px]'>UN</span>
+                                            <div className="badge bg-[#63899f] px-1.5 py-1" data-tooltip-content="Understanding..." data-tooltip-id="PQ-badge-understand">
+                                                <span className="font-bold text-white text-[10px] sm:text-xs">UN</span>
                                             </div>
                                         )}
-
-                                        {/* Applying */}
                                         {paltaQ.questionType[0].applying && (
-                                            <div
-                                                className="badge bg-[#576042] p-1"
-                                                data-tooltip-content="The third level of Bloom's Taxonomy. It involves using knowledge in new situations, such as applying formulas to solve problems, using concepts in practice, or carrying out a procedure in a different context. This level focuses on the ability to implement learned material."
-                                                data-tooltip-id="PQ-badge-apply"
-                                            >
-                                                <span className='font-bold text-white lg:text-xs text-[10px]'>AP</span>
+                                            <div className="badge bg-[#576042] px-1.5 py-1" data-tooltip-content="Applying..." data-tooltip-id="PQ-badge-apply">
+                                                <span className="font-bold text-white text-[10px] sm:text-xs">AP</span>
                                             </div>
                                         )}
-
-                                        {/* Analying */}
                                         {paltaQ.questionType[0].analyzing && (
-                                            <div
-                                                className="badge bg-[#578a72] p-1"
-                                                data-tooltip-content="The fourth level of Bloom's Taxonomy. It involves breaking down information into components to understand its structure, such as comparing and contrasting ideas, identifying relationships, or recognizing patterns. This level requires critical thinking to dissect information."
-                                                data-tooltip-id="PQ-badge-analyze"
-                                            >
-                                                <span className='font-bold text-white lg:text-xs text-[10px]'>AN</span>
+                                            <div className="badge bg-[#578a72] px-1.5 py-1" data-tooltip-content="Analyzing..." data-tooltip-id="PQ-badge-analyze">
+                                                <span className="font-bold text-white text-[10px] sm:text-xs">AN</span>
                                             </div>
                                         )}
-
-                                        {/* Evaluate */}
                                         {paltaQ.questionType[0].evaluating && (
-                                            <div
-                                                className="badge bg-[#dca146] p-1"
-                                                data-tooltip-content="The fifth level of Bloom's Taxonomy. It involves making judgments based on criteria and standards, such as critiquing an argument, assessing the validity of a source, or weighing the pros and cons of a decision. This level requires both analysis and justification."
-                                                data-tooltip-id="PQ-badge-evaluate"
-                                            >
-                                                <span className='font-bold text-white lg:text-xs text-[10px]'>EV</span>
+                                            <div className="badge bg-[#dca146] px-1.5 py-1" data-tooltip-content="Evaluating..." data-tooltip-id="PQ-badge-evaluate">
+                                                <span className="font-bold text-white text-[10px] sm:text-xs">EV</span>
                                             </div>
                                         )}
-
-                                        {/* Create */}
                                         {paltaQ.questionType[0].creating && (
-                                            <div
-                                                className="badge bg-[#cb484f] p-1"
-                                                data-tooltip-content="The highest level of Bloom's Taxonomy. It involves generating new ideas, products, or ways of viewing things, such as designing a project, composing a story, or proposing a theory. This level emphasizes innovation and the ability to put elements together in a novel way."
-                                                data-tooltip-id="PQ-badge-create"
-                                            >
-                                                <span className='font-bold text-white lg:text-xs text-[10px]'>CR</span>
+                                            <div className="badge bg-[#cb484f] px-1.5 py-1" data-tooltip-content="Creating..." data-tooltip-id="PQ-badge-create">
+                                                <span className="font-bold text-white text-[10px] sm:text-xs">CR</span>
                                             </div>
                                         )}
-
-                                        {/* Tooltips */}
-                                        <>
-                                            <Tooltip
-                                                id="PQ-badge-remember"
-                                                place="top"
-                                                openOnClick
-                                                clickable
-                                                className="max-w-[90vw]"
-                                                style={{
-                                                    borderRadius: '8px',
-                                                    padding: '10px',
-                                                    zIndex: 100,
-                                                    opacity: 1,
-                                                    width: 'min(90vw, 350px)',
-                                                    textAlign: 'left',
-                                                    backgroundColor: '#393d71',
-                                                }}
-                                            />
-                                            <Tooltip
-                                                id="PQ-badge-understand"
-                                                place="top"
-                                                openOnClick
-                                                clickable
-                                                className="max-w-[90vw]"
-                                                style={{
-                                                    borderRadius: '8px',
-                                                    padding: '10px',
-                                                    zIndex: 100,
-                                                    opacity: 1,
-                                                    width: 'min(90vw, 350px)',
-                                                    textAlign: 'left',
-                                                    backgroundColor: '#63899f',
-                                                }}
-                                            />
-                                            <Tooltip
-                                                id="PQ-badge-apply"
-                                                place="top"
-                                                openOnClick
-                                                clickable
-                                                className="max-w-[90vw]"
-                                                style={{
-                                                    borderRadius: '8px',
-                                                    padding: '10px',
-                                                    zIndex: 100,
-                                                    opacity: 1,
-                                                    width: 'min(90vw, 350px)',
-                                                    textAlign: 'left',
-                                                    backgroundColor: '#576042',
-                                                }}
-                                            />
-                                            <Tooltip
-                                                id="PQ-badge-analyze"
-                                                place="top"
-                                                openOnClick
-                                                clickable
-                                                className="max-w-[90vw]"
-                                                style={{
-                                                    borderRadius: '8px',
-                                                    padding: '10px',
-                                                    zIndex: 100,
-                                                    opacity: 1,
-                                                    width: 'min(90vw, 350px)',
-                                                    textAlign: 'left',
-                                                    backgroundColor: '#578a72',
-                                                }}
-                                            />
-                                            <Tooltip
-                                                id="PQ-badge-evaluate"
-                                                place="top"
-                                                openOnClick
-                                                clickable
-                                                className="max-w-[90vw]"
-                                                style={{
-                                                    borderRadius: '8px',
-                                                    padding: '10px',
-                                                    zIndex: 100,
-                                                    opacity: 1,
-                                                    width: 'min(90vw, 350px)',
-                                                    textAlign: 'left',
-                                                    backgroundColor: '#dca146',
-                                                }}
-                                            />
-                                            <Tooltip
-                                                id="PQ-badge-create"
-                                                place="top"
-                                                openOnClick
-                                                clickable
-                                                className="max-w-[90vw]"
-                                                style={{
-                                                    borderRadius: '8px',
-                                                    padding: '10px',
-                                                    zIndex: 100,
-                                                    opacity: 1,
-                                                    width: 'min(90vw, 350px)',
-                                                    textAlign: 'left',
-                                                    backgroundColor: '#cb484f',
-                                                }}
-                                            />
-                                        </>
                                     </div>
                                 </div>
 
                                 {/* Palta Question Actions */}
-                                <div className="flex flex-wrap items-center lg:gap-3 gap-[6px] lg:px-4 px-2 sm:px-3 mt-3 w-full lg:ml-0 ml-1">
+                                <div className="flex flex-wrap items-center lg:gap-3 gap-[6px] lg:px-1 px-0 sm:px-3 lg:mt-4 mt-3 w-full lg:ml-0 ml-1">
                                     {/* Like */}
                                     <button onClick={() => handleLike(paltaQ.id, userId)} disabled={loading} className="flex items-center gap-1">
                                         <FontAwesomeIcon
@@ -916,50 +783,85 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                                 {/* Conditional PaltaQ2 Text Area */}
                                 <div>
                                     {visibleTextBoxes[paltaQ.id] && textBoxPosition === `paltaQ${index + 1}` && (
-                                        <div className='py-4'>
-                                            {/* Anonymity */}
-                                            <div className='flex flex-row items-end justify-between'>
-                                                <h6 className='text-zinc-400 lg:text-sm text-xs'>Depth:{index + 2} | Responding to {userName}</h6>
-                                                <label className='inline-flex items-center cursor-pointer'>
-                                                    <input
-                                                        type="checkbox"
-                                                        value={(isAnonymous[paltaQ.id] || false).toString()}
-                                                        className="sr-only peer"
-                                                        onChange={() => toggleAnonymity(paltaQ.id)}
-                                                    />
-                                                    <div className="relative w-6 h-3 bg-zinc-800 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[0px] after:start-[0px] after:bg-zinc-500 after:border-zinc-800 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-500-800"></div>
-                                                    {isAnonymous[paltaQ.id] ? (
-                                                        <FontAwesomeIcon
-                                                            icon={faEyeSlash}
-                                                            className={`w-[1.5rem] lg:hidden text-red-900`}
-                                                        />
-                                                    ) : (
-                                                        <FontAwesomeIcon
-                                                            icon={faEye}
-                                                            className={`w-[1.5rem] lg:hidden text-[#31344b]`}
-                                                        />
-                                                    )}
-                                                    <span className="ms-2 lg:block hidden text-base font-bold">Toggle Anonymity ({isAnonymous[paltaQ.id] ? "On" : "Off"})</span>
-                                                </label>
+                                        <div className='lg:pb-0 pb-2'>
+                                            {/* Depth */}
+                                            <div className="flex items-center justify-between gap-3 px-1 lg:pt-6 pt-4">
+                                                <h6 className="text-zinc-400 text-xs sm:text-sm">Depth:{index + 2} | Responding to {userName}</h6>
                                             </div>
+                                            {/* TextBox */}
+                                            <form
+                                                className="lg:w-[100%] w-full mx-auto relative"
+                                                onSubmit={handlePaltaQ(paltaQ.id, mainQuestionId)}
+                                            >
+                                                <div className="my-2">
+                                                    <div className="relative">
+                                                        <textarea
+                                                            id="paltaQuestion"
+                                                            className="w-full resize-none rounded-2xl px-5 py-4 lg:text-base text-sm text-zinc-700 placeholder-zinc-400 bg-[#e6e7ee] shadow-[inset_4px_4px_6px_#c5c6cb,inset_-4px_-4px_6px_#ffffff] focus:outline-none focus:shadow-[inset_2px_2px_4px_#c5c6cb,inset_-2px_-2px_4px_#ffffff] lg:pr-[7rem] lg:pb-[3.75rem] overflow-y-auto break-words max-h-[50vh]"
+                                                            style={{ height: '6.5em' }}
+                                                            placeholder="Type a creative palta question here..."
+                                                            onChange={handleInputChange(paltaQ.id)}
+                                                            value={paltaQInputs[paltaQ.id] || ''}
+                                                        />
 
-                                            <form className="" onSubmit={handlePaltaQ(paltaQ.id, mainQuestionId)}>
-                                                <textarea
-                                                    id="paltaQuestion"
-                                                    className="form-control pr-5o5 resize-none py-3 pl-3"
-                                                    placeholder='Type a creative palta question here . . .'
-                                                    onChange={handleInputChange(paltaQ.id)}
-                                                    value={paltaQInputs[paltaQ.id] || ''}
-                                                />
-                                                <button
-                                                    type="submit"
-                                                    className="float-end lg:-translate-y-[3.2em] -translate-y-[3.3em] -translate-x-5 scale-[1.4]"
-                                                >
-                                                    <FontAwesomeIcon
-                                                        icon={faPaperPlane}
-                                                        className="w-[1.5rem] text-[#31344b]"
-                                                    />
-                                                </button>
+                                                        {/* Desktop: floating icon buttons inside textarea */}
+                                                        <div className="absolute bottom-[2.5em] right-[2.5em] scale-[1.5] hidden lg:flex items-center gap-1 z-10">
+                                                            {session?.user?.email && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => toggleAnonymity(paltaQ.id)}
+                                                                    aria-label={isAnonymous[paltaQ.id] ? 'Disable anonymity' : 'Enable anonymity'}
+                                                                    className="p-2 rounded-full"
+                                                                >
+                                                                    <FontAwesomeIcon
+                                                                        icon={isAnonymous[paltaQ.id] ? faEyeSlash : faEye}
+                                                                        className={`w-4 h-4 ${isAnonymous[paltaQ.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                                    />
+                                                                </button>
+                                                            )}
+
+                                                            <button
+                                                                type="submit"
+                                                                aria-label="Submit question"
+                                                                className="p-2 rounded-full"
+                                                            >
+                                                                <FontAwesomeIcon
+                                                                    icon={faPaperPlane}
+                                                                    className="w-4 h-4 text-[#31344b]"
+                                                                />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Mobile buttons below textarea */}
+                                                    <div className="mt-4 flex gap-3 lg:hidden px-1">
+                                                        {session?.user?.email && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => toggleAnonymity(paltaQ.id)}
+                                                                className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+                                                                                                                                        ${isAnonymous[paltaQ.id]
+                                                                        ? 'bg-[#e6e7ee] shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] text-rose-700'
+                                                                        : 'bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] text-zinc-600'
+                                                                    }`}
+                                                            >
+                                                                <FontAwesomeIcon
+                                                                    icon={isAnonymous[paltaQ.id] ? faEyeSlash : faEye}
+                                                                    className={`w-4 ${isAnonymous[paltaQ.id] ? 'text-rose-700' : 'text-zinc-600'}`}
+                                                                />
+                                                                <span>{isAnonymous[paltaQ.id] ? 'Anonymous' : 'Anonymous'}</span>
+                                                            </button>
+                                                        )}
+
+                                                        <button
+                                                            type="submit"
+                                                            className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-[#31344b] bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] active:shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] transition"
+                                                        >
+                                                            <FontAwesomeIcon icon={faPaperPlane} className="w-4" />
+                                                            <span>Submit</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </form>
                                         </div>
                                     )}

@@ -143,7 +143,7 @@ export default function QuestionBox({ onQuestionSubmitted }: { onQuestionSubmitt
               type="button"
               onClick={toggleAnonymity}
               className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
-      ${isAnonymous
+                  ${isAnonymous
                   ? 'bg-[#e6e7ee] shadow-[inset_3px_3px_5px_#c5c6cb,inset_-3px_-3px_5px_#ffffff] text-rose-700'
                   : 'bg-[#e6e7ee] shadow-[3px_3px_5px_#c5c6cb,-3px_-3px_5px_#ffffff] text-zinc-600'
                 }`}

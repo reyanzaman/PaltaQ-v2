@@ -233,8 +233,8 @@ function calculateScore(question: string, llama_score: number): { score: number,
   
   // Adjustments to the llama score
   if (llama_score < 100) {
-    llama_score = llama_score - 40;
-  } else if (llama_score >= 112 && llama_score < 135) {
+    llama_score = llama_score - 30;
+  } else if (llama_score >= 111 && llama_score < 120) {
     llama_score = llama_score - 10;
   }
 
