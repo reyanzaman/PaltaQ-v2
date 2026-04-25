@@ -16,21 +16,24 @@ export async function postHandler(req: Request, res: NextApiResponse) {
             });
         } while (codeExists);
 
-        const { className, facultyId } = await req.json();
+    const { className, facultyId, startTime, endTime, activeDays } = await req.json();
 
         const currentDate = new Date();
         const endsAtDate = new Date(currentDate.setDate(currentDate.getDate() + 100));
 
         try {
-            const newClass = await prisma.classes.create({
+                const newClass = await prisma.classes.create({
                 data: {
                     name: className,
                     code: code,
                     creatorId: facultyId,
                     endsAt: endsAtDate,
                     questionnaire: false,
-                    status: true
-                }
+                    status: true,
+                    startTime: startTime ?? null,
+                    endTime: endTime ?? null,
+                    activeDays: Array.isArray(activeDays) ? activeDays : []
+                } as any
             });
 
             await prisma.classFaculty.create({
@@ -256,11 +259,14 @@ export async function putHandler(req: Request, res: NextApiResponse) {
 export async function patchHandler(req: Request, res: NextApiResponse) {
     if (req.method === 'PATCH') {
         const url = req?.url ? new URL(req.url) : null;
-        const cid = url?.searchParams.get('cid');
-        const cname = url?.searchParams.get('cname');
-        const cdate = url?.searchParams.get('cdate');
-        const qstatus = url?.searchParams.get('qstatus');
-        const status = url?.searchParams.get('status');
+    const cid = url?.searchParams.get('cid');
+    const cname = url?.searchParams.get('cname');
+    const cdate = url?.searchParams.get('cdate');
+    const qstatus = url?.searchParams.get('qstatus');
+    const status = url?.searchParams.get('status');
+    const cstart = url?.searchParams.get('cstart');
+    const cend = url?.searchParams.get('cend');
+    const cdays = url?.searchParams.get('cdays'); // comma separated days
 
         if (!cid || (!cname && !cdate && !qstatus && !status)) {
             return new Response(JSON.stringify({ error: 'cid and cname/cdate/qstatus/status are required' }), {
@@ -295,8 +301,11 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
                             name: cname,
                             endsAt: endsAt,
                             questionnaire: qstatus === 'true' ? true : false,
-                            status: status === 'true' ? true : false
-                        }
+                            status: status === 'true' ? true : false,
+                            startTime: cstart ?? undefined,
+                            endTime: cend ?? undefined,
+                            activeDays: cdays ? cdays.split(',') : undefined
+                        } as any
                     });
                     return new Response(JSON.stringify({ message: 'Class details updated' }), {
                         status: 200,

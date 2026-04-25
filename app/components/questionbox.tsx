@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane, faAngleDown, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
-import { QuestionCategory } from '@/app/utils/postUtils';
+import { QuestionCategory } from '@/app/utils/questionCategory';
 
-import { Topic } from '@prisma/client';
+interface Topic { id: string; name: string; classId: string }
 
 interface ClassEnrollment {
     id: string;

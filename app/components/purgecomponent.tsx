@@ -9,7 +9,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleRight, faAngleDown, faEraser, faXmark } from "@fortawesome/free-solid-svg-icons";
-import { Classes, Topic } from '@prisma/client';
+interface Classes { id: string; name: string; code: string; }
+interface Topic { id: string; name: string; classId: string }
 import { toast } from 'react-toastify';
 import Select from 'react-select';
 import { SingleValue } from 'react-select';

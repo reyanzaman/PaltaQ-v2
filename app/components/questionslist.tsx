@@ -19,11 +19,16 @@ import Image from 'next/image';
 import React, { useEffect, useRef, useState } from 'react';
 import { useSession } from "next-auth/react";
 import { toast } from 'react-toastify';
-import { QuestionCategory } from '@/app/utils/postUtils';
+import { QuestionCategory } from '@/app/utils/questionCategory';
 import PaltaQComponent from "@/app/components/paltaQ";
 import { getRankDetails } from '@/app/utils/rankings';
 import GeneratedResponse from './generatedResponse';
-import { Topic } from '@prisma/client';
+// Use a minimal Topic type to avoid bundling @prisma/client into client-side code
+interface Topic {
+    id: string;
+    name: string;
+    classId: string;
+}
 import { Tooltip } from "react-tooltip";
 
 interface RankDetails {

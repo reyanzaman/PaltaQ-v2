@@ -7,7 +7,8 @@ import { useEffect, useState } from 'react';
 
 import UserImage from "@/app/components/userimage";
 import QuestionComponent from "@/app/components/questioncomponent";
-import { PreQuestionnaire, PostQuestionnaire } from "@prisma/client";
+interface PreQuestionnaire { isCompleted?: boolean }
+interface PostQuestionnaire { isCompleted?: boolean }
 
 interface User {
     id: string;

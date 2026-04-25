@@ -5289,14 +5289,7 @@ input[type=submit].btn-block {
 }
 
 .collapse:not(.show) {
-    display: none
-}
-
-.collapsing {
-    position: relative;
-    height: 0;
-    overflow: hidden;
-    transition: height .35s ease
+    display: none;
 }
 
 @media (prefers-reduced-motion:reduce) {
@@ -24638,8 +24631,8 @@ label {
     box-shadow: inset 2px 2px 5px #b8b9be, inset -3px -3px 7px #fff
 }
 
-.form-control:focus:placeholder {
-    color: #44476a
+.form-control:focus::placeholder {
+    color: #44476a;
 }
 
 .form-control:disabled,

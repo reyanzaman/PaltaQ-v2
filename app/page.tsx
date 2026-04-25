@@ -35,7 +35,7 @@ export default function Home() {
           <RecentQuestions />
 
           <div className="relative mx-auto w-fit bottom-0 pb-1">
-            <p className="text-sm text-center my-1 text-zinc-500">PaltaQ Version 2.2B</p>
+            <p className="text-sm text-center my-1 text-zinc-500">PaltaQ Version 3.0</p>
             <p className="text-sm text-center text-zinc-500">Based on Meta AI Llama-3.1-8B-128K Model</p>
           </div>
         </div>
