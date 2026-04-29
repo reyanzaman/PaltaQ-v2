@@ -95,28 +95,28 @@ interface Props {
 
 const BLOOM_COLORS = [
   {
-    bg: "rgba(239,68,68,0.7)",
+    bg: "rgba(255, 200, 200, 0.7)",
     border: "rgba(239,68,68,1)",
     label: "Remembering",
   },
   {
-    bg: "rgba(249,115,22,0.7)",
+    bg: "rgba(255, 219, 193, 0.7)",
     border: "rgba(249,115,22,1)",
     label: "Understanding",
   },
-  { bg: "rgba(234,179,8,0.7)", border: "rgba(234,179,8,1)", label: "Applying" },
+  { bg: "rgba(255, 243, 207, 0.7)", border: "rgba(234,179,8,1)", label: "Applying" },
   {
-    bg: "rgba(34,197,94,0.7)",
+    bg: "rgba(186, 255, 211, 0.7)",
     border: "rgba(34,197,94,1)",
     label: "Analyzing",
   },
   {
-    bg: "rgba(59,130,246,0.7)",
+    bg: "rgba(180, 209, 255, 0.7)",
     border: "rgba(59,130,246,1)",
     label: "Evaluating",
   },
   {
-    bg: "rgba(168,85,247,0.7)",
+    bg: "rgba(223, 188, 255, 0.7)",
     border: "rgba(168,85,247,1)",
     label: "Creating",
   },
@@ -403,25 +403,25 @@ const FacultyAnalytics: React.FC<Props> = ({
                   icon={<FontAwesomeIcon icon={faUsers} />}
                   label="Students"
                   value={students.length}
-                  color="blue"
+                  color="grey"
                 />
                 <StatPill
                   icon={<FontAwesomeIcon icon={faFire} />}
                   label="Questions"
                   value={totalQuestions}
-                  color="orange"
+                  color="grey"
                 />
                 <StatPill
                   icon={<FontAwesomeIcon icon={faArrowTrendUp} />}
                   label="PaltaQ"
                   value={totalPaltaQ}
-                  color="purple"
+                  color="grey"
                 />
                 <StatPill
                   icon={<FontAwesomeIcon icon={faMedal} />}
                   label="Bloom Tags"
                   value={bloomTotal}
-                  color="green"
+                  color="grey"
                 />
               </div>
 
@@ -446,7 +446,7 @@ const FacultyAnalytics: React.FC<Props> = ({
                         className="text-sm font-semibold px-4 py-0.5 rounded-full"
                         style={{
                           background: c.bg,
-                          color: "#1f2937",
+                          color: "#1d1d1dff",
                           border: `1px solid ${c.border}`,
                         }}
                       >
@@ -486,7 +486,7 @@ const FacultyAnalytics: React.FC<Props> = ({
               {/* ── Top students ── */}
               <div
                 className="rounded-lg p-4"
-                style={{ border: "1px solid #e5e7eb", background: "#fafafa" }}
+                style={{ border: "1px solid #e5e7eb", background: "#ebebebff" }}
               >
                 <h6 className="font-semibold text-gray-700 mb-3 text-sm flex items-center gap-2">
                   <FontAwesomeIcon icon={faMedal} className="text-amber-500" />
@@ -524,7 +524,7 @@ const FacultyAnalytics: React.FC<Props> = ({
                       <tbody>
                         {topStudents.map((s, i) => (
                           <tr key={s.userId}>
-                            <td>
+                            <td className="text-left">
                               {i === 0
                                 ? "🥇"
                                 : i === 1
@@ -563,25 +563,25 @@ const FacultyAnalytics: React.FC<Props> = ({
                 <div
                   className="rounded-lg p-4"
                   style={{
-                    border: "1px solid #fde68a",
-                    background: "#fffbeb",
+                    border: "1px solid #e8e8e8ff",
+                    background: "#fafafaC",
                   }}
                 >
-                  <h6 className="font-semibold text-amber-700 mb-2 text-sm">
+                  <h6 className="font-semibold text-grey-700 mb-2 text-sm">
                     ⚠️ Low-Participation Students ({quietStudents.length})
                   </h6>
-                  <p className="text-xs text-amber-600 mb-2">
+                  <p className="text-xs text-grey-600 mb-6">
                     These students have not asked any questions or PaltaQ yet.
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mb-2">
                     {quietStudents.map((s) => (
                       <span
                         key={s.userId}
                         className="text-xs px-2 py-1 rounded-full font-semibold"
                         style={{
-                          background: "#fef3c7",
-                          color: "#92400e",
-                          border: "1px solid #fcd34d",
+                          background: "#f2f2f2ff",
+                          color: "#4e4e4eff",
+                          border: "1px solid #e0e0e0ff",
                         }}
                       >
                         {s.user.name}
@@ -611,6 +611,7 @@ const PILL_COLORS: Record<
   orange: { bg: "#fff7ed", text: "#c2410c", border: "#fed7aa" },
   purple: { bg: "#faf5ff", text: "#7e22ce", border: "#e9d5ff" },
   green: { bg: "#f0fdf4", text: "#15803d", border: "#bbf7d0" },
+  grey: { bg: "#f9fafb", text: "#374151", border: "#e5e7eb" },
 };
 
 const StatPill: React.FC<{
@@ -661,7 +662,7 @@ const DiscussionPatterns: React.FC<{ questions: Question[] }> = ({
   return (
     <div
       className="rounded-lg p-4"
-      style={{ border: "1px solid #e5e7eb", background: "#fafafa" }}
+      style={{ border: "1px solid #ebebebff", background: "#fafafa" }}
     >
       <h6 className="font-semibold text-gray-700 mb-3 text-sm">
         Discussion Patterns
@@ -690,7 +691,7 @@ const PatternStat: React.FC<{
 }> = ({ label, value, sub, custom }) => (
   <div
     className="rounded-lg p-3 flex flex-col items-center justify-center"
-    style={{ background: "#f9fafb", border: "1px solid #f3f4f6" }}
+    style={{ background: "#ffffffff", border: "1px solid #e2e4e7ff" }}
   >
     <span className="text-sm text-gray-800 mb-1 font-semibold">{label}</span>
     {custom ?? (

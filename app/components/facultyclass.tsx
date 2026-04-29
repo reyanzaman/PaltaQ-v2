@@ -111,6 +111,7 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState("");
   const summaryCache = useRef<Record<string, ClassSummary>>({});
+  const [lastGenerated, setLastGenerated] = useState<string | null>(null);
 
   const [enrollmentCollapsed, setEnrollmentCollapsed] = useState(false);
   const [questionnaireCollapsed, setQuestionnaireCollapsed] = useState(false);
@@ -483,6 +484,37 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
   const fetchSummary = async (forceRefresh = false) => {
     if (!selectedClass?.id) return;
 
+    // localStorage key per user+class
+    const metaKey = `paltaq_summary_meta:${user.id}:${selectedClass.id}`;
+
+    const isSameDay = (iso?: string | null) => {
+      if (!iso) return false;
+      const d = new Date(iso);
+      const now = new Date();
+      return (
+        d.getFullYear() === now.getFullYear() &&
+        d.getMonth() === now.getMonth() &&
+        d.getDate() === now.getDate()
+      );
+    };
+
+    const isEmptySummary = (s?: ClassSummary | null) => {
+      if (!s) return true;
+      const noText = !(s.summary && s.summary.trim().length > 0);
+      const noThemes = !s.themes || s.themes.length === 0;
+      const noMis = !s.misconceptions || s.misconceptions.length === 0;
+      const noTop = !s.topQuestions || s.topQuestions.length === 0;
+      const noTip = !(s.teacherTip && s.teacherTip.trim().length > 0);
+      return noText && noThemes && noMis && noTop && noTip;
+    };
+
+    // If not forcing and we already generated today and the stored summary is non-empty, block extra generation
+    if (!forceRefresh && lastGenerated && isSameDay(lastGenerated) && !isEmptySummary(classSummary)) {
+      // already generated today and has content — nothing to do
+      toast.info("A summary has already been generated for this class today.");
+      return;
+    }
+
     // Return cached result unless force-refreshing
     if (!forceRefresh && summaryCache.current[selectedClass.id]) {
       setClassSummary(summaryCache.current[selectedClass.id]);
@@ -525,6 +557,18 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
       const data: ClassSummary = await res.json();
       summaryCache.current[selectedClass.id] = data;
       setClassSummary(data);
+
+      // Persist metadata (summary + timestamp) so we can enforce daily limit and show previous summaries
+      try {
+        const payload = {
+          lastGenerated: new Date().toISOString(),
+          summary: data,
+        } as any;
+        localStorage.setItem(metaKey, JSON.stringify(payload));
+        setLastGenerated(payload.lastGenerated);
+      } catch (e) {
+        console.error("Failed to persist summary meta:", e);
+      }
     } catch (err) {
       console.error("Summary fetch error:", err);
       setSummaryError("Could not generate summary. Please try again.");
@@ -539,6 +583,34 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
     setSelectedClass(undefined);
     setClassSummary(null);
   };
+
+  // Load persisted summary/meta when a class is selected
+  useEffect(() => {
+    if (!selectedClass?.id) {
+      setClassSummary(null);
+      setLastGenerated(null);
+      return;
+    }
+
+    const metaKey = `paltaq_summary_meta:${user.id}:${selectedClass.id}`;
+    try {
+      const raw = localStorage.getItem(metaKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.summary) {
+          setClassSummary(parsed.summary as ClassSummary);
+        }
+        if (parsed?.lastGenerated) setLastGenerated(parsed.lastGenerated);
+      } else {
+        setClassSummary(null);
+        setLastGenerated(null);
+      }
+    } catch (e) {
+      console.error("Failed to load summary meta:", e);
+      setClassSummary(null);
+      setLastGenerated(null);
+    }
+  }, [selectedClass?.id, refresh]);
 
   const displayStudents = () => {
     const sortedEnrollments = [...(selectedClass?.enrollments || [])].sort(
@@ -1640,15 +1712,80 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
                 />
                 AI Class Summary
               </h5>
-              {!summaryLoading && classSummary && (
-                <button
-                  onClick={refreshSummary}
-                  className="btn btn-sm btn-outline-secondary d-flex align-items-center"
-                  title="Refresh summary"
-                >
-                  <FontAwesomeIcon icon={faRotateRight} className="mr-1" />
-                  Refresh
-                </button>
+              {/* Button rules:
+                  - while loading: no action buttons
+                  - if we have a summary and lastGenerated is today:
+                      - if summary empty => show Refresh
+                      - else => show nothing (one-per-day)
+                  - if we have a summary and lastGenerated NOT today: show Regenerate
+                  - if no summary and not generated today: show Generate
+              */}
+              {!summaryLoading && (
+                (() => {
+                  const metaKey = `paltaq_summary_meta:${user.id}:${selectedClass?.id}`;
+                  const isSameDay = (iso?: string | null) => {
+                    if (!iso) return false;
+                    const d = new Date(iso);
+                    const now = new Date();
+                    return (
+                      d.getFullYear() === now.getFullYear() &&
+                      d.getMonth() === now.getMonth() &&
+                      d.getDate() === now.getDate()
+                    );
+                  };
+
+                  const isEmptySummary = (s?: ClassSummary | null) => {
+                    if (!s) return true;
+                    const noText = !(s.summary && s.summary.trim().length > 0);
+                    const noThemes = !s.themes || s.themes.length === 0;
+                    const noMis = !s.misconceptions || s.misconceptions.length === 0;
+                    const noTop = !s.topQuestions || s.topQuestions.length === 0;
+                    const noTip = !(s.teacherTip && s.teacherTip.trim().length > 0);
+                    return noText && noThemes && noMis && noTop && noTip;
+                  };
+
+                  // if we have classSummary
+                  if (classSummary) {
+                    // if generated today
+                    if (lastGenerated && isSameDay(lastGenerated)) {
+                      // if summary is empty — allow refresh
+                      if (isEmptySummary(classSummary)) {
+                        return (
+                          <button
+                            onClick={refreshSummary}
+                            className="btn btn-sm btn-outline-secondary d-flex align-items-center"
+                            title="Refresh summary"
+                          >
+                            <FontAwesomeIcon icon={faRotateRight} className="mr-1" />
+                            Refresh
+                          </button>
+                        );
+                      }
+                      // else show nothing (limit reached)
+                      return null;
+                    }
+
+                    // we have a summary but not generated today => allow regenerate
+                    return (
+                      <button
+                        onClick={() => fetchSummary(true)}
+                        className="btn btn-sm btn-outline-secondary d-flex align-items-center"
+                        title="Regenerate summary"
+                      >
+                        <FontAwesomeIcon icon={faRotateRight} className="mr-1" />
+                        Regenerate
+                      </button>
+                    );
+                  }
+
+                  // no classSummary -> don't show Generate in header to avoid duplicate buttons;
+                  // the main content area shows the primary "Generate Summary" button instead.
+                  if (!classSummary) {
+                    return null;
+                  }
+
+                  return null;
+                })()
               )}
             </div>
 
@@ -1809,7 +1946,8 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
               </div>
             )}
 
-            {/* Not yet generated — show Generate button */}
+            {/* When there's no generated summary, or generation allowed, show explanatory / Generate UI
+                If classSummary is null and not loading, the header button will allow generating. */}
             {!summaryLoading && !summaryError && !classSummary && (
               <div className="text-left pb-4">
                 <p className="text-gray-700 text-sm mb-6 ml-1">

@@ -27,6 +27,8 @@ model User {
   taughtClasses  ClassFaculty[]    // Many-to-many relationship with Classes for faculty members
   preQuestionnaire  PreQuestionnaire[] // One-to-many relationship
   postQuestionnaire PostQuestionnaire[] // One-to-many relationship
+  aiUsage           AIUsage[]
+  aiMessages        AIMessage[]
 }
 
 model UserDetails {
@@ -58,6 +60,7 @@ model Classes {
   enrollments ClassEnrollment[] // Many-to-many relationship with Users
   topics      Topic[]         // One-to-many relationship with Topics
   questions   Question[]      // One-to-many relationship with Questions
+  aiMessages       AIMessage[]
 }
 
 model ClassFaculty {
@@ -344,4 +347,40 @@ model PostQuestionnaire {
   updatedAt         DateTime @updatedAt
   user              User     @relation(fields: [userId], references: [id])
   class             ClassEnrollment  @relation(fields: [classId], references: [id], onDelete: Cascade)
+}
+
+model AIUsage {
+  id         String   @id @default(uuid())
+  userId     String
+  count      Int      @default(0)
+  day        String   // Example: "2026-04-29"
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@unique([userId, day])
+}
+
+model AIMessage {
+  id         String   @id @default(uuid())
+
+  userId     String
+  classId    String
+
+  prompt     String   @db.Text
+  response   String   @db.Text
+
+  version    String   @default("v1")
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class      Classes  @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([classId])
 }
