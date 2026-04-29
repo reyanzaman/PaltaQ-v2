@@ -1126,13 +1126,23 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
         {/* Left Part */}
         <div className="w-full my-4">
           <hr className="lg:hidden block"></hr>
-          <h5 className="text-neutral-700 pad-l1">
-            Get started by creating your own class
-          </h5>
-          <p className="pad-l1">
+          <h5 className="text-neutral-700 pad-l1">Get started by creating your own class</h5>
+          {/* Restored create class form */}
+          <form onSubmit={createClass} className="flex flex-col lg:pr-20 px py-4 gap-4 mb-2 pad-x1">
+            <input
+              id="className"
+              className="form-control pr-5o5 resize-none py-3 pl-3"
+              placeholder="Enter your class name"
+              value={className}
+              onChange={(e) => setClassName(e.target.value)}
+            />
+            <button className="btn animate-down-2" type="submit">Create Class</button>
+          </form>
+
+          <h5 className="pad-l1 pt-8 text-neutral-700 pb-2">
             Use the "Classes taught by you" panel to add class details including
             start/end times and active days.
-          </p>
+          </h5>
           <hr className="lg:hidden block"></hr>
         </div>
 
