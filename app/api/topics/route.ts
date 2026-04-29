@@ -115,11 +115,14 @@ export async function deleteHandler(req: Request, res: NextApiResponse) {
 
         try {
             if (id) {
-                await prisma.topic.delete({
-                    where: {
-                        id: id,
-                    }
-                });
+                // First delete all questions that reference this topic to avoid
+                // foreign key constraint violations. Other dependent records
+                // (likes, dislikes, paltaQ, reports, etc.) will be removed
+                // by Prisma onDelete cascade rules defined in the schema.
+                await prisma.$transaction([
+                    prisma.question.deleteMany({ where: { topicId: id } }),
+                    prisma.topic.delete({ where: { id: id } })
+                ]);
                 return new Response(JSON.stringify({ message: 'Topic deleted' }), {
                     status: 200,
                 })

@@ -9,7 +9,7 @@ export async function getGroqChatCompletion1(question: string) {
     messages: [
       {
         role: "user",
-        content: `Is this a proper question? Reply with only 'yes' or 'no'. Here is the question: '${question}'`,
+        content: `Leniently check if this is a proper question? Reply with only 'yes' or 'no'. Here is the question: '${question}'`,
       },
     ],
     model: "llama-3.1-8b-instant",

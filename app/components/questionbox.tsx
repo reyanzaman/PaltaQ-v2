@@ -70,8 +70,16 @@ export default function QuestionBox({ classId, classCode, handleRefreshQs }: { c
             });
 
             if (response.ok) {
-                // Handle successful submission
-                setTopics(await response.json())
+                // Parse topics and set them; default to first topic if none selected
+                const topicsData = await response.json();
+                setTopics(topicsData);
+
+                // If we don't have a topic selected yet, pick the first one
+                if (Array.isArray(topicsData) && topicsData.length > 0 && !selectedTopicId) {
+                    setSelectedTopic(topicsData[0].name);
+                    setSelectedTopicId(topicsData[0].id);
+                }
+
                 setLoading(false);
             } else {
                 // Handle error

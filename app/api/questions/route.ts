@@ -177,14 +177,40 @@ async function postHandler(req: Request, res: NextApiResponse) {
       });
 
       // Check if the question is off-topic
+      // By default assume topic check passes. Only call the topic-checking endpoint
+      // when the classroom has topicCheck enabled. Also preserve the existing
+      // demo-class bypass (code FBA6B9).
       let llama_response4 = new Response(JSON.stringify("yes"));
-      if (cCode !== 'FBA6B9') {
-        llama_response4 = await fetch(`${baseUrl}/api/groq?question=${question}&version=4&topic=${tname}`, {
-          method: 'POST',
-          headers: {
+
+      try {
+        // Fetch class record to read topicCheck flag. If the class can't be found
+        // we fall back to enforcing topic check (conservative).
+        const classRecord = cid
+          ? await prisma.classes.findUnique({ where: { id: cid } })
+          : null;
+
+  const topicCheckEnabled = (classRecord as any)?.topicCheck ?? true;
+
+        if (topicCheckEnabled && cCode !== 'FBA6B9') {
+          llama_response4 = await fetch(`${baseUrl}/api/groq?question=${question}&version=4&topic=${tname}`, {
+            method: 'POST',
+            headers: {
               'Content-Type': 'application/json'
-          }
-        });
+            }
+          });
+        }
+      } catch (e) {
+        // If anything goes wrong fetching the class, default to performing the
+        // topic check (i.e. do not silently allow off-topic questions).
+        console.error('Error checking class topicCheck flag:', e);
+        if (cCode !== 'FBA6B9') {
+          llama_response4 = await fetch(`${baseUrl}/api/groq?question=${question}&version=4&topic=${tname}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+        }
       }
 
       const data = await llama_response.json();

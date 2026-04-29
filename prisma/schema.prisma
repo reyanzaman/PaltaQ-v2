@@ -8,104 +8,322 @@ datasource db {
 }
 
 model User {
-  id                String        @id @default(uuid())
-  email             String        @unique
+  id                String              @id @default(uuid())
+  email             String              @unique
   name              String?
-  image             String        @default("/default_image2.png")
-  is_Admin          Boolean       @default(false)
-  is_Faculty        Boolean       @default(false)
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  
-  questions         Question[]    @relation("UserQuestions")
-  userDetails       UserDetails?  // One-to-one relationship
-  reports           Reports[]     // One-to-many relationship with Reports
-  likedQuestions    Likes[]       @relation("UserLikes")
-  dislikedQuestions Dislikes[]    @relation("UserDislikes")
-  paltaQuestions    PaltaQ[]      @relation("UserPaltaQ")
-  classes           ClassEnrollment[] // Many-to-many relationship with Classes
-  taughtClasses  ClassFaculty[]    // Many-to-many relationship with Classes for faculty members
-  preQuestionnaire  PreQuestionnaire[] // One-to-many relationship
-  postQuestionnaire PostQuestionnaire[] // One-to-many relationship
-  aiUsage           AIUsage[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  image             String              @default("/default_image2.png")
+  is_Admin          Boolean             @default(false)
+  is_Faculty        Boolean             @default(false)
   aiMessages        AIMessage[]
+  aiUsage           AIUsage[]
+  classes           ClassEnrollment[]
+  taughtClasses     ClassFaculty[]
+  dislikedQuestions Dislikes[]          @relation("UserDislikes")
+  likedQuestions    Likes[]             @relation("UserLikes")
+  paltaQuestions    PaltaQ[]            @relation("UserPaltaQ")
+  postQuestionnaire PostQuestionnaire[]
+  preQuestionnaire  PreQuestionnaire[]
+  questions         Question[]          @relation("UserQuestions")
+  reports           Reports[]
+  userDetails       UserDetails?
 }
 
 model UserDetails {
-  userId           String   @id
-  totalScore       Int      @default(0)
-  questionsAsked   Int      @default(0)
-  paltaQAsked      Int      @default(0)
-  successfulReports Int     @default(0)
-
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String @id
+  questionsAsked    Int    @default(0)
+  paltaQAsked       Int    @default(0)
+  successfulReports Int    @default(0)
+  totalScore        Int    @default(0)
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Classes {
-  id              String          @id @default(uuid())
-  name            String          @unique
-  code            String          @unique
-  creatorId       String
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  endsAt          DateTime?
-  // Optional weekly activation schedule
-  startTime       String?         // e.g. "08:30" (HH:MM)
-  endTime         String?         // e.g. "10:00" (HH:MM)
-  activeDays      String[]        @default([]) // e.g. ["Mon","Wed","Fri"]
-  questionnaire   Boolean        @default(false)
-  status          Boolean        @default(true)
-
-  faculties   ClassFaculty[]  // Many-to-many relationship with Users for faculty members
-  enrollments ClassEnrollment[] // Many-to-many relationship with Users
-  topics      Topic[]         // One-to-many relationship with Topics
-  questions   Question[]      // One-to-many relationship with Questions
-  aiMessages       AIMessage[]
+  id            String            @id @default(uuid())
+  name          String            @unique
+  code          String            @unique
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  creatorId     String
+  endsAt        DateTime?
+  questionnaire Boolean           @default(false)
+  status        Boolean           @default(true)
+  topicCheck    Boolean           @default(true)
+  activeDays    String[]          @default([])
+  endTime       String?
+  startTime     String?
+  enrollments   ClassEnrollment[]
+  faculties     ClassFaculty[]
+  questions     Question[]
+  topics        Topic[]
 }
 
 model ClassFaculty {
-  id          String   @id @default(uuid())
-  classId     String
-  userId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  class       Classes  @relation(fields: [classId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  classId   String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  class     Classes  @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([classId, userId])
 }
 
 model ClassEnrollment {
-  id            String    @id @default(uuid())
-  userId        String
-  classId       String
-  score         Int       @default(0)
-  rank          String    @default("Novice Inquirer")
-  questionCount Int       @default(0)
-  paltaQCount   Int       @default(0)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  class      Classes  @relation(fields: [classId], references: [id], onDelete: Cascade)
-  preQuestionnaire  PreQuestionnaire? // One-to-one relationship
-  postQuestionnaire PostQuestionnaire? // One-to-one relationship
+  userId            String
+  classId           String
+  createdAt         DateTime           @default(now())
+  id                String             @id @default(uuid())
+  updatedAt         DateTime           @updatedAt
+  rank              String             @default("Novice Inquirer")
+  score             Int                @default(0)
+  paltaQCount       Int                @default(0)
+  questionCount     Int                @default(0)
+  class             Classes            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postQuestionnaire PostQuestionnaire?
+  preQuestionnaire  PreQuestionnaire?
 
   @@unique([userId, classId])
 }
 
 model Topic {
-  id        String      @id @default(uuid())
+  id        String     @id @default(uuid())
   name      String
   classId   String
-  questions Question[] // One-to-many relationship with Questions
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt @default(now())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
+  questions Question[]
+  class     Classes    @relation(fields: [classId], references: [id], onDelete: Cascade)
 
-  class     Classes     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  @@unique([name, classId])
+}
 
-  @@unique([name, classId]) // Unique constraint to ensure no duplicate topics within the same class
+model Question {
+  id           String           @id @default(uuid())
+  userId       String
+  question     String
+  score        Int              @default(0)
+  likes        Int              @default(0)
+  dislikes     Int              @default(0)
+  paltaQ       Int              @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  isAnonymous  Boolean          @default(false)
+  isArchived   Boolean          @default(false)
+  topicId      String
+  classId      String
+  category     QuestionCategory
+  llama_score  Int              @default(0)
+  quban_score  Int              @default(0)
+  dislikedBy   Dislikes[]       @relation("QuestionDislikes")
+  likedBy      Likes[]          @relation("QuestionLikes")
+  subPaltaQ    PaltaQ[]         @relation("ParentQuestion")
+  paltaQBy     PaltaQ[]         @relation("QuestionPaltaQ")
+  class        Classes          @relation(fields: [classId], references: [id], onDelete: Cascade)
+  topic        Topic            @relation(fields: [topicId], references: [id])
+  user         User             @relation("UserQuestions", fields: [userId], references: [id])
+  questionType QuestionType[]
+  reports      Reports[]
+}
+
+model QuestionType {
+  id            String    @id @default(uuid())
+  questionId    String?
+  remembering   Boolean   @default(false)
+  understanding Boolean   @default(false)
+  applying      Boolean   @default(false)
+  analyzing     Boolean   @default(false)
+  evaluating    Boolean   @default(false)
+  creating      Boolean   @default(false)
+  paltaQId      String?
+  paltaQ        PaltaQ?   @relation(fields: [paltaQId], references: [id], onDelete: Cascade)
+  question      Question? @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model Reports {
+  id            String   @id @default(uuid())
+  userId        String
+  questionId    String
+  reportSuccess Boolean  @default(false)
+  paltaQId      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  paltaQ        PaltaQ   @relation(fields: [paltaQId], references: [id], onDelete: Cascade)
+  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Likes {
+  id         String    @id @default(uuid())
+  userId     String
+  questionId String?
+  paltaQId   String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  paltaQ     PaltaQ?   @relation("LikedPaltaQ", fields: [paltaQId], references: [id], onDelete: Cascade)
+  question   Question? @relation("QuestionLikes", fields: [questionId], references: [id], onDelete: Cascade)
+  user       User      @relation("UserLikes", fields: [userId], references: [id])
+}
+
+model Dislikes {
+  id         String    @id @default(uuid())
+  userId     String
+  questionId String?
+  paltaQId   String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  paltaQ     PaltaQ?   @relation("DislikedPaltaQ", fields: [paltaQId], references: [id], onDelete: Cascade)
+  question   Question? @relation("QuestionDislikes", fields: [questionId], references: [id], onDelete: Cascade)
+  user       User      @relation("UserDislikes", fields: [userId], references: [id])
+}
+
+model PaltaQ {
+  id             String         @id @default(uuid())
+  userId         String
+  questionId     String?
+  createdAt      DateTime       @default(now())
+  isAnonymous    Boolean        @default(false)
+  isArchived     Boolean        @default(false)
+  score          Int            @default(0)
+  updatedAt      DateTime       @updatedAt
+  paltaQ         String
+  dislikes       Int            @default(0)
+  likes          Int            @default(0)
+  parentId       String?
+  mainQuestionID String?
+  llama_score    Int            @default(0)
+  quban_score    Int            @default(0)
+  dislikedBy     Dislikes[]     @relation("DislikedPaltaQ")
+  likedBy        Likes[]        @relation("LikedPaltaQ")
+  parentMQ       Question?      @relation("ParentQuestion", fields: [mainQuestionID], references: [id])
+  parent         PaltaQ?        @relation("CommentReplies", fields: [parentId], references: [id])
+  replies        PaltaQ[]       @relation("CommentReplies")
+  question       Question?      @relation("QuestionPaltaQ", fields: [questionId], references: [id], onDelete: Cascade)
+  user           User           @relation("UserPaltaQ", fields: [userId], references: [id])
+  questionType   QuestionType[]
+  reports        Reports[]
+
+  @@index([parentId])
+}
+
+model PreQuestionnaire {
+  id                      Int             @id @default(autoincrement())
+  isCompleted             Boolean         @default(false)
+  userId                  String
+  classId                 String          @unique
+  gender                  String          @default("")
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  age                     String          @default("")
+  askAvoid                String          @default("")
+  askGPT                  String          @default("")
+  askMyself               String          @default("")
+  askPeer                 String          @default("")
+  askResearch             String          @default("")
+  askTeacher              String          @default("")
+  cgpa                    String          @default("")
+  courageToAsk            String          @default("")
+  curiousToKnow           String          @default("")
+  desireToLearn           String          @default("")
+  dontEnjoyStudying       String          @default("")
+  easierToMemorize        String          @default("")
+  extraCurricular         String          @default("")
+  leisureTime             String          @default("")
+  maritalStatus           String          @default("")
+  motivatedToAsk          String          @default("")
+  multQuesAskGroup        String          @default("")
+  multQuesAskMyself       String          @default("")
+  multQuesAskStudents     String          @default("")
+  multQuesAvoid           String          @default("")
+  multQuesMemorize        String          @default("")
+  multQuesResearch        String          @default("")
+  opinionAskingQues       String          @default("")
+  opinionMemorizing       String          @default("")
+  opinionPracticing       String          @default("")
+  quesHelpsUnderstand     String          @default("")
+  quesionsAsked           String          @default("")
+  questionArises          String          @default("")
+  questionExample         String          @default("")
+  schoolLocation          String          @default("")
+  studentId               String          @default("")
+  studyCuriosity          String          @default("")
+  studyMotivation         String          @default("")
+  studyTime               String          @default("")
+  subjectILike            String          @default("")
+  whyChildrenAskQuestions String          @default("")
+  class                   ClassEnrollment @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user                    User            @relation(fields: [userId], references: [id])
+}
+
+model PostQuestionnaire {
+  id                      Int             @id @default(autoincrement())
+  isCompleted             Boolean         @default(false)
+  userId                  String
+  classId                 String          @unique
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  askAvoid                String          @default("")
+  askGPT                  String          @default("")
+  askMyself               String          @default("")
+  askPeer                 String          @default("")
+  askResearch             String          @default("")
+  askTeacher              String          @default("")
+  cgpa                    String          @default("")
+  courageToAsk            String          @default("")
+  curiousToKnow           String          @default("")
+  desireToLearn           String          @default("")
+  dontEnjoyStudying       String          @default("")
+  easierToMemorize        String          @default("")
+  extraCurricular         String          @default("")
+  interestPaltaQ          String          @default("")
+  leisureTime             String          @default("")
+  motivatedToAsk          String          @default("")
+  multQuesAskGroup        String          @default("")
+  multQuesAskMyself       String          @default("")
+  multQuesAskStudents     String          @default("")
+  multQuesAvoid           String          @default("")
+  multQuesMemorize        String          @default("")
+  multQuesResearch        String          @default("")
+  opinionAskingQues       String          @default("")
+  opinionMemorizing       String          @default("")
+  opinionPracticing       String          @default("")
+  quesHelpsUnderstand     String          @default("")
+  quesionsAsked           String          @default("")
+  questionArises          String          @default("")
+  questionExample         String          @default("")
+  studentId               String          @default("")
+  studyCuriosity          String          @default("")
+  studyMotivation         String          @default("")
+  studyTime               String          @default("")
+  subjectILike            String          @default("")
+  suggestionsPaltaQ       String          @default("")
+  whyChildrenAskQuestions String          @default("")
+  class                   ClassEnrollment @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user                    User            @relation(fields: [userId], references: [id])
+}
+
+model AIUsage {
+  id     String @id @default(uuid())
+  userId String
+  day    String
+  count  Int    @default(0)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+}
+
+model AIMessage {
+  id        String   @id @default(uuid())
+  userId    String
+  classId   String?
+  prompt    String
+  response  String
+  version   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum QuestionCategory {
@@ -113,274 +331,4 @@ enum QuestionCategory {
   Topic
   Palta
   PaltaPalta
-}
-
-model Question {
-  id            String       @id @default(uuid())
-  userId        String
-  question      String
-  score         Int          @default(0)
-  likes         Int          @default(0)
-  dislikes      Int          @default(0)
-  paltaQ        Int          @default(0)
-
-  llama_score   Int          @default(0)
-  quban_score   Int          @default(0)
-
-  category      QuestionCategory // Enum type for category
-  isAnonymous   Boolean      @default(false)
-  isArchived    Boolean      @default(false)
-  
-  topicId       String       // Foreign key to Topic
-  classId       String       // Foreign key to Classes
-
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  user          User         @relation(fields: [userId], references: [id], name: "UserQuestions")
-  topic         Topic        @relation(fields: [topicId], references: [id])
-  questionType  QuestionType[] // One-to-many relationship with QuestionType
-  reports       Reports[]    // One-to-many relationship with Reports
-  likedBy       Likes[]      @relation("QuestionLikes")
-  dislikedBy    Dislikes[]   @relation("QuestionDislikes")
-  paltaQBy      PaltaQ[]     @relation("QuestionPaltaQ")
-  subPaltaQ     PaltaQ[]     @relation("ParentQuestion")
-  class         Classes      @relation(fields: [classId], references: [id], onDelete: Cascade)
-}
-
-model QuestionType {
-  id            String   @id @default(uuid())
-  questionId    String?
-  paltaQId      String?
-  remembering   Boolean  @default(false)
-  understanding Boolean  @default(false)
-  applying      Boolean  @default(false)
-  analyzing     Boolean  @default(false)
-  evaluating    Boolean  @default(false)
-  creating      Boolean  @default(false)
-
-  question      Question? @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  paltaQ        PaltaQ? @relation(fields: [paltaQId], references: [id], onDelete: Cascade)
-}
-
-model Reports {
-  id          String   @id @default(uuid())
-  userId      String
-  questionId  String
-  paltaQId    String
-  reportSuccess Boolean @default(false)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  user        User     @relation(fields: [userId], references: [id])
-  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  paltaQ      PaltaQ   @relation(fields: [paltaQId], references: [id], onDelete: Cascade)
-}
-
-model Likes {
-  id          String   @id @default(uuid())
-  userId      String
-  questionId  String?
-  paltaQId    String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  user        User     @relation(fields: [userId], references: [id], name: "UserLikes")
-  question    Question? @relation(fields: [questionId], references: [id], name: "QuestionLikes", onDelete: Cascade)
-  paltaQ      PaltaQ?   @relation(fields: [paltaQId], references: [id], name: "LikedPaltaQ", onDelete: Cascade)
-}
-
-model Dislikes {
-  id          String   @id @default(uuid())
-  userId      String
-  questionId  String?
-  paltaQId    String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  user        User     @relation(fields: [userId], references: [id], name: "UserDislikes")
-  question    Question? @relation(fields: [questionId], references: [id], name: "QuestionDislikes", onDelete: Cascade)
-  paltaQ      PaltaQ?   @relation(fields: [paltaQId], references: [id], name: "DislikedPaltaQ", onDelete: Cascade)
-}
-
-model PaltaQ {
-  id            String   @id @default(uuid())
-  userId        String
-  questionId    String?     // Foreign key to Question
-  parentId      String?     // Foreign key to PaltaQ
-  mainQuestionID String?    // Foreign key to Question
-  paltaQ        String
-  score         Int          @default(0)
-  likes         Int          @default(0)
-  dislikes      Int          @default(0)
-
-  llama_score   Int          @default(0)
-  quban_score   Int          @default(0)
-
-  isAnonymous   Boolean      @default(false)
-  isArchived    Boolean      @default(false)
-
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  likedBy       Likes[]    @relation("LikedPaltaQ")
-  dislikedBy    Dislikes[] @relation("DislikedPaltaQ")
-  reports       Reports[]    // One-to-many relationship with Reports
-  questionType  QuestionType[] // One-to-many relationship with QuestionType
-
-  user        User     @relation(fields: [userId], references: [id], name: "UserPaltaQ")
-  question    Question? @relation(fields: [questionId], references: [id], name: "QuestionPaltaQ", onDelete: Cascade)
-  parentMQ    Question? @relation("ParentQuestion", fields: [mainQuestionID], references: [id])
-  parent      PaltaQ?  @relation("CommentReplies", fields: [parentId], references: [id])
-  replies     PaltaQ[] @relation("CommentReplies")
-
-  @@index([parentId])
-}
-
-model PreQuestionnaire {
-  id                      Int      @id @default(autoincrement())
-  isCompleted             Boolean  @default(false)
-  userId                  String   
-  classId                 String   @unique
-  studentId               String   @default("")
-
-  // Demographics
-  age                     String   @default("")
-  gender                  String   @default("")
-  schoolLocation          String   @default("")
-  maritalStatus           String   @default("")
-  // Academic
-  studyMotivation         String   @default("")
-  studyCuriosity          String   @default("")
-  quesionsAsked           String   @default("")
-  questionExample         String   @default("")
-  subjectILike            String   @default("")
-  dontEnjoyStudying       String   @default("")
-  cgpa                    String   @default("")
-  extraCurricular         String   @default("")
-  studyTime               String   @default("")
-  leisureTime             String   @default("")
-  // Curiosity
-  questionArises          String @default("")
-  courageToAsk            String @default("")
-  curiousToKnow           String @default("")
-  whyChildrenAskQuestions String @default("")
-  // Motivation
-  desireToLearn           String @default("")
-  askTeacher              String @default("")
-  askPeer                 String @default("")
-  askMyself               String @default("")
-  askGPT                  String @default("")
-  askResearch             String @default("")
-  askAvoid                String @default("")
-  motivatedToAsk          String @default("")
-  // Engagement
-  multQuesAskStudents     String @default("")
-  multQuesAskGroup        String @default("")
-  multQuesAskMyself       String @default("")
-  multQuesAvoid           String @default("")
-  multQuesResearch        String @default("")
-  multQuesMemorize        String @default("")
-  // Confidence
-  quesHelpsUnderstand     String @default("")
-  easierToMemorize        String @default("")
-  opinionAskingQues       String @default("")
-  opinionMemorizing       String @default("")
-  opinionPracticing       String @default("")
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  user              User     @relation(fields: [userId], references: [id])
-  class             ClassEnrollment  @relation(fields: [classId], references: [id], onDelete: Cascade)
-}
-
-model PostQuestionnaire {
-  id                      Int      @id @default(autoincrement())
-  isCompleted             Boolean  @default(false)
-  userId                  String   
-  classId                 String   @unique
-  studentId               String   @default("")
-  
-  // Opinion about PaltaQ
-  interestPaltaQ          String @default("")
-  suggestionsPaltaQ       String @default("")
-  // Academic
-  studyMotivation         String @default("")
-  studyCuriosity          String @default("")
-  quesionsAsked           String @default("")
-  questionExample         String @default("")
-  subjectILike            String @default("")
-  dontEnjoyStudying       String @default("")
-  cgpa                    String @default("")
-  extraCurricular         String @default("")
-  studyTime               String @default("")
-  leisureTime             String @default("")
-  // Curiosity
-  questionArises          String @default("")
-  courageToAsk            String @default("")
-  curiousToKnow           String @default("")
-  whyChildrenAskQuestions String @default("")
-  // Motivation
-  desireToLearn           String @default("")
-  askTeacher              String @default("")
-  askPeer                 String @default("")
-  askMyself               String @default("")
-  askGPT                  String @default("")
-  askResearch             String @default("")
-  askAvoid                String @default("")
-  motivatedToAsk          String @default("")
-  // Engagement
-  multQuesAskStudents     String @default("")
-  multQuesAskGroup        String @default("")
-  multQuesAskMyself       String @default("")
-  multQuesAvoid           String @default("")
-  multQuesResearch        String @default("")
-  multQuesMemorize        String @default("")
-  // Confidence
-  quesHelpsUnderstand     String @default("")
-  easierToMemorize        String @default("")
-  opinionAskingQues       String @default("")
-  opinionMemorizing       String @default("")
-  opinionPracticing       String @default("")
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  user              User     @relation(fields: [userId], references: [id])
-  class             ClassEnrollment  @relation(fields: [classId], references: [id], onDelete: Cascade)
-}
-
-model AIUsage {
-  id         String   @id @default(uuid())
-  userId     String
-  count      Int      @default(0)
-  day        String   // Example: "2026-04-29"
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@unique([userId, day])
-}
-
-model AIMessage {
-  id         String   @id @default(uuid())
-
-  userId     String
-  classId    String
-
-  prompt     String   @db.Text
-  response   String   @db.Text
-
-  version    String   @default("v1")
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  class      Classes  @relation(fields: [classId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([classId])
 }

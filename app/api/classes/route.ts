@@ -263,74 +263,82 @@ export async function patchHandler(req: Request, res: NextApiResponse) {
     const cname = url?.searchParams.get('cname');
     const cdate = url?.searchParams.get('cdate');
     const qstatus = url?.searchParams.get('qstatus');
+    const topicCheck = url?.searchParams.get('topicCheck');
     const status = url?.searchParams.get('status');
     const cstart = url?.searchParams.get('cstart');
     const cend = url?.searchParams.get('cend');
     const cdays = url?.searchParams.get('cdays'); // comma separated days
 
-        if (!cid || (!cname && !cdate && !qstatus && !status)) {
-            return new Response(JSON.stringify({ error: 'cid and cname/cdate/qstatus/status are required' }), {
+        if (!cid) {
+            return new Response(JSON.stringify({ error: 'cid is required' }), {
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
-        } else {
-            try {
-                if(cname && cid && cdate) {
-                    // Attempt to parse the date string
-                    const parsedDate = Date.parse(cdate);
+        }
 
-                    if (isNaN(parsedDate)) {
-                        console.error('Invalid Date Format:', cdate);
-                        return new Response(JSON.stringify({ error: 'Invalid Date Format' }), {
-                            status: 400,
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        });
-                    }
+        try {
+            // Build update data only for provided params
+            const updateData: any = {};
 
-                    const endsAt = new Date(parsedDate).toISOString();
-
-                    const user = await prisma.classes.update({
-                        where: {
-                            id: cid,
-                        },
-                        data: {
-                            name: cname,
-                            endsAt: endsAt,
-                            questionnaire: qstatus === 'true' ? true : false,
-                            status: status === 'true' ? true : false,
-                            startTime: cstart ?? undefined,
-                            endTime: cend ?? undefined,
-                            activeDays: cdays ? cdays.split(',') : undefined
-                        } as any
-                    });
-                    return new Response(JSON.stringify({ message: 'Class details updated' }), {
-                        status: 200,
-                    })
-                }
-            } catch (error: any) {
-                console.error('Failed to update class:', error);
-
-                if (error.code === 'P2002' && error.meta?.target.includes('name')) {
-                    // Handle unique constraint violation specifically for 'name' field
-                    return new Response(JSON.stringify({ error: 'Class Name must be unique' }), {
+            if (cname) updateData.name = cname;
+            if (cdate) {
+                const parsedDate = Date.parse(cdate);
+                if (isNaN(parsedDate)) {
+                    console.error('Invalid Date Format:', cdate);
+                    return new Response(JSON.stringify({ error: 'Invalid Date Format' }), {
                         status: 400,
                         headers: {
                             'Content-Type': 'application/json'
                         }
                     });
                 }
+                updateData.endsAt = new Date(parsedDate).toISOString();
+            }
+            if (typeof qstatus === 'string') updateData.questionnaire = qstatus === 'true';
+            if (typeof status === 'string') updateData.status = status === 'true';
+            if (typeof topicCheck === 'string') updateData.topicCheck = topicCheck === 'true';
+            if (cstart) updateData.startTime = cstart;
+            if (cend) updateData.endTime = cend;
+            if (cdays) updateData.activeDays = cdays.split(',');
 
-                return new Response(JSON.stringify({ error: 'Failed to update class' }), {
-                    status: 500,
+            // If no updatable fields were provided, return bad request
+            if (Object.keys(updateData).length === 0) {
+                return new Response(JSON.stringify({ error: 'No updatable fields provided' }), {
+                    status: 400,
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 });
             }
+
+            await prisma.classes.update({
+                where: { id: cid },
+                data: updateData as any,
+            });
+
+            return new Response(JSON.stringify({ message: 'Class details updated' }), {
+                status: 200,
+            });
+        } catch (error: any) {
+            console.error('Failed to update class:', error);
+
+            if (error.code === 'P2002' && error.meta?.target.includes('name')) {
+                return new Response(JSON.stringify({ error: 'Class Name must be unique' }), {
+                    status: 400,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
+
+            return new Response(JSON.stringify({ error: 'Failed to update class' }), {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
         }
     } else {
         return new Response(JSON.stringify({ error: 'Method not allowed' }), {

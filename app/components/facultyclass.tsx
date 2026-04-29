@@ -130,6 +130,7 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
   const [newClassQuestionnaire, setNewClassQuestionnaire] = useState(
     false as boolean,
   );
+  const [newClassTopicCheck, setNewClassTopicCheck] = useState(true as boolean);
   const [newClassStatus, setNewClassStatus] = useState(true as boolean);
   const [newClassStartTime, setNewClassStartTime] = useState("" as string);
   const [newClassEndTime, setNewClassEndTime] = useState("" as string);
@@ -294,6 +295,7 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
         cdate: newClassDate,
         qstatus: String(newClassQuestionnaire),
         status: String(newClassStatus),
+        topicCheck: String(newClassTopicCheck),
       });
       if (newClassStartTime) params.set("cstart", newClassStartTime);
       if (newClassEndTime) params.set("cend", newClassEndTime);
@@ -1226,32 +1228,36 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
             <div>
               <p className="pl-3">Number of classes: {classes.length}</p>
 
-              <table className="table table-hover table-responsive-sm">
-                <thead>
+              <div className="overflow-x-auto" style={{ maxHeight: '22em', overflowY: 'auto' }}>
+                <table className="table table-hover table-responsive-sm">
+                  <thead>
                   <tr>
-                    <th className="border-0" scope="col" id="className">
+                    <th className="border-0 sticky bg-[#e6e7ee] top-0 CCz-10" scope="col" id="className">
                       Class Name
                     </th>
-                    <th className="border-0" scope="col" id="classCode">
+                    <th className="border-0 sticky bg-[#e6e7ee] top-0 z-10" scope="col" id="classCode">
                       Class Code
                     </th>
-                    <th className="border-0" scope="col" id="classCode">
+                    <th className="border-0 sticky bg-[#e6e7ee] top-0 z-10" scope="col" id="semesterEnd">
                       Semester End
                     </th>
-                    <th className="border-0" scope="col" id="classCode">
+                    <th className="border-0 sticky bg-[#e6e7ee] top-0 z-10" scope="col" id="questionnaire">
                       Questionnaire
                     </th>
-                    <th className="border-0" scope="col" id="classCode">
+                    <th className="border-0 sticky bg-[#e6e7ee] top-0 z-10" scope="col" id="topicCheck">
+                      Topic Check
+                    </th>
+                    <th className="border-0 sticky bg-[#e6e7ee] top-0 z-10" scope="col" id="status">
                       Status
                     </th>
-                    <th className="border-0" scope="col" id="classCode">
+                    <th className="border-0 sticky bg-[#e6e7ee] top-0 z-10" scope="col" id="schedule">
                       Schedule
                     </th>
-                    <th className="border-0" scope="col" id="classCode">
+                    <th className="border-0 sticky bg-[#e6e7ee] top-0 z-10" scope="col" id="actions">
                       Actions
                     </th>
                   </tr>
-                </thead>
+                  </thead>
                 <tbody>
                   {classes.map((classItem: any, index: any) => (
                     <tr key={classItem.class.id}>
@@ -1313,6 +1319,24 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
                           <div className="text-green-800">Active</div>
                         ) : (
                           <div className="text-rose-800">Inactive</div>
+                        )}
+                      </td>
+                      <td>
+                        {toggleUpdate === index ? (
+                          <select
+                            value={newClassTopicCheck.toString()}
+                            onChange={(
+                              e: React.ChangeEvent<HTMLSelectElement>,
+                            ) => setNewClassTopicCheck(e.target.value === "true")}
+                            className="form-control"
+                          >
+                            <option value="true">On</option>
+                            <option value="false">Off</option>
+                          </select>
+                        ) : classItem.class.topicCheck ? (
+                          <div className="text-green-800">On</div>
+                        ) : (
+                          <div className="text-rose-800">Off</div>
                         )}
                       </td>
                       <td>
@@ -1509,6 +1533,9 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
                                           setNewClassDays(
                                             classItem.class.activeDays ?? [],
                                           );
+                                          setNewClassTopicCheck(
+                                            classItem.class.topicCheck ?? true,
+                                          );
                                           setToggleUpdate(index);
                                           setToggleDelete(null);
                                         }}
@@ -1642,7 +1669,8 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
           )}
 
