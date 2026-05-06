@@ -1,19 +1,41 @@
-import { NextApiResponse } from 'next';
-import prisma from '@/app/lib/prisma';
+import { NextApiResponse } from "next";
+import prisma from "@/app/lib/prisma";
 
-import { validateQuestion, scoreQuestion, updateRank } from '@/app/utils/questionUtils'; // Import your validation and scoring functions
-import { submitQuestionToDatabase, submitPaltaQToDatabase } from '@/app/utils/postUtils'; // Import your function to submit the question to the database
-import { getToken } from 'next-auth/jwt';
-import { getUserIDFromDatabase } from '@/app/utils/getUtils';
-import { QuestionCategory } from '@/app/utils/postUtils';
+import {
+  validateQuestion,
+  scoreQuestion,
+  updateRank,
+} from "@/app/utils/questionUtils";
+import {
+  submitQuestionToDatabase,
+  submitPaltaQToDatabase,
+} from "@/app/utils/postUtils";
+import { getToken } from "next-auth/jwt";
+import { getUserIDFromDatabase } from "@/app/utils/getUtils";
+import { QuestionCategory } from "@/app/utils/postUtils";
 
 const secret = process.env.SECRET;
 
+// ✅ Helper for consistent error responses
+function errorResponse(message: string, status: number = 500, extra?: any) {
+  return new Response(
+    JSON.stringify({
+      error: true,
+      message,
+      ...(extra && { details: extra }),
+    }),
+    {
+      status,
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+}
+
 export async function getHandler(req: Request, res: NextApiResponse) {
-  if (req.method === 'GET') {
+  if (req.method === "GET") {
     const url = req?.url ? new URL(req.url) : null;
-    const cid = url?.searchParams.get('cid');
-    const tid = url?.searchParams.get('tid');
+    const cid = url?.searchParams.get("cid");
+    const tid = url?.searchParams.get("tid");
 
     try {
       if (cid && tid) {
@@ -44,27 +66,24 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                 parent: true,
                 replies: true,
                 questionType: true,
-              }
+              },
             },
             topic: true,
             questionType: true,
-          }
+          },
         });
-        // Calculate replies length for each paltaQBy and set replies to undefined
-        questions.forEach(question => {
-          question.paltaQBy.forEach(paltaQBy => {
+
+        questions.forEach((question) => {
+          question.paltaQBy.forEach((paltaQBy) => {
             (paltaQBy as any).repliesLength = paltaQBy.replies.length;
-            (paltaQBy as any).replies = undefined; // Set replies to undefined
+            (paltaQBy as any).replies = undefined;
           });
         });
-        return new Response(JSON.stringify(questions), {
-          status: 200,
-        })
+
+        return new Response(JSON.stringify(questions), { status: 200 });
       } else if (cid) {
         const questions = await prisma.question.findMany({
-          where: {
-            classId: cid,
-          },
+          where: { classId: cid },
           include: {
             user: true,
             topic: true,
@@ -88,233 +107,279 @@ export async function getHandler(req: Request, res: NextApiResponse) {
                 parent: true,
                 replies: true,
                 questionType: true,
-              }
+              },
             },
             questionType: true,
-          }
-        }
-        );
-        // Calculate replies length for each paltaQBy and set replies to undefined
-        questions.forEach(question => {
-          question.paltaQBy.forEach(paltaQBy => {
+          },
+        });
+
+        questions.forEach((question) => {
+          question.paltaQBy.forEach((paltaQBy) => {
             (paltaQBy as any).repliesLength = paltaQBy.replies.length;
-            (paltaQBy as any).replies = undefined; // Set replies to undefined
+            (paltaQBy as any).replies = undefined;
           });
         });
-        return new Response(JSON.stringify(questions), {
-          status: 200,
-        })
+
+        return new Response(JSON.stringify(questions), { status: 200 });
       }
-    } catch (error) {
-      console.error('Failed to get question:', error);
-      return new Response(JSON.stringify({ error: 'Failed to get question' }), {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+
+      return errorResponse("Missing required parameters (cid or tid)", 400);
+    } catch (error: any) {
+      console.error("GET /question failed:", error);
+
+      return errorResponse(
+        "Failed to fetch questions",
+        500,
+        process.env.NODE_ENV === "development" ? error.message : undefined,
+      );
     }
-  } else {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
   }
+
+  return errorResponse("Method not allowed", 405);
 }
 
 async function postHandler(req: Request, res: NextApiResponse) {
-  if (req.method === 'POST') {
+  if (req.method === "POST") {
     try {
-      // Get the session
       const token = await getToken({ req: req as any, secret });
 
-      // Extract question data from the request body
-      const { isAnonymous, category } = await req.json();
+      if (!token) {
+        return errorResponse("Authentication required", 401);
+      }
+
+      let body;
+      try {
+        body = await req.json();
+      } catch {
+        return errorResponse("Invalid JSON body", 400);
+      }
+
+      const { isAnonymous, category } = body;
 
       const url = req?.url ? new URL(req.url) : null;
-      const cid = url?.searchParams.get('cid') || '';
-      const tid = url?.searchParams.get('tid') || '';
-      let question = url?.searchParams.get('question') || '';
-      const qid = url?.searchParams.get('qid') || '';
-      const Mqid = url?.searchParams.get('Mqid') || '';
-      const tname = url?.searchParams.get('tname') || '';
-      const cCode = url?.searchParams.get('cCode') || '';
+      const cid = url?.searchParams.get("cid") || "";
+      const tid = url?.searchParams.get("tid") || "";
+      let question = url?.searchParams.get("question") || "";
+      const qid = url?.searchParams.get("qid") || "";
+      const Mqid = url?.searchParams.get("Mqid") || "";
+      const tname = url?.searchParams.get("tname") || "";
+      const cCode = url?.searchParams.get("cCode") || "";
+
+      if (!cid || !question) {
+        return errorResponse(
+          "Missing required parameters (cid, question)",
+          400,
+        );
+      }
 
       question = question.trim();
       question = question.charAt(0).toUpperCase() + question.slice(1);
 
-      let userId = "";
+      const userEmail = token?.email;
+      const userId = await getUserIDFromDatabase(userEmail ?? "");
 
-      // Check if the user is authenticated
-      if (!token) {
-        console.log("User not authenticated");
-      } else {
-        // Extract user email from the token
-        const userEmail = token?.email;
-        userId = await getUserIDFromDatabase(userEmail ?? '');
-      }
-
-      // Validate the question
       const validText = await validateQuestion(question, category, tid, cid);
 
       if (validText !== "Question validated") {
-        return new Response(JSON.stringify({ message: `${validText}` }), {
-          status: 400,
-        })
+        return errorResponse(validText, 400);
       }
 
-      // Llama-3
-      const baseUrl = process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000'
+      const baseUrl = process.env.VERCEL_URL
+        ? "https://" + process.env.VERCEL_URL
+        : "http://localhost:3000";
 
-      // Check if the question is valid
-      const llama_response = await fetch(`${baseUrl}/api/groq?question=${question}&version=1`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-      });
+      // ✅ Llama v1
+      const llama_response = await fetch(
+        `${baseUrl}/api/groq?question=${question}&version=1`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
 
-      // Check if the question is off-topic
-      // By default assume topic check passes. Only call the topic-checking endpoint
-      // when the classroom has topicCheck enabled. Also preserve the existing
-      // demo-class bypass (code FBA6B9).
+      if (!llama_response.ok) {
+        console.error(await llama_response.text());
+        return errorResponse("AI validation service unavailable", 503);
+      }
+
+      let data;
+      try {
+        data = await llama_response.json();
+      } catch {
+        return errorResponse("Invalid AI validation response", 502);
+      }
+
+      // ✅ Topic check
       let llama_response4 = new Response(JSON.stringify("yes"));
 
       try {
-        // Fetch class record to read topicCheck flag. If the class can't be found
-        // we fall back to enforcing topic check (conservative).
         const classRecord = cid
           ? await prisma.classes.findUnique({ where: { id: cid } })
           : null;
 
-  const topicCheckEnabled = (classRecord as any)?.topicCheck ?? true;
+        const topicCheckEnabled = (classRecord as any)?.topicCheck ?? true;
 
-        if (topicCheckEnabled && cCode !== 'FBA6B9') {
-          llama_response4 = await fetch(`${baseUrl}/api/groq?question=${question}&version=4&topic=${tname}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
+        if (topicCheckEnabled && cCode !== "FBA6B9") {
+          llama_response4 = await fetch(
+            `${baseUrl}/api/groq?question=${question}&version=4&topic=${tname}`,
+            { method: "POST", headers: { "Content-Type": "application/json" } },
+          );
         }
       } catch (e) {
-        // If anything goes wrong fetching the class, default to performing the
-        // topic check (i.e. do not silently allow off-topic questions).
-        console.error('Error checking class topicCheck flag:', e);
-        if (cCode !== 'FBA6B9') {
-          llama_response4 = await fetch(`${baseUrl}/api/groq?question=${question}&version=4&topic=${tname}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
+        console.error("Error checking class topicCheck flag:", e);
+
+        if (cCode !== "FBA6B9") {
+          llama_response4 = await fetch(
+            `${baseUrl}/api/groq?question=${question}&version=4&topic=${tname}`,
+            { method: "POST", headers: { "Content-Type": "application/json" } },
+          );
         }
       }
 
-      const data = await llama_response.json();
-      const is_valid_question = data.toLowerCase();
-      const is_validTopic = await llama_response4.json();
+      let is_validTopic: any;
 
-      if (is_validTopic.includes("no")) {
-        return new Response(JSON.stringify({ message: `Question is off-topic`, improvement_suggestion: 'Our system has detected that your question does not match the selected classroom topic. Please try asking a question that is relevant to the topic.' }), {
-          status: 400,
-        })
+      try {
+        is_validTopic = await llama_response4.json();
+        is_validTopic = String(is_validTopic).toLowerCase();
+      } catch {
+        return errorResponse("Invalid topic validation response", 502);
       }
 
-      if (is_valid_question.includes("no")) {
-        return new Response(JSON.stringify({ message: `Try asking a better question` }), {
-          status: 400,
-        })
+      const is_valid_question = String(data || "").toLowerCase();
+
+      if (is_valid_question.trim().startsWith("no")) {
+        return errorResponse("Question is off-topic", 400, {
+          improvement_suggestion:
+            "Your question does not match the classroom topic. Please ask something relevant.",
+        });
       }
 
-      // Score the question using Llama-3
-      const llama_response2 = await fetch(`${baseUrl}/api/groq?question=${question}&version=2`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
+      // normalize safety
+      if (
+        !is_valid_question.includes("yes") &&
+        !is_valid_question.includes("no")
+      ) {
+        return errorResponse("AI validation failed", 502);
+      }
+
+      // ❌ rejected question with reason support
+      if (is_valid_question.startsWith("no")) {
+        const reason = is_valid_question.split(":")[1]?.trim();
+
+        return errorResponse(
+          reason ||
+            "Your question was rejected because it does not meet quality guidelines.",
+          400,
+          {
+            type: "validation_error",
+          },
+        );
+      }
+
+      // ✅ Llama scoring
+      const llama_response2 = await fetch(
+        `${baseUrl}/api/groq?question=${question}&version=2`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+
+      if (!llama_response2.ok) {
+        return errorResponse("AI scoring service unavailable", 503);
+      }
+
+      let rawScore;
+      try {
+        rawScore = await llama_response2.json();
+      } catch {
+        return errorResponse("Invalid scoring response", 502);
+      }
+
+      const llama_score = parseInt(rawScore, 10);
+
+      if (isNaN(llama_score)) {
+        return errorResponse("AI scoring returned invalid value", 502);
+      }
+
+      const { score, quban_score, foundKeywords } = await scoreQuestion(
+        question,
+        llama_score,
+      );
+
+      try {
+        if (category === QuestionCategory.Topic) {
+          await submitQuestionToDatabase(
+            userId,
+            question,
+            score,
+            quban_score,
+            llama_score,
+            category,
+            tid,
+            cid,
+            isAnonymous,
+            foundKeywords,
+            "topic",
+          );
+        } else if (category === QuestionCategory.Palta) {
+          await submitPaltaQToDatabase(
+            userId,
+            question,
+            qid,
+            "",
+            cid,
+            score,
+            quban_score,
+            llama_score,
+            isAnonymous,
+            foundKeywords,
+            "topic",
+          );
+        } else if (category === QuestionCategory.PaltaPalta) {
+          await submitPaltaQToDatabase(
+            userId,
+            question,
+            qid,
+            Mqid,
+            cid,
+            score,
+            quban_score,
+            llama_score,
+            isAnonymous,
+            foundKeywords,
+            "paltapalta",
+          );
         }
-      });
-
-      const llama_score = parseInt(await llama_response2.json(), 10);
-
-      console.log({ is_valid_question, is_validTopic, llama_score });
-
-      // Score the question
-      const { score, quban_score, foundKeywords } = await scoreQuestion(question, llama_score);
-
-      // Submit the question to the database
-      if (category === QuestionCategory.Topic) {
-        await submitQuestionToDatabase(
-          userId,
-          question,
-          score,
-          quban_score,
-          llama_score,
-          category,
-          tid,
-          cid,
-          isAnonymous,
-          foundKeywords,
-          'topic'
-        );
-      } else if (category === QuestionCategory.Palta) {
-        await submitPaltaQToDatabase(
-          userId,
-          question,
-          qid,
-          '',
-          cid,
-          score,
-          quban_score,
-          llama_score,
-          isAnonymous,
-          foundKeywords,
-          'topic'
-        );
-      } else if (category === QuestionCategory.PaltaPalta) {
-        await submitPaltaQToDatabase(
-          userId,
-          question,
-          qid,
-          Mqid,
-          cid,
-          score,
-          quban_score,
-          llama_score,
-          isAnonymous,
-          foundKeywords,
-          'paltapalta'
-        );
+      } catch (err) {
+        console.error("DB write failed:", err);
+        return errorResponse("Failed to save question", 500);
       }
 
-      const status = await updateRank(userId, cid);
+      let status;
+      try {
+        status = await updateRank(userId, cid);
+      } catch (err) {
+        console.error("Rank update failed:", err);
+        return errorResponse("Failed to update rank", 500);
+      }
 
-      // Return success response
-      return new Response(JSON.stringify({ message: `${score} Points Awarded!|${status}` }), {
-        status: 200,
-      })
+      return new Response(
+        JSON.stringify({ message: `${score} Points Awarded!|${status}` }),
+        { status: 200 },
+      );
+    } catch (error: any) {
+      console.error("POST /question failed:", error);
 
-    } catch (error) {
-      console.error('Failed to submit question:', error);
-      return new Response(JSON.stringify({ error: 'Failed to submit question' }), {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      return errorResponse(
+        "Failed to submit question",
+        500,
+        process.env.NODE_ENV === "development" ? error.message : undefined,
+      );
     }
-
-  } else {
-    // Return error for unsupported methods
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
   }
+
+  return errorResponse("Method not allowed", 405);
 }
 
 export { getHandler as GET };
