@@ -81,7 +81,7 @@ export default function PurgeComponent() {
         };
 
         fetchClasses();
-    }, [session]);
+    }, [session, status, router]);
 
     useEffect(() => {
         if (selectedClassId) {

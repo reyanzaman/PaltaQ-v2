@@ -134,7 +134,7 @@ export default function Dashboard(props) {
         } else {
             fetchUser();
         }
-    }, [session, status]);
+    }, [session, status, router]);
 
     useEffect(() => {
         document.title = "Dashboard";

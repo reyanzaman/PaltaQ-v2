@@ -255,7 +255,7 @@ const FacultyAnalytics: React.FC<Props> = ({
       },
     });
     return () => bloomPieChart.current?.destroy();
-  }, [questions, collapsed, loadingQ]);
+  }, [questions, collapsed, loadingQ, bloomTotal, bloomTotals]);
 
   // ── Chart: 7-day activity trend (line) ─────────────────────────────────────
   useEffect(() => {
@@ -322,7 +322,7 @@ const FacultyAnalytics: React.FC<Props> = ({
       },
     });
     return () => trendLineChart.current?.destroy();
-  }, [questions, collapsed, loadingQ]);
+  }, [questions, collapsed, loadingQ, bloomTotal, bloomTotals]);
 
   // ── Chart: Bloom per-level bar ──────────────────────────────────────────────
   useEffect(() => {
@@ -355,7 +355,7 @@ const FacultyAnalytics: React.FC<Props> = ({
       },
     });
     return () => bloomBarChart.current?.destroy();
-  }, [questions, collapsed, loadingQ]);
+  }, [questions, collapsed, loadingQ, bloomTotal, bloomTotals]);
 
   // ─── Render ─────────────────────────────────────────────────────────────────
   return (

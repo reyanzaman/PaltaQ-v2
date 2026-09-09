@@ -1,0 +1,3 @@
+export const GENERAL_CLASS_ID = "ae9b5c88-e98e-4774-a606-790f71947591";
+export const GENERAL_TOPIC_ID = "e1566b05-fef2-4958-885b-2808695b7ba7";
+export const GUEST_USER_ID = "03277337-f5ae-42c4-985c-4e35e64b3fc3";

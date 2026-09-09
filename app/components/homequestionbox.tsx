@@ -62,10 +62,11 @@ export default function QuestionBox({
       if (response.ok) {
         // Handle successful submission
         setQuestion("");
-
-        const responseText = responseData.message;
-        const updateText = responseText.split("|")[1];
-        const mainText = responseText.split("|")[0];
+        const responseText =
+          typeof responseData?.message === "string"
+            ? responseData.message
+            : "Question submitted successfully";
+        const [mainText, updateText] = responseText.split("|");
 
         if (updateText && updateText !== "Rank unchanged") {
           toast.dark(updateText);

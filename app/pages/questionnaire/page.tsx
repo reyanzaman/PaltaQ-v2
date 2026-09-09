@@ -57,7 +57,7 @@ export default function Questionnaire(props) {
         } else {
             fetchUser();
         }
-    }, [session, status]);
+    }, [session, status, router]);
 
     useEffect(() => {
         document.title = "Questionnaire";

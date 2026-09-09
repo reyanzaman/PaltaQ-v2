@@ -164,7 +164,7 @@ export default function QuestionComponent({ user }: { user: User }) {
     };
 
     fetchClasses();
-  }, [refresh]);
+  }, [refresh, user.id]);
 
   useEffect(() => {
     const callQuestionnaire = async () => {
@@ -252,7 +252,7 @@ export default function QuestionComponent({ user }: { user: User }) {
     };
 
     callQuestionnaire();
-  }, [selectedClass]);
+  }, [selectedClass, user.id, user.is_Faculty, user.is_Admin]);
 
   useLayoutEffect(() => {
     // Run after DOM mutations but before paint, then again on next frame.

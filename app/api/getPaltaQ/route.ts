@@ -1,10 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '@/app/lib/prisma';
-import { revalidateTag } from 'next/cache';
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    revalidateTag('paltaQ');
 
     const url = req?.url ? new URL(req.url) : null;
     const pqid = url?.searchParams.get('pqid');

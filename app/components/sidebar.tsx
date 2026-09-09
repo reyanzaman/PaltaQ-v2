@@ -16,7 +16,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Tooltip } from "react-tooltip";
 import { signIn, signOut, useSession } from "next-auth/react";
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 
 interface SideNavProps {
   isMobile: boolean;
@@ -48,7 +48,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
     setLogoutGoogle(e.target.checked);
   };
 
-  const getisAdmin = async () => {
+  const getisAdmin = useCallback(async () => {
     if (!session) {
       return;
     }
@@ -74,7 +74,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
     } catch (error) {
       console.error('Failed to get isAdmin:', error);
     }
-  };
+  }, [session]);
 
   const handleLogout = () => {
     if (logoutGoogle) {
@@ -95,7 +95,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobile, isMobileMenuOpen, toggleMob
 
   useEffect(() => {
     getisAdmin();
-  }, [session]);
+  }, [getisAdmin]);
 
   const handleLinkClick = () => {
     setIsMobileMenuOpen(false);

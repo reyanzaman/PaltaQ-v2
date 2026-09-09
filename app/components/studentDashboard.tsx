@@ -386,7 +386,7 @@ export default function StudentDashboard({ user }: { user: User }) {
             }
         }
         setLoading(false);
-    }, [user, selectedClass]);
+    }, [user, selectedClass, selectedClassId]);
 
     // For fetching class enrollments
     useEffect(() => {
@@ -420,7 +420,7 @@ export default function StudentDashboard({ user }: { user: User }) {
         };
 
         fetchEnrollments();
-    }, []);
+    }, [user.id]);
 
     // For fetching all enrolled students
     useEffect(() => {
@@ -452,7 +452,7 @@ export default function StudentDashboard({ user }: { user: User }) {
                 fetchAllEnrollments();
             }
         }
-    }, [selectedClass]);
+    }, [selectedClassId, classEnrollment.length]);
 
     if (loading) {
         return <div className=""><h1 className="text-2xl font-bold">Loading...</h1></div>;

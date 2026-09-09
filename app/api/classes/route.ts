@@ -2,9 +2,31 @@ import { NextApiResponse } from 'next';
 import prisma from '@/app/lib/prisma';
 
 import { generateUniqueCode } from '@/app/utils/classUtils';
+import { getToken } from 'next-auth/jwt';
+import { getUserIDFromDatabase } from '@/app/utils/getUtils';
 
+const secret = process.env.SECRET;
+
+
+async function getAuthenticatedUser(req: Request) {
+    const token = await getToken({ req: req as any, secret });
+    if (!token?.email) return null;
+    try {
+        const id = await getUserIDFromDatabase(String(token.email));
+        return prisma.user.findUnique({
+            where: { id },
+            select: { id: true, is_Faculty: true, is_Admin: true },
+        });
+    } catch {
+        return null;
+    }
+}
 export async function postHandler(req: Request, res: NextApiResponse) {
     if (req.method === 'POST') {
+        const authenticatedUser = await getAuthenticatedUser(req);
+        if (!authenticatedUser || (!authenticatedUser.is_Faculty && !authenticatedUser.is_Admin)) {
+            return new Response(JSON.stringify({ error: 'Faculty authentication required' }), { status: 403 });
+        }
         let code;
         let codeExists;
         
@@ -16,7 +38,7 @@ export async function postHandler(req: Request, res: NextApiResponse) {
             });
         } while (codeExists);
 
-    const { className, facultyId, startTime, endTime, activeDays } = await req.json();
+    const { className, startTime, endTime, activeDays } = await req.json();
 
         const currentDate = new Date();
         const endsAtDate = new Date(currentDate.setDate(currentDate.getDate() + 100));
@@ -26,7 +48,7 @@ export async function postHandler(req: Request, res: NextApiResponse) {
                 data: {
                     name: className,
                     code: code,
-                    creatorId: facultyId,
+                    creatorId: authenticatedUser.id,
                     endsAt: endsAtDate,
                     questionnaire: false,
                     status: true,
@@ -38,14 +60,14 @@ export async function postHandler(req: Request, res: NextApiResponse) {
 
             await prisma.classFaculty.create({
                 data: {
-                    userId: facultyId,
+                    userId: authenticatedUser.id,
                     classId: newClass.id
                 }
             });
 
             await prisma.classEnrollment.create({
                 data: {
-                    userId: facultyId,
+                    userId: authenticatedUser.id,
                     classId: newClass.id
                 }
             });
@@ -89,6 +111,13 @@ export async function getHandler(req: Request, res: NextApiResponse) {
     if (req.method === 'GET') {
         const url = req?.url ? new URL(req.url) : null;
         const id = url?.searchParams.get('id');
+        const authenticatedUser = await getAuthenticatedUser(req);
+        if (!authenticatedUser) {
+            return new Response(JSON.stringify({ error: 'Authentication required' }), { status: 401 });
+        }
+        if (id && id !== authenticatedUser.id && !authenticatedUser.is_Admin) {
+            return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
+        }
 
         try {
             if(id) {
@@ -138,45 +167,55 @@ export async function getHandler(req: Request, res: NextApiResponse) {
 }
 
 export async function deleteHandler(req: Request, res: NextApiResponse) {
-    if (req.method === 'DELETE') {
-        const url = req?.url ? new URL(req.url) : null;
-        const id = url?.searchParams.get('id');
-
-        try {
-            if(id) {
-                const user = await prisma.classes.delete({
-                    where: {
-                        id: id,
-                    }
-                });
-                return new Response(JSON.stringify({ message: 'Class deleted' }), {
-                    status: 200,
-                })
-            }
-        } catch (error) {
-            console.error('Failed to delete class:', error);
-            return new Response(JSON.stringify({ error: 'Failed to delete class' }), {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
-    } else {
+    if (req.method !== 'DELETE') {
         return new Response(JSON.stringify({ error: 'Method not allowed' }), {
             status: 405,
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }
+
+    const authenticatedUser = await getAuthenticatedUser(req);
+    if (!authenticatedUser) {
+        return new Response(JSON.stringify({ error: 'Authentication required' }), { status: 401 });
+    }
+
+    const url = req?.url ? new URL(req.url) : null;
+    const id = url?.searchParams.get('id');
+    if (!id) {
+        return new Response(JSON.stringify({ error: 'Class id is required' }), { status: 400 });
+    }
+
+    try {
+        const classData = await prisma.classes.findUnique({
+            where: { id },
+            select: { creatorId: true },
+        });
+        if (!classData) {
+            return new Response(JSON.stringify({ error: 'Class not found' }), { status: 404 });
+        }
+        if (classData.creatorId !== authenticatedUser.id && !authenticatedUser.is_Admin) {
+            return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
+        }
+
+        await prisma.classes.delete({ where: { id } });
+        return new Response(JSON.stringify({ message: 'Class deleted' }), { status: 200 });
+    } catch (error) {
+        console.error('Failed to delete class:', error);
+        return new Response(JSON.stringify({ error: 'Failed to delete class' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
         });
     }
 }
-
 export async function putHandler(req: Request, res: NextApiResponse) {
     if (req.method === 'PUT') {
+        const authenticatedUser = await getAuthenticatedUser(req);
+        if (!authenticatedUser) {
+            return new Response(JSON.stringify({ error: 'Authentication required' }), { status: 401 });
+        }
         const url = req?.url ? new URL(req.url) : null;
         const code = url?.searchParams.get('code');
-        const userId = url?.searchParams.get('uid');
+        const userId = authenticatedUser.id;
 
         if (!code || !userId) {
             return new Response(JSON.stringify({ error: 'code and userId are required' }), {
@@ -214,13 +253,6 @@ export async function putHandler(req: Request, res: NextApiResponse) {
                 }
             });
 
-            // Create a new faculty
-            await prisma.classFaculty.create({
-                data: {
-                    userId: userId,
-                    classId: classId
-                }
-            });
 
             return new Response(JSON.stringify({ message: 'Class joined' }), {
                 status: 200,

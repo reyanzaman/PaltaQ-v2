@@ -11,15 +11,10 @@ import {
 import { getToken } from "next-auth/jwt";
 import { getUserIDFromDatabase } from "@/app/utils/getUtils";
 import { QuestionCategory } from "@/app/utils/postUtils";
+import { GENERAL_CLASS_ID as cid, GENERAL_TOPIC_ID as tid, GUEST_USER_ID as uid } from "@/app/lib/constants";
 
 const secret = process.env.SECRET;
 
-// General Class ID
-export const cid = "ae9b5c88-e98e-4774-a606-790f71947591";
-// General Topic ID
-export const tid = "e1566b05-fef2-4958-885b-2808695b7ba7";
-// Guest User ID
-export const uid = "03277337-f5ae-42c4-985c-4e35e64b3fc3";
 
 // ✅ Consistent error helper
 function errorResponse(message: string, status: number = 500, extra?: any) {
@@ -78,17 +73,9 @@ async function postHandler(req: Request, res: NextApiResponse) {
         }
       }
 
-      // =========================================
-      // LLAMA-3 CHECKING + SCORING
-      // =========================================
-
-      const baseUrl = process.env.VERCEL_URL
-        ? "https://" + process.env.VERCEL_URL
-        : "http://localhost:3000";
-
       // ✅ Validation request
       const llama_response = await fetch(
-        `${baseUrl}/api/groq?question=${processed_question}&version=1`,
+        `${new URL(req.url).origin}/api/ai?question=${encodeURIComponent(processed_question)}&version=1`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -137,7 +124,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
 
       // ✅ Scoring request
       const llama_response2 = await fetch(
-        `${baseUrl}/api/groq?question=${processed_question}&version=2`,
+        `${new URL(req.url).origin}/api/ai?question=${encodeURIComponent(processed_question)}&version=2`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -165,7 +152,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
         retryCount++;
 
         const retry_response = await fetch(
-          `${baseUrl}/api/groq?question=${processed_question}&version=2`,
+          `${new URL(req.url).origin}/api/ai?question=${encodeURIComponent(processed_question)}&version=2`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },

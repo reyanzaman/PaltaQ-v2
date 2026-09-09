@@ -1,5 +1,5 @@
 import prisma from '@/app/lib/prisma';
-import { uid, cid } from '@/app/api/submitGenQuestion/route';
+import { GUEST_USER_ID as uid, GENERAL_CLASS_ID as cid } from '@/app/lib/constants';
 
 export enum QuestionCategory {
   General = 'General',

@@ -169,6 +169,10 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
     };
 
     const fetchTopics = async () => {
+      if (!selectedClass?.id) {
+        setTopics([]);
+        return;
+      }
       setLoading(true);
       try {
         const response = await fetch(`/api/topics?cid=${selectedClass?.id}`);
@@ -188,7 +192,7 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
 
     fetchClasses();
     fetchTopics();
-  }, [refresh]);
+  }, [refresh, user.id, selectedClass?.id]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -548,7 +552,7 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
         return;
       }
 
-      const res = await fetch("/api/groq/summary", {
+      const res = await fetch("/api/ai/summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ questions: allQuestions }),
@@ -612,7 +616,7 @@ const FacultyClass: React.FC<{ user: User }> = ({ user }) => {
       setClassSummary(null);
       setLastGenerated(null);
     }
-  }, [selectedClass?.id, refresh]);
+  }, [selectedClass?.id, refresh, user.id]);
 
   const displayStudents = () => {
     const sortedEnrollments = [...(selectedClass?.enrollments || [])].sort(

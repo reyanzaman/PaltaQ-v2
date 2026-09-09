@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
 import Image from 'next/image';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSession } from "next-auth/react";
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
@@ -13,7 +13,7 @@ import { QuestionCategory } from '@/app/utils/postUtils';
 import QuestionBox from "@/app/components/homequestionbox";
 import PaltaQComponent from "@/app/components/paltaQ";
 import { getRankDetails } from '@/app/utils/rankings';
-import { uid } from '@/app/api/submitGenQuestion/route'
+import { GUEST_USER_ID as uid } from '@/app/lib/constants'
 import GeneratedResponse from '@/app/components/generatedResponse';
 import { Tooltip } from "react-tooltip";
 
@@ -120,21 +120,19 @@ export default function RecentQuestions() {
 
     const itemsPerPage = 10;
     const [currentPage, setCurrentPage] = useState(1);
-    const totalPages = Math.ceil(questions.length / itemsPerPage);
+    const totalPages = Math.max(1, Math.ceil(questions.length / itemsPerPage));
 
     // Sort questions by createdAt in descending order
-    const sortedQuestions = questions.slice().sort((b, a) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    const sortedQuestions = useMemo(() => questions.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()), [questions]);
 
     // Pagination indices for sorted questions
     const indexOfLastQuestion = currentPage * itemsPerPage;
     const indexOfFirstQuestion = indexOfLastQuestion - itemsPerPage;
 
-    // Combine sorted faculty questions with non-faculty questions
-    let currentQuestions = [
-        ...sortedQuestions,
-    ];
-
-    currentQuestions = currentQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
+    const currentQuestions = useMemo(
+        () => sortedQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion),
+        [sortedQuestions, indexOfFirstQuestion, indexOfLastQuestion],
+    );
 
     const handlePageChange = (pageNumber: any, event: any) => {
         event.preventDefault(); // Prevent the default anchor behavior
@@ -433,7 +431,7 @@ export default function RecentQuestions() {
                 // Handle successful submission
                 setPaltaQInputs(prev => ({ ...prev, [questionId]: '' }));
 
-                const responseText = responseData.message;
+                const responseText = typeof responseData?.message === "string" ? responseData.message : "Question submitted successfully";
                 const [mainText, updateText] = responseText.split('|');
 
                 if (updateText && updateText !== "Rank unchanged") {
@@ -470,7 +468,7 @@ export default function RecentQuestions() {
             }
 
             const data = await response2.json();
-            setQuestions(data);
+            setQuestions(Array.isArray(data) ? data : []);
             setRefresh(!refresh);
 
             resetClick();
@@ -534,7 +532,7 @@ export default function RecentQuestions() {
             }
             const data = await response.json();
             // console.log('Questions:', data);
-            setQuestions(data);
+            setQuestions(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error fetching questions:', error);
         } finally {
@@ -576,6 +574,10 @@ export default function RecentQuestions() {
     }, [session?.user?.email]);
 
     useEffect(() => {
+        setCurrentPage((page) => Math.min(page, totalPages));
+    }, [totalPages]);
+
+    useEffect(() => {
         if (currentQuestions.length === 0) return;
 
         let timeoutId: NodeJS.Timeout | null = null;
@@ -607,7 +609,7 @@ export default function RecentQuestions() {
                 const userScore = data[userId];
 
                 // Assuming 'ranks' is where you store results
-                if (userScore !== undefined || userScore !== null) {
+                if (userScore !== undefined && userScore !== null) {
                     ranks[userId] = getRankDetails(userScore);  // Using userId as key
                 } else {
                     ranks[userId] = { colorCode: '', icon: '' };  // Default values if score is undefined
@@ -635,7 +637,7 @@ export default function RecentQuestions() {
             }
         };
 
-    }, [questions]);
+    }, [currentQuestions]);
 
     if (status === 'loading') {
         return <div className="mx-auto text-center py-8"><h1 className="text-2xl font-bold my-[30vh]">Loading...</h1></div>;
@@ -656,8 +658,8 @@ export default function RecentQuestions() {
                 <div>
                     {currentQuestions.length === 0 && (
                         <div className='flex items-center justify-center text-center'>
-                            <div className='h-[64vh] pt-[15em] w-full text-xl font-bold text-zinc-500 mt-4 lg:block hidden'>No questions asked in the last 7 days</div>
-                            <div className='h-[58vh] pt-[10em] w-full text-xl font-bold text-zinc-500 mt-3 mx-3 rounded-lg lg:hidden block'>No questions asked in the last 7 days</div>
+                            <div className='h-[64vh] pt-[15em] w-full text-xl font-bold text-zinc-500 mt-4 lg:block hidden'>No questions have been asked yet</div>
+                            <div className='h-[58vh] pt-[10em] w-full text-xl font-bold text-zinc-500 mt-3 mx-3 rounded-lg lg:hidden block'>No questions have been asked yet</div>
                         </div>
                     )}
                 </div>

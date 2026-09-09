@@ -134,7 +134,7 @@ export default function QuestionBox({
 
     fetchTopics();
     fetchProgressData();
-  }, [refresh]);
+  }, [refresh, classId, selectedTopicId]);
 
   const handleDropdown = () => {
     setShowDropdown(!showDropdown);

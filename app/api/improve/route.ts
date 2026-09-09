@@ -34,9 +34,8 @@ async function postHandler(req: Request, res: NextApiResponse) {
         // Extract question data from the request body
         const { question } = await req.json();
   
-        // Llama-3
-        const baseUrl = process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000'
-        const llama_response3 = await fetch(`${baseUrl}/api/groq?question=${question}&version=3`, {
+        // AI improvement suggestions
+        const llama_response3 = await fetch(`${new URL(req.url).origin}/api/ai?question=${encodeURIComponent(question)}&version=3`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json'

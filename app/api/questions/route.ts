@@ -184,13 +184,9 @@ async function postHandler(req: Request, res: NextApiResponse) {
         return errorResponse(validText, 400);
       }
 
-      const baseUrl = process.env.VERCEL_URL
-        ? "https://" + process.env.VERCEL_URL
-        : "http://localhost:3000";
-
-      // ✅ Llama v1
+      // ✅ AI validation
       const llama_response = await fetch(
-        `${baseUrl}/api/groq?question=${question}&version=1`,
+        `${new URL(req.url).origin}/api/ai?question=${encodeURIComponent(question)}&version=1`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -221,7 +217,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
 
         if (topicCheckEnabled && cCode !== "FBA6B9") {
           llama_response4 = await fetch(
-            `${baseUrl}/api/groq?question=${question}&version=4&topic=${tname}`,
+            `${new URL(req.url).origin}/api/ai?question=${encodeURIComponent(question)}&version=4&topic=${encodeURIComponent(tname)}`,
             { method: "POST", headers: { "Content-Type": "application/json" } },
           );
         }
@@ -230,7 +226,7 @@ async function postHandler(req: Request, res: NextApiResponse) {
 
         if (cCode !== "FBA6B9") {
           llama_response4 = await fetch(
-            `${baseUrl}/api/groq?question=${question}&version=4&topic=${tname}`,
+            `${new URL(req.url).origin}/api/ai?question=${encodeURIComponent(question)}&version=4&topic=${encodeURIComponent(tname)}`,
             { method: "POST", headers: { "Content-Type": "application/json" } },
           );
         }
@@ -239,22 +235,31 @@ async function postHandler(req: Request, res: NextApiResponse) {
       let is_validTopic: any;
 
       try {
+        if (!llama_response4.ok) {
+          return errorResponse("AI topic validation unavailable", 503);
+        }
         is_validTopic = await llama_response4.json();
         is_validTopic = String(is_validTopic).toLowerCase();
       } catch {
         return errorResponse("Invalid topic validation response", 502);
       }
+      const is_valid_question = String(data || "").trim().toLowerCase();
+      const normalizedTopicResult = String(is_validTopic || "").trim().toLowerCase();
 
-      const is_valid_question = String(data || "").toLowerCase();
+      if (
+        !normalizedTopicResult.includes("yes") &&
+        !normalizedTopicResult.includes("no")
+      ) {
+        return errorResponse("AI topic validation failed", 502);
+      }
 
-      if (is_valid_question.trim().startsWith("no")) {
+      if (normalizedTopicResult.startsWith("no")) {
         return errorResponse("Question is off-topic", 400, {
           improvement_suggestion:
             "Your question does not match the classroom topic. Please ask something relevant.",
         });
       }
 
-      // normalize safety
       if (
         !is_valid_question.includes("yes") &&
         !is_valid_question.includes("no")
@@ -276,9 +281,9 @@ async function postHandler(req: Request, res: NextApiResponse) {
         );
       }
 
-      // ✅ Llama scoring
+      // ✅ AI scoring
       const llama_response2 = await fetch(
-        `${baseUrl}/api/groq?question=${question}&version=2`,
+        `${new URL(req.url).origin}/api/ai?question=${encodeURIComponent(question)}&version=2`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

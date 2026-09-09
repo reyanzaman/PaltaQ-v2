@@ -5,12 +5,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
 import Image from 'next/image';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSession } from "next-auth/react";
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/postUtils';
 import { getRankDetails } from '../utils/rankings';
-import { uid } from '../api/submitGenQuestion/route';
+import { GUEST_USER_ID as uid } from '../lib/constants';
 import GeneratedResponse from './generatedResponse';
 import { Tooltip } from "react-tooltip";
 
@@ -357,7 +357,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
         }
     };
 
-    const fetchPaltaQ = async () => {
+    const fetchPaltaQ = useCallback(async () => {
         try {
             const response = await fetch(`/api/getPaltaQ?pqid=${paltaQId}`, {
                 method: 'GET',
@@ -382,7 +382,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
         } catch (error) {
             console.error('Error fetching paltaQ:', error);
         }
-    };
+    }, [paltaQId]);
 
     const handleAIGenerate = async (question: string, questionId: string) => {
         try {
@@ -422,7 +422,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
         const intervalId = setInterval(fetchPaltaQ, 15000); // Fetch every 15 seconds
         return () => clearInterval(intervalId); // Cleanup function to clear interval
 
-    }, [userId, refresh]);
+    }, [fetchPaltaQ, userId, refresh]);
 
     useEffect(() => {
         if (questions.length === 0) return;
@@ -449,7 +449,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                 const userScore = data[userId];
 
                 // Assuming 'ranks' is where you store results
-                if (userScore !== undefined || userScore !== null) {
+                if (userScore !== undefined && userScore !== null) {
                     ranks[userId] = getRankDetails(userScore);  // Using userId as key
                 } else {
                     ranks[userId] = { colorCode: '', icon: '' };  // Default values if score is undefined
@@ -490,7 +490,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
                 const userScore = data[userId];
 
                 // Assuming 'ranks' is where you store results
-                if (userScore !== undefined || userScore !== null) {
+                if (userScore !== undefined && userScore !== null) {
                     ranks[userId] = getRankDetails(userScore);  // Using userId as key
                 } else {
                     ranks[userId] = { colorCode: '', icon: '' };  // Default values if score is undefined
@@ -523,7 +523,7 @@ const PaltaQComponent: React.FC<PaltaQProps> = ({
             }
         };
 
-    }, [questions]);
+    }, [questions, classId, from]);
 
     const sortedQuestions = questions.slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 

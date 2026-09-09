@@ -85,7 +85,7 @@ export default function AdminComponent() {
 
     fetchUser();
 
-  }, [session]);
+  }, [session, status, router]);
 
   if (status === 'loading') {
     return <div className="pl-[10em] pt-[3em]"><h1 className="text-2xl font-bold">Loading...</h1></div>;

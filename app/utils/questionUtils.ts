@@ -8,7 +8,7 @@ import {
   bloom_evaluating,
   bloom_understanding
 } from '@/app/utils/taxonomy';
-import { tid } from '@/app/api/submitGenQuestion/route';
+import { GENERAL_TOPIC_ID as tid } from '@/app/lib/constants';
 
 export async function validateQuestion(question: string, category: QuestionCategory, topicID: string, classID: string): Promise<string> {
   try {

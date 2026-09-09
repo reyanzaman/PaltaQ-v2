@@ -1,5 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import prisma from '@/app/lib/prisma';
+import prisma from '@/app/lib/prisma';import { getToken } from "next-auth/jwt";
+import { getUserIDFromDatabase } from "@/app/utils/getUtils";
+
+const secret = process.env.SECRET;
 
 export async function postHandler(req: Request, res: NextApiResponse) {
     if (req.method !== 'POST') {
@@ -11,9 +14,33 @@ export async function postHandler(req: Request, res: NextApiResponse) {
         });
     }
 
-    const body = await req.json();
+    let body: any;
+    try {
+        body = await req.json();
+    } catch {
+        return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400 });
+    }
 
     const { userId, questionId, type } = body;
+    if (!userId || !questionId || (type !== "question" && type !== "palta")) {
+        return new Response(JSON.stringify({ error: "Invalid reaction request" }), { status: 400 });
+    }
+
+    const token = await getToken({ req: req as any, secret });
+    if (!token?.email) {
+        return new Response(JSON.stringify({ error: "Authentication required" }), { status: 401 });
+    }
+
+    let authenticatedUserId: string;
+    try {
+        authenticatedUserId = await getUserIDFromDatabase(String(token.email));
+    } catch {
+        return new Response(JSON.stringify({ error: "Authenticated user not found" }), { status: 401 });
+    }
+
+    if (authenticatedUserId !== userId) {
+        return new Response(JSON.stringify({ error: "User identity does not match session" }), { status: 403 });
+    }
 
     try {
         // Check if the user has already liked the question

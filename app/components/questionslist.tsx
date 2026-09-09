@@ -16,7 +16,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "@/app/ui/neomorphism.css";
 import Image from 'next/image';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from "next-auth/react";
 import { toast } from 'react-toastify';
 import { QuestionCategory } from '@/app/utils/questionCategory';
@@ -230,7 +230,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
     const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
     const indexOfLastQuestion = currentPage * itemsPerPage;
     const indexOfFirstQuestion = indexOfLastQuestion - itemsPerPage;
-    const currentQuestions = filteredQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
+    const currentQuestions = useMemo(() => filteredQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion), [filteredQuestions, indexOfFirstQuestion, indexOfLastQuestion]);
 
     // Update date filter (sets state, validates, then refreshes list)
     const updateFilteredQuestions = (fDate?: string, tDate?: string) => {
@@ -698,7 +698,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
         fetchTopics();
         fetchQuestions().then(() => setLoadingQ(false));
 
-    }, [refresh]);
+    }, [refresh, classId, selectedTopicId, session?.user?.email]);
 
     useEffect(() => {
         if (currentQuestions.length === 0) return;
@@ -732,7 +732,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
                 const userScore = data[userId];
 
                 // Assuming 'ranks' is where you store results
-                if (userScore !== undefined || userScore !== null) {
+                if (userScore !== undefined && userScore !== null) {
                     ranks[userId] = getRankDetails(userScore);  // Using userId as key
                 } else {
                     ranks[userId] = { colorCode: '', icon: '' };  // Default values if score is undefined
@@ -760,7 +760,7 @@ export default function QuestionsList({ classId, refresh, handleRefresh, toggleR
             }
         };
 
-    }, [questions]);
+    }, [currentQuestions, classId]);
 
     useEffect(() => {
         if (questionsRef.current) {
